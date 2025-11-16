@@ -4,18 +4,16 @@ import { defaultTheme } from "@coinbase/cds-mobile/themes/defaultTheme";
 import { VStack } from "@coinbase/cds-mobile/layout/VStack";
 import { Text } from "@coinbase/cds-mobile/typography/Text";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { NavigationContainer } from "@react-navigation/native";
+import { AppRoutes } from "./AppRoutes";
 
 export default function App() {
   return (
-    <ThemeProvider theme={defaultTheme} activeColorScheme="light">
-      <SafeAreaProvider>
-        <SafeAreaView>
-          <VStack background="accentBoldRed">
-            <Text>Open up App.tsx to start working on your app!</Text>
-          </VStack>
-        </SafeAreaView>
-      </SafeAreaProvider>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <NavigationContainer>
+      <ThemeProvider theme={defaultTheme} activeColorScheme="light">
+        <AppRoutes />
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    </NavigationContainer>
   );
 }
