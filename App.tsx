@@ -1,20 +1,21 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StatusBar } from "expo-status-bar";
+import { ThemeProvider } from "@coinbase/cds-mobile";
+import { defaultTheme } from "@coinbase/cds-mobile/themes/defaultTheme";
+import { VStack } from "@coinbase/cds-mobile/layout/VStack";
+import { Text } from "@coinbase/cds-mobile/typography/Text";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
+    <ThemeProvider theme={defaultTheme} activeColorScheme="light">
+      <SafeAreaProvider>
+        <SafeAreaView>
+          <VStack background="accentBoldRed">
+            <Text>Open up App.tsx to start working on your app!</Text>
+          </VStack>
+        </SafeAreaView>
+      </SafeAreaProvider>
       <StatusBar style="auto" />
-    </View>
+    </ThemeProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
