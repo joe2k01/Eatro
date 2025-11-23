@@ -26,9 +26,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "permissions": [
-        "android.permission.CAMERA"
-      ],
+      "permissions": ["android.permission.CAMERA"],
       "package": "com.anonymous.Eatro"
     },
     "web": {
@@ -39,6 +37,14 @@
         "react-native-vision-camera",
         {
           "enableCodeScanner": true
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./node_modules/@coinbase/cds-icons/esm/fonts/native/CoinbaseIcons.ttf"
+          ]
         }
       ]
     ]

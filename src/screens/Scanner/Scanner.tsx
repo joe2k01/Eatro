@@ -1,10 +1,17 @@
-import { StyleSheet } from "react-native";
+import { IconButton } from "@coinbase/cds-mobile/buttons/IconButton";
+import { Box, VStack } from "@coinbase/cds-mobile/layout";
+import { Text } from "@coinbase/cds-mobile/typography/Text";
+import { useNavigation } from "@react-navigation/native";
+import { useCallback, useEffect, useRef } from "react";
+import { Animated, StyleSheet } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import {
   Camera,
   useCameraDevice,
   useCameraPermission,
   useCodeScanner,
 } from "react-native-vision-camera";
+import { Overlay } from "./components/Overlay";
 
 export function Scanner() {
   const { hasPermission } = useCameraPermission();
@@ -39,12 +46,17 @@ export function Scanner() {
   }
 
   return (
-    <Camera
-      device={device}
-      isActive
-      style={StyleSheet.absoluteFill}
-      codeScanner={codeScanner}
-    />
+    <Box position="relative" width="100%" height="100%">
+      <Camera
+        device={device}
+        isActive
+        style={StyleSheet.absoluteFill}
+        codeScanner={codeScanner}
+      />
+      <SafeAreaProvider>
+        <Overlay />
+      </SafeAreaProvider>
+    </Box>
   );
 }
 

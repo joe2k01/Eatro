@@ -19,7 +19,11 @@ export function AppRoutes() {
   return (
     <Stack.Navigator initialRouteName="Home">
       <Stack.Screen name="Home" component={Home} />
-      <Stack.Screen name="Scanner" component={Scanner} />
+      <Stack.Screen
+        name="Scanner"
+        component={Scanner}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 }
