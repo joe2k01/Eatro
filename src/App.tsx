@@ -6,6 +6,8 @@ import { AppRoutes } from "./AppRoutes";
 import { useFonts } from "expo-font";
 import * as Sentry from "@sentry/react-native";
 import { useEffect } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ApiClientProvier } from "./api/ApiClient";
 
 Sentry.init({
   dsn: "https://0b9e10cd50dba3b6a2423d19dc8720fd@o4510450363727872.ingest.de.sentry.io/4510450365038672",
@@ -26,6 +28,8 @@ Sentry.init({
   // spotlight: __DEV__,
 });
 
+const queryClient = new QueryClient();
+
 export default Sentry.wrap(function App() {
   const [_fontLoaded, fontLoadingError] = useFonts({
     CoibaseIcons: require("@coinbase/cds-icons/esm/fonts/native/CoinbaseIcons.ttf"),
@@ -39,10 +43,14 @@ export default Sentry.wrap(function App() {
 
   return (
     <NavigationContainer>
-      <ThemeProvider theme={defaultTheme} activeColorScheme="light">
-        <AppRoutes />
-        <StatusBar style="auto" />
-      </ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <ApiClientProvier>
+          <ThemeProvider theme={defaultTheme} activeColorScheme="light">
+            <AppRoutes />
+            <StatusBar style="auto" />
+          </ThemeProvider>
+        </ApiClientProvier>
+      </QueryClientProvider>
     </NavigationContainer>
   );
 });

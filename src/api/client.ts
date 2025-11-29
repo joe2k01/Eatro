@@ -1,3 +1,6 @@
+import z from "zod";
+import { zGetProductDetails } from "./validators/getProductDetails";
+
 export class ApiClient {
   private static URL =
     process.env.NODE_ENV === "production"
@@ -8,8 +11,13 @@ export class ApiClient {
     "User-Agent": "Eatro/alpha (giuseppe@barillari.me)",
   };
 
-  private get(slug: `/${string}`) {
-    return fetch(`${ApiClient.URL}${slug}`, { headers: ApiClient.HEADERS });
+  private async get<Z extends z.ZodType>(slug: `/${string}`, validator: Z) {
+    const res = await fetch(`${ApiClient.URL}${slug}`, {
+      headers: ApiClient.HEADERS,
+    });
+    const json = await res.json();
+
+    return validator.parseAsync(json);
   }
 
   public getProductDetails(barcode: string, params: { lc?: string }) {
@@ -18,6 +26,9 @@ export class ApiClient {
       fields: "nutriments,product_name,brands",
     });
 
-    return this.get(`/product/${encodeURIComponent(barcode)}?${mParams}`);
+    return this.get(
+      `/product/${encodeURIComponent(barcode)}?${mParams}`,
+      zGetProductDetails,
+    );
   }
 }

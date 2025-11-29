@@ -2885,6 +2885,35 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/eslint-plugin-query@npm:^5.91.2":
+  version: 5.91.2
+  resolution: "@tanstack/eslint-plugin-query@npm:5.91.2"
+  dependencies:
+    "@typescript-eslint/utils": "npm:^8.44.1"
+  peerDependencies:
+    eslint: ^8.57.0 || ^9.0.0
+  checksum: 10c0/d839f37ae99ea776a2d1c03514d0e57a73890f449046e53b9497e919365bb14a13277f152cdb532f6714d60399b280daeedcaf55559d23b90b6beaa352fe15c8
+  languageName: node
+  linkType: hard
+
+"@tanstack/query-core@npm:5.90.11":
+  version: 5.90.11
+  resolution: "@tanstack/query-core@npm:5.90.11"
+  checksum: 10c0/c2e44f36cec8957ec382ebcacb955bbb2112d03d475414f041194d05b7256d9ea1cc813eca7095033d36af0ba02c397aa646d976b428ff15b897b025ac53b3e9
+  languageName: node
+  linkType: hard
+
+"@tanstack/react-query@npm:^5.90.11":
+  version: 5.90.11
+  resolution: "@tanstack/react-query@npm:5.90.11"
+  dependencies:
+    "@tanstack/query-core": "npm:5.90.11"
+  peerDependencies:
+    react: ^18 || ^19
+  checksum: 10c0/2e4b73903c2445672996cfeca69985e92055870594a8b64cc8b960d756d199a023b6cceb9548525ea8cf3f3a1986b5bc3e3ec8d0722615c6ac9ed1478c604b02
+  languageName: node
+  linkType: hard
+
 "@tybys/wasm-util@npm:^0.10.0":
   version: 0.10.1
   resolution: "@tybys/wasm-util@npm:0.10.1"
@@ -3142,7 +3171,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/utils@npm:8.48.0, @typescript-eslint/utils@npm:^8.29.1":
+"@typescript-eslint/utils@npm:8.48.0, @typescript-eslint/utils@npm:^8.29.1, @typescript-eslint/utils@npm:^8.44.1":
   version: 8.48.0
   resolution: "@typescript-eslint/utils@npm:8.48.0"
   dependencies:
@@ -4809,6 +4838,8 @@ __metadata:
     "@react-navigation/native": "npm:^7.1.20"
     "@react-navigation/native-stack": "npm:^7.6.3"
     "@sentry/react-native": "npm:^7.7.0"
+    "@tanstack/eslint-plugin-query": "npm:^5.91.2"
+    "@tanstack/react-query": "npm:^5.90.11"
     "@types/react": "npm:~19.1.0"
     eslint: "npm:^9.0.0"
     eslint-config-expo: "npm:~10.0.0"
@@ -4826,6 +4857,7 @@ __metadata:
     react-native-svg: "npm:15.12.1"
     react-native-vision-camera: "npm:^4.7.3"
     typescript: "npm:~5.9.2"
+    zod: "npm:^4.1.13"
   languageName: unknown
   linkType: soft
 
@@ -10851,5 +10883,12 @@ __metadata:
   version: 3.25.76
   resolution: "zod@npm:3.25.76"
   checksum: 10c0/5718ec35e3c40b600316c5b4c5e4976f7fee68151bc8f8d90ec18a469be9571f072e1bbaace10f1e85cf8892ea12d90821b200e980ab46916a6166a4260a983c
+  languageName: node
+  linkType: hard
+
+"zod@npm:^4.1.13":
+  version: 4.1.13
+  resolution: "zod@npm:4.1.13"
+  checksum: 10c0/d7e74e82dba81a91ffc3239cd85bc034abe193a28f7087a94ab258a3e48e9a7ca4141920cac979a0d781495b48fc547777394149f26be04c3dc642f58bbc3941
   languageName: node
   linkType: hard
