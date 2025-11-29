@@ -21,7 +21,7 @@ export function Home() {
   return (
     <VStack background="accentBoldRed">
       <Button disabled={!isCameraEnabled} onPress={onGoToCamera}>
-        <Text>Go to camera</Text>
+        Go to camera
       </Button>
     </VStack>
   );
