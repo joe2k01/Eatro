@@ -4,14 +4,11 @@ import { Text } from "@coinbase/cds-mobile/typography/Text";
 import { useNavigation } from "@react-navigation/native";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Animated, ViewStyle } from "react-native";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export function Overlay() {
   const navigation = useNavigation();
-  const onCancel = useCallback(() => navigation.goBack(), [navigation.goBack]);
+  const onCancel = useCallback(() => navigation.goBack(), [navigation]);
 
   const insets = useSafeAreaInsets();
 
@@ -19,11 +16,11 @@ export function Overlay() {
 
   const topBoxStyle = useMemo<ViewStyle>(
     () => ({ paddingTop: insets.top }),
-    [insets.top]
+    [insets.top],
   );
   const bottomBoxStyle = useMemo<ViewStyle>(
     () => ({ opacity: opacity.current, paddingBlock: insets.bottom }),
-    [insets.bottom]
+    [insets.bottom],
   );
 
   useEffect(() => {
@@ -47,7 +44,7 @@ export function Overlay() {
       </Box>
       <Box background="bgElevation1" style={bottomBoxStyle} animated>
         <Text font="title1" align="center">
-          Scan a product's bar code to look up its data
+          Scan a product&apos;s bar code to look up its data
         </Text>
       </Box>
     </VStack>

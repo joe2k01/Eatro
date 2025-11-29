@@ -12,5 +12,5 @@ export function useSetupCamera(): UseSetupCamera {
     }
 
     return requestPermission();
-  }, []);
+  }, [hasPermission, requestPermission]);
 }

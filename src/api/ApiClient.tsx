@@ -1,11 +1,4 @@
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { createContext, useContext } from "react";
 import { ApiClient } from "./client";
 
 type ApiClientContex = {
@@ -17,7 +10,11 @@ const ctx: ApiClientContex = { client: new ApiClient() };
 const ApiClientContext = createContext<ApiClientContex>(ctx);
 
 export function ApiClientProvier({ children }: { children?: React.ReactNode }) {
-  return <ApiClientContext.Provider value={ctx}></ApiClientContext.Provider>;
+  return (
+    <ApiClientContext.Provider value={ctx}>
+      {children}
+    </ApiClientContext.Provider>
+  );
 }
 
 export function useApiClient() {

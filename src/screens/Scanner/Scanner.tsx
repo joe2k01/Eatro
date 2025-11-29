@@ -1,10 +1,8 @@
-import { IconButton } from "@coinbase/cds-mobile/buttons/IconButton";
 import { Box, VStack } from "@coinbase/cds-mobile/layout";
 import { Text } from "@coinbase/cds-mobile/typography/Text";
-import { useNavigation } from "@react-navigation/native";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { NativeModules, Platform, StyleSheet } from "react-native";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { useCallback, useState } from "react";
+import { StyleSheet } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import {
   Camera,
   useCameraDevice,
@@ -45,7 +43,7 @@ export function Scanner() {
         setIsLoading(false);
       }
     },
-    [client, previousCode, locale]
+    [client, previousCode, locale],
   );
 
   const { hasPermission } = useCameraPermission();

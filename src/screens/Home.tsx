@@ -1,5 +1,4 @@
 import { VStack } from "@coinbase/cds-mobile/layout";
-import { Text } from "@coinbase/cds-mobile/typography/Text";
 import { useSetupCamera } from "../hooks/useSetupCamera";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@coinbase/cds-mobile/buttons/Button";
@@ -14,9 +13,12 @@ export function Home() {
 
   useEffect(() => {
     setupCamera().then(setIsCameraEnabled);
-  }, []);
+  }, [setupCamera]);
 
-  const onGoToCamera = useCallback(() => navigation.navigate("Scanner"), []);
+  const onGoToCamera = useCallback(
+    () => navigation.navigate("Scanner"),
+    [navigation],
+  );
 
   return (
     <VStack background="accentBoldRed">

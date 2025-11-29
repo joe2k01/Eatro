@@ -5,6 +5,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { AppRoutes } from "./AppRoutes";
 import { useFonts } from "expo-font";
 import * as Sentry from "@sentry/react-native";
+import { useEffect } from "react";
 
 Sentry.init({
   dsn: "https://0b9e10cd50dba3b6a2423d19dc8720fd@o4510450363727872.ingest.de.sentry.io/4510450365038672",
@@ -26,9 +27,15 @@ Sentry.init({
 });
 
 export default Sentry.wrap(function App() {
-  const [_fontLoaded, _fontLoadingError] = useFonts({
+  const [_fontLoaded, fontLoadingError] = useFonts({
     CoibaseIcons: require("@coinbase/cds-icons/esm/fonts/native/CoinbaseIcons.ttf"),
   });
+
+  useEffect(() => {
+    if (fontLoadingError) {
+      Sentry.captureException(fontLoadingError);
+    }
+  }, [fontLoadingError]);
 
   return (
     <NavigationContainer>
