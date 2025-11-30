@@ -1,5 +1,4 @@
-import { Box, VStack } from "@coinbase/cds-mobile/layout";
-import { Text } from "@coinbase/cds-mobile/typography/Text";
+import { Box } from "@coinbase/cds-mobile/layout";
 import { useCallback, useEffect, useState } from "react";
 import { StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -10,31 +9,15 @@ import {
   useCodeScanner,
 } from "react-native-vision-camera";
 import { Overlay } from "./components/Overlay";
-import { useApiClient } from "../../api/ApiClient";
-import { useLocales } from "expo-localization";
-import { useQuery } from "@tanstack/react-query";
 import { useNavigation } from "@react-navigation/native";
 
 export function Scanner() {
   const navigation = useNavigation();
-  const [locale] = useLocales();
 
   const [barcode, setBarcode] = useState<string | undefined>();
-  const { client } = useApiClient();
-
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["product", barcode],
-    queryFn: async ({ queryKey }) => {
-      const [_, mBarcode] = queryKey;
-      console.log("Calling with", mBarcode);
-      return client.getProductDetails(mBarcode ?? "", {
-        lc: locale.languageCode ?? "en",
-      });
-    },
-    enabled: !!barcode,
-  });
 
   useEffect(() => {
+    // Clear barcode on view resume
     function listener() {
       setBarcode(undefined);
     }
@@ -46,13 +29,14 @@ export function Scanner() {
 
   const processBarcode = useCallback(
     async (barcode: string | undefined) => {
-      if (!barcode || isLoading) {
+      if (!barcode) {
         return;
       }
 
       setBarcode(barcode);
+      navigation.navigate("ProductLoader", { barcode });
     },
-    [isLoading],
+    [navigation],
   );
 
   const { hasPermission } = useCameraPermission();
@@ -84,29 +68,15 @@ export function Scanner() {
     },
   });
 
-  useEffect(() => {
-    if (data) {
-      navigation.navigate("Product", data);
-    }
-  }, [data, navigation]);
-
   if (!hasPermission || !device) {
     return null;
-  }
-
-  if (isLoading) {
-    return (
-      <VStack height="100%" alignItems="center">
-        <Text>Loading</Text>
-      </VStack>
-    );
   }
 
   return (
     <Box position="relative" width="100%" height="100%">
       <Camera
         device={device}
-        isActive
+        isActive={!barcode}
         style={StyleSheet.absoluteFill}
         codeScanner={codeScanner}
       />

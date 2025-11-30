@@ -36,7 +36,7 @@ export function Overlay() {
     <VStack height="100%" justifyContent="space-between">
       <Box style={topBoxStyle} paddingStart={2}>
         <IconButton
-          name="caretLeft"
+          name="close"
           variant="negative"
           accessibilityLabel="Cancel"
           onPress={onCancel}

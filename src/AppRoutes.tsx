@@ -1,12 +1,18 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Home, HomeParams } from "./screens/Home";
 import { Scanner, ScannerParams } from "./screens/Scanner";
-import { Product, ProductParams } from "./screens/Product";
+import {
+  Product,
+  ProductLoader,
+  ProductLoaderParams,
+  ProductParams,
+} from "./screens/Product";
 
 export type RootStackParamsList = {
   Home: HomeParams;
   Scanner: ScannerParams;
   Product: ProductParams;
+  ProductLoader: ProductLoaderParams;
 };
 
 declare global {
@@ -28,6 +34,7 @@ export function AppRoutes() {
         options={{ headerShown: false }}
       />
       <Stack.Screen name="Product" component={Product} />
+      <Stack.Screen name="ProductLoader" component={ProductLoader} />
     </Stack.Navigator>
   );
 }
