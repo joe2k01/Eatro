@@ -1,7 +1,6 @@
 import { Box } from "@coinbase/cds-mobile/layout";
 import { useCallback, useEffect, useState } from "react";
 import { StyleSheet } from "react-native";
-import { SafeAreaProvider } from "react-native-safe-area-context";
 import {
   Camera,
   useCameraDevice,
@@ -80,9 +79,7 @@ export function Scanner() {
         style={StyleSheet.absoluteFill}
         codeScanner={codeScanner}
       />
-      <SafeAreaProvider>
-        <Overlay />
-      </SafeAreaProvider>
+      <Overlay />
     </Box>
   );
 }

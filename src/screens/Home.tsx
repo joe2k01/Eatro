@@ -1,8 +1,8 @@
-import { VStack } from "@coinbase/cds-mobile/layout";
 import { useSetupCamera } from "../hooks/useSetupCamera";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@coinbase/cds-mobile/buttons/Button";
 import { useNavigation } from "@react-navigation/native";
+import { SafeVStack } from "../components";
 
 export function Home() {
   const setupCamera = useSetupCamera();
@@ -21,11 +21,11 @@ export function Home() {
   );
 
   return (
-    <VStack background="accentBoldRed">
+    <SafeVStack background="accentBoldRed">
       <Button disabled={!isCameraEnabled} onPress={onGoToCamera}>
         Go to camera
       </Button>
-    </VStack>
+    </SafeVStack>
   );
 }
 

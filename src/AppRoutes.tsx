@@ -1,4 +1,7 @@
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import {
+  createNativeStackNavigator,
+  NativeStackNavigationOptions,
+} from "@react-navigation/native-stack";
 import { Home, HomeParams } from "./screens/Home";
 import { Scanner, ScannerParams } from "./screens/Scanner";
 import {
@@ -24,9 +27,11 @@ declare global {
 
 const Stack = createNativeStackNavigator<RootStackParamsList>();
 
+const StackOptions: NativeStackNavigationOptions = { headerShown: false };
+
 export function AppRoutes() {
   return (
-    <Stack.Navigator initialRouteName="Home">
+    <Stack.Navigator initialRouteName="Home" screenOptions={StackOptions}>
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen
         name="Scanner"

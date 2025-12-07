@@ -40,7 +40,7 @@ export function ProductLoader() {
     if (data) {
       navigation.navigate("Product", data);
     }
-  }, [data]);
+  }, [data, navigation]);
 
   if (error) {
     return <LoaderError />;
