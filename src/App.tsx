@@ -1,13 +1,12 @@
 import { StatusBar } from "expo-status-bar";
-// import { ThemeProvider } from "@coinbase/cds-mobile";
 import { NavigationContainer } from "@react-navigation/native";
 import * as Sentry from "@sentry/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { UserContextProvider } from "@contexts/UserContextProvider";
 import { ApiClientProvier } from "@api/ApiClient";
-// import { eatroTheme } from "@constants/theme";
 import { AppRoutes } from "./AppRoutes";
+import { ThemeProvider } from "@contexts/ThemeProvider";
 
 Sentry.init({
   dsn: "https://0b9e10cd50dba3b6a2423d19dc8720fd@o4510450363727872.ingest.de.sentry.io/4510450365038672",
@@ -37,10 +36,10 @@ export default Sentry.wrap(function App() {
         <NavigationContainer>
           <QueryClientProvider client={queryClient}>
             <ApiClientProvier>
-              {/* <ThemeProvider theme={eatroTheme} activeColorScheme="dark"> */}
-              <AppRoutes />
-              <StatusBar style="inverted" />
-              {/* </ThemeProvider> */}
+              <ThemeProvider>
+                <AppRoutes />
+                <StatusBar />
+              </ThemeProvider>
             </ApiClientProvier>
           </QueryClientProvider>
         </NavigationContainer>
