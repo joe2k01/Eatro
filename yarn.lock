@@ -1094,13 +1094,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@coinbase/cds-common@npm:^8.21.2":
-  version: 8.21.2
-  resolution: "@coinbase/cds-common@npm:8.21.2"
+"@coinbase/cds-common@npm:^8.30.1":
+  version: 8.30.1
+  resolution: "@coinbase/cds-common@npm:8.30.1"
   dependencies:
-    "@coinbase/cds-icons": "npm:^5.6.0"
-    "@coinbase/cds-illustrations": "npm:^4.27.0"
-    "@coinbase/cds-mcp-server": "npm:^8.21.2"
+    "@coinbase/cds-icons": "npm:^5.8.0"
+    "@coinbase/cds-illustrations": "npm:^4.29.0"
+    "@coinbase/cds-mcp-server": "npm:^8.30.1"
     "@coinbase/cds-utils": "npm:^2.3.4"
     "@modelcontextprotocol/sdk": "npm:^1.13.1"
     d3-array: "npm:^3.2.4"
@@ -1115,21 +1115,21 @@ __metadata:
   peerDependencies:
     react: ^18.3.1
     react-dom: ^18.3.1
-  checksum: 10c0/aad12471184e98400ad5f7f749c1e3cfce82fa8f6da42ea225f7923641da8b2a90fe9170feb45cc1af9b99b68905d4f52fcf565d9b637983f24ee35aa009b1cd
+  checksum: 10c0/b0e1d7044c7c9187831bbbe73d24b42fe85643000ee386c0fdddb9674acb9b767d2f4f38ad0643fecbd40f0c71b235c70c2ad786ebf72805cd95867221e57719
   languageName: node
   linkType: hard
 
-"@coinbase/cds-icons@npm:^5.6.0":
-  version: 5.6.0
-  resolution: "@coinbase/cds-icons@npm:5.6.0"
-  checksum: 10c0/eda6e2bd29b9b8209f2a54b0e227dcef19bdf3df4beb993da48b3b667225e23149a0d271772547ae8fdb9c12fef196c5879ce8017a3abe2d220537bfd60f6aee
+"@coinbase/cds-icons@npm:^5.8.0":
+  version: 5.8.0
+  resolution: "@coinbase/cds-icons@npm:5.8.0"
+  checksum: 10c0/1e02e4f9166ba90b4ab4d94c21aa3343821331a342225c91abc8b760cec41fe52c1ad61f1e620364ed99935859c0ae8e9b30b3ce02edc707b3987a0cdc966ae1
   languageName: node
   linkType: hard
 
-"@coinbase/cds-illustrations@npm:^4.27.0":
-  version: 4.27.0
-  resolution: "@coinbase/cds-illustrations@npm:4.27.0"
-  checksum: 10c0/2dbe2ce629a5e1e2eec5d27cee5cc87c2e145e76cafb9f56e301f577215f968a6c71479792bf3c696514d5f971abe6b7631678837df99043cbdbc9f9db84c94c
+"@coinbase/cds-illustrations@npm:^4.29.0":
+  version: 4.29.0
+  resolution: "@coinbase/cds-illustrations@npm:4.29.0"
+  checksum: 10c0/5ec091b2af9d9a9555f3a1994766de8359e463849d9ffc6b00fb589e0d1a85ad57d3e953914f0c9f4f1164078ea2be4737ae069d884264ffa65ac158acee5e39
   languageName: node
   linkType: hard
 
@@ -1140,9 +1140,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@coinbase/cds-mcp-server@npm:^8.21.2":
-  version: 8.21.2
-  resolution: "@coinbase/cds-mcp-server@npm:8.21.2"
+"@coinbase/cds-mcp-server@npm:^8.30.1":
+  version: 8.30.1
+  resolution: "@coinbase/cds-mcp-server@npm:8.30.1"
   dependencies:
     "@inquirer/prompts": "npm:^7.5.3"
     "@modelcontextprotocol/sdk": "npm:^1.13.1"
@@ -1154,17 +1154,17 @@ __metadata:
     cds-mcp: esm/server.js
     cds-mcp-server: esm/server.js
     cds-mcp-setup: esm/setup.js
-  checksum: 10c0/c90007d9f40939e97151254ce2da99e4a18e9dedaa30e6f3e64498510011722ae1eee1cf5fab51483836b738b860e6db6f5e08a8d221f3ca9494f8f7287d5824
+  checksum: 10c0/c48580669292bc9eaef9eab9378e52b5eef4a860fc00a671792c008745437d669f9635a2034740444d7eb436e40aece8618e3287d9e0a8d7528bce4da5790f19
   languageName: node
   linkType: hard
 
-"@coinbase/cds-mobile@npm:^8.21.2":
-  version: 8.21.2
-  resolution: "@coinbase/cds-mobile@npm:8.21.2"
+"@coinbase/cds-mobile@npm:^8.30.1":
+  version: 8.30.1
+  resolution: "@coinbase/cds-mobile@npm:8.30.1"
   dependencies:
-    "@coinbase/cds-common": "npm:^8.21.2"
-    "@coinbase/cds-icons": "npm:^5.6.0"
-    "@coinbase/cds-illustrations": "npm:^4.27.0"
+    "@coinbase/cds-common": "npm:^8.30.1"
+    "@coinbase/cds-icons": "npm:^5.8.0"
+    "@coinbase/cds-illustrations": "npm:^4.29.0"
     "@coinbase/cds-lottie-files": "npm:^3.3.3"
     "@coinbase/cds-utils": "npm:^2.3.4"
     "@floating-ui/react-native": "npm:^0.10.5"
@@ -1187,7 +1187,7 @@ __metadata:
     react-native-safe-area-context: ^4.10.5
     react-native-screens: ^3.32.0
     react-native-svg: ^14.1.0
-  checksum: 10c0/04731a410a546ba44b4e7362ae9171b806ca04e60fe57ae1f69e48ca5bd002b1a27aa3f4afff50fb4c675e036d157e44a4f90889dd98b9851f0ecb6ae83dd4b7
+  checksum: 10c0/ff7a4e2b32480f2c950837afa986fafaf86763bd6db32fefbea38b6d8b8f133ca76620f2d42c9e503d6d85aa6497be1f5adc9a8e108070b71d1acf3832c5ca20
   languageName: node
   linkType: hard
 
@@ -2321,6 +2321,17 @@ __metadata:
   version: 0.2.9
   resolution: "@pkgr/core@npm:0.2.9"
   checksum: 10c0/ac8e4e8138b1a7a4ac6282873aef7389c352f1f8b577b4850778f5182e4a39a5241facbe48361fec817f56d02b51691b383010843fb08b34a8e8ea3614688fd5
+  languageName: node
+  linkType: hard
+
+"@react-native-async-storage/async-storage@npm:2.2.0":
+  version: 2.2.0
+  resolution: "@react-native-async-storage/async-storage@npm:2.2.0"
+  dependencies:
+    merge-options: "npm:^3.0.4"
+  peerDependencies:
+    react-native: ^0.0.0-0 || >=0.65 <1.0
+  checksum: 10c0/84900eba46a40225c4ac9bf5eb58885200dc1e789d873ecda46a2a213870cc7110536ed1fd7a74b873071f3603c093958fbd84c635d6f6d4f94bfbb616ffa0ef
   languageName: node
   linkType: hard
 
@@ -4625,6 +4636,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"date-fns@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "date-fns@npm:4.1.0"
+  checksum: 10c0/b79ff32830e6b7faa009590af6ae0fb8c3fd9ffad46d930548fbb5acf473773b4712ae887e156ba91a7b3dc30591ce0f517d69fd83bd9c38650fdc03b4e0bac8
+  languageName: node
+  linkType: hard
+
 "debug@npm:2.6.9, debug@npm:^2.6.9":
   version: 2.6.9
   resolution: "debug@npm:2.6.9"
@@ -4834,13 +4852,15 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "eatro@workspace:."
   dependencies:
-    "@coinbase/cds-mobile": "npm:^8.21.2"
+    "@coinbase/cds-mobile": "npm:^8.30.1"
+    "@react-native-async-storage/async-storage": "npm:2.2.0"
     "@react-navigation/native": "npm:^7.1.20"
     "@react-navigation/native-stack": "npm:^7.6.3"
     "@sentry/react-native": "npm:^7.7.0"
     "@tanstack/eslint-plugin-query": "npm:^5.91.2"
     "@tanstack/react-query": "npm:^5.90.11"
     "@types/react": "npm:~19.1.0"
+    date-fns: "npm:^4.1.0"
     eslint: "npm:^9.0.0"
     eslint-config-expo: "npm:~10.0.0"
     eslint-config-prettier: "npm:^10.1.8"
@@ -6628,6 +6648,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"is-plain-obj@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "is-plain-obj@npm:2.1.0"
+  checksum: 10c0/e5c9814cdaa627a9ad0a0964ded0e0491bfd9ace405c49a5d63c88b30a162f1512c069d5b80997893c4d0181eadc3fed02b4ab4b81059aba5620bfcdfdeb9c53
+  languageName: node
+  linkType: hard
+
 "is-promise@npm:^4.0.0":
   version: 4.0.0
   resolution: "is-promise@npm:4.0.0"
@@ -7372,6 +7399,15 @@ __metadata:
   version: 2.0.0
   resolution: "merge-descriptors@npm:2.0.0"
   checksum: 10c0/95389b7ced3f9b36fbdcf32eb946dc3dd1774c2fdf164609e55b18d03aa499b12bd3aae3a76c1c7185b96279e9803525550d3eb292b5224866060a288f335cb3
+  languageName: node
+  linkType: hard
+
+"merge-options@npm:^3.0.4":
+  version: 3.0.4
+  resolution: "merge-options@npm:3.0.4"
+  dependencies:
+    is-plain-obj: "npm:^2.1.0"
+  checksum: 10c0/02b5891ceef09b0b497b5a0154c37a71784e68ed71b14748f6fd4258ffd3fe4ecd5cb0fd6f7cae3954fd11e7686c5cb64486daffa63c2793bbe8b614b61c7055
   languageName: node
   linkType: hard
 

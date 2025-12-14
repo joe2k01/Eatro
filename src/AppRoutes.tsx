@@ -10,9 +10,11 @@ import {
   ProductLoaderParams,
   ProductParams,
 } from "./screens/Product";
+import { Settings, SettingsParams } from "./screens/Settings";
 
 export type RootStackParamsList = {
   Home: HomeParams;
+  Settings: SettingsParams;
   Scanner: ScannerParams;
   Product: ProductParams;
   ProductLoader: ProductLoaderParams;
@@ -33,6 +35,7 @@ export function AppRoutes() {
   return (
     <Stack.Navigator initialRouteName="Home" screenOptions={StackOptions}>
       <Stack.Screen name="Home" component={Home} />
+      <Stack.Screen name="Settings" component={Settings} />
       <Stack.Screen
         name="Scanner"
         component={Scanner}
