@@ -1,34 +1,34 @@
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { format } from "date-fns";
-import { Box, HStack } from "@coinbase/cds-mobile/layout";
-import { AvatarButton } from "@coinbase/cds-mobile/buttons/AvatarButton";
-import { Text } from "@coinbase/cds-mobile/typography/Text";
-import { useNavigation } from "@react-navigation/native";
-import { useUser } from "@contexts/UserContextProvider";
+// import { AvatarButton } from "@coinbase/cds-mobile/buttons/AvatarButton";
+// import { useNavigation } from "@react-navigation/native";
 import { useCenteredHeader } from "@hooks/useCenteredHeader";
+import { HStack } from "@components/layout/HStack";
+import { Box } from "@components/layout/Box";
+import { Text } from "@components/typography/Text";
 
 export function Header() {
-  const user = useUser();
+  // const user = useUser();
   const dateString = useMemo(() => format(new Date(), "MMMM do"), []);
 
-  const navigation = useNavigation();
-  const onAvatarClick = useCallback(
-    () => navigation.navigate("Settings"),
-    [navigation],
-  );
+  // const navigation = useNavigation();
+  // const onAvatarClick = useCallback(
+  //   () => navigation.navigate("Settings"),
+  //   [navigation],
+  // );
 
   const { leftRef, rightRef } = useCenteredHeader();
 
   return (
     <HStack alignItems="center" justifyContent="space-between">
       <Box ref={leftRef}>
-        <AvatarButton
+        {/* <AvatarButton
           onPress={onAvatarClick}
           colorScheme="red"
           name={user.name ?? "Test"}
-        />
+        /> */}
       </Box>
-      <Text font="headline">Today, {dateString}</Text>
+      <Text color={"black"}>Today, {dateString}</Text>
       <Box ref={rightRef} />
     </HStack>
   );

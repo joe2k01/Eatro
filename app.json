@@ -39,14 +39,6 @@
           "enableCodeScanner": true
         }
       ],
-      [
-        "expo-font",
-        {
-          "fonts": [
-            "./node_modules/@coinbase/cds-icons/esm/fonts/native/CoinbaseIcons.ttf"
-          ]
-        }
-      ],
       "expo-localization",
       [
         "@sentry/react-native/expo",

@@ -1,4 +1,3 @@
-import { Box } from "@coinbase/cds-mobile/layout";
 import { useCallback, useEffect, useState } from "react";
 import { StyleSheet } from "react-native";
 import {
@@ -9,6 +8,7 @@ import {
 } from "react-native-vision-camera";
 import { Overlay } from "./components/Overlay";
 import { useNavigation } from "@react-navigation/native";
+import { Box } from "@components/layout/Box";
 
 export function Scanner() {
   const navigation = useNavigation();

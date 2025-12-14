@@ -1,14 +1,12 @@
 import { StatusBar } from "expo-status-bar";
-import { ThemeProvider } from "@coinbase/cds-mobile";
+// import { ThemeProvider } from "@coinbase/cds-mobile";
 import { NavigationContainer } from "@react-navigation/native";
-import { useFonts } from "expo-font";
 import * as Sentry from "@sentry/react-native";
-import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { UserContextProvider } from "@contexts/UserContextProvider";
 import { ApiClientProvier } from "@api/ApiClient";
-import { eatroTheme } from "@constants/theme";
+// import { eatroTheme } from "@constants/theme";
 import { AppRoutes } from "./AppRoutes";
 
 Sentry.init({
@@ -33,26 +31,16 @@ Sentry.init({
 const queryClient = new QueryClient();
 
 export default Sentry.wrap(function App() {
-  const [_fontLoaded, fontLoadingError] = useFonts({
-    CoibaseIcons: require("@coinbase/cds-icons/esm/fonts/native/CoinbaseIcons.ttf"),
-  });
-
-  useEffect(() => {
-    if (fontLoadingError) {
-      Sentry.captureException(fontLoadingError);
-    }
-  }, [fontLoadingError]);
-
   return (
     <SafeAreaProvider>
       <UserContextProvider>
         <NavigationContainer>
           <QueryClientProvider client={queryClient}>
             <ApiClientProvier>
-              <ThemeProvider theme={eatroTheme} activeColorScheme="dark">
-                <AppRoutes />
-                <StatusBar style="inverted" />
-              </ThemeProvider>
+              {/* <ThemeProvider theme={eatroTheme} activeColorScheme="dark"> */}
+              <AppRoutes />
+              <StatusBar style="inverted" />
+              {/* </ThemeProvider> */}
             </ApiClientProvier>
           </QueryClientProvider>
         </NavigationContainer>

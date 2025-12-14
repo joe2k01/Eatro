@@ -4206,6 +4206,7 @@ __metadata:
     eslint-plugin-prettier: "npm:^5.5.4"
     expo: "npm:~54.0.23"
     expo-font: "npm:~14.0.9"
+    expo-image: "npm:~3.0.11"
     expo-localization: "npm:~17.0.7"
     expo-status-bar: "npm:~3.0.8"
     prettier: "npm:^3.7.3"
@@ -4853,6 +4854,21 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10c0/7336a6094705c46379d4bb93f34a3b6c8d5fca871b34d62db94739b204639f3eeb6b1f5db4b4209e28a34348360075ccf557fe28ca996182469685427e570a9d
+  languageName: node
+  linkType: hard
+
+"expo-image@npm:~3.0.11":
+  version: 3.0.11
+  resolution: "expo-image@npm:3.0.11"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+    react-native-web: "*"
+  peerDependenciesMeta:
+    react-native-web:
+      optional: true
+  checksum: 10c0/a1cc61d3927ec5eb96875c2021706e1a418d37a77d1e657a4e0d3aa9b3325a45501b1113847783b0b249ca3679286dfb7683ed8239c48a206e9fdf79f232c754
   languageName: node
   linkType: hard
 

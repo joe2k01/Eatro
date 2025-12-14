@@ -3,7 +3,7 @@ import { Header } from "./components/Header";
 
 export function Home() {
   return (
-    <SafeVStack paddingX={2}>
+    <SafeVStack paddingHorizontal={2} backgroundColor={"red"}>
       <Header />
     </SafeVStack>
   );

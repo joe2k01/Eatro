@@ -1,10 +1,10 @@
-import { VStack } from "@coinbase/cds-mobile/layout/VStack";
 import { useRoute } from "@react-navigation/native";
-import { Text } from "@coinbase/cds-mobile/typography/Text";
 import { useMemo } from "react";
-import { RemoteImage } from "@coinbase/cds-mobile/media/RemoteImage";
-import { Box } from "@coinbase/cds-mobile/layout/Box";
 import { GetProductDetails } from "@api/validators/getProductDetails";
+import { VStack } from "@components/layout/VStack";
+import { Box } from "@components/layout/Box";
+import { RemoteImage } from "@components/media/RemoteImage";
+import { Text } from "@components/typography/Text";
 
 export function Product() {
   const { params } = useRoute();
@@ -16,10 +16,8 @@ export function Product() {
   return (
     <VStack padding={2} gap={2} width="100%">
       <VStack gap={1}>
-        <Text font="title1">{product_name}</Text>
-        <Text font="caption" color="fgMuted">
-          {brand}
-        </Text>
+        <Text>{product_name}</Text>
+        <Text>{brand}</Text>
       </VStack>
       <Box width={"100%"} aspectRatio={1} alignItems="center">
         <Box height={"100%"} aspectRatio={imageRatio}>
@@ -27,8 +25,7 @@ export function Product() {
             source={imageUrl}
             width={"100%"}
             height={"100%"}
-            shape="squircle"
-            darkModeEnhancementsApplied
+            // shape="squircle"
           />
         </Box>
       </Box>

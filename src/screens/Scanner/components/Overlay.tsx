@@ -1,6 +1,7 @@
-import { IconButton } from "@coinbase/cds-mobile/buttons/IconButton";
-import { Box, VStack } from "@coinbase/cds-mobile/layout";
-import { Text } from "@coinbase/cds-mobile/typography/Text";
+import { IconButton } from "@components/buttons/IconButton";
+import { Box } from "@components/layout/Box";
+import { VStack } from "@components/layout/VStack";
+import { Text } from "@components/typography/Text";
 import { useNavigation } from "@react-navigation/native";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Animated, ViewStyle } from "react-native";
@@ -36,14 +37,13 @@ export function Overlay() {
     <VStack height="100%" justifyContent="space-between">
       <Box style={topBoxStyle} paddingStart={2}>
         <IconButton
-          name="caretLeft"
-          variant="negative"
+          name="chevron-left"
           accessibilityLabel="Cancel"
           onPress={onCancel}
         />
       </Box>
-      <Box background="bgElevation1" style={bottomBoxStyle} animated>
-        <Text font="title1" align="center">
+      <Box style={bottomBoxStyle}>
+        <Text textAlign="center">
           Scan a product&apos;s bar code to look up its data
         </Text>
       </Box>

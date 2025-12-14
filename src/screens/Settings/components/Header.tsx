@@ -1,9 +1,10 @@
-import { Box, HStack } from "@coinbase/cds-mobile/layout";
-import { Text } from "@coinbase/cds-mobile/typography/Text";
-import { IconButton } from "@coinbase/cds-mobile/buttons/IconButton";
 import { useNavigation } from "@react-navigation/native";
 import { useCallback } from "react";
 import { useCenteredHeader } from "@hooks/useCenteredHeader";
+import { Box } from "@components/layout/Box";
+import { HStack } from "@components/layout/HStack";
+import { Text } from "@components/typography/Text";
+import { IconButton } from "@components/buttons/IconButton";
 
 export function Header() {
   const { leftRef, rightRef } = useCenteredHeader();
@@ -14,9 +15,9 @@ export function Header() {
   return (
     <HStack alignItems="center" justifyContent="space-between">
       <Box ref={leftRef}>
-        <IconButton name="caretLeft" onPress={onGoBack} transparent />
+        <IconButton name="chevron-left" onPress={onGoBack} />
       </Box>
-      <Text font="headline">User configuration</Text>
+      <Text>User configuration</Text>
       <Box ref={rightRef} />
     </HStack>
   );

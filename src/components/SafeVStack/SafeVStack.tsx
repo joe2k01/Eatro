@@ -1,4 +1,4 @@
-import { VStack, VStackProps } from "@coinbase/cds-mobile/layout";
+import { VStack, VStackProps } from "@components/layout/VStack";
 import { useMemo } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -8,8 +8,8 @@ export function SafeVStack({
   paddingEnd,
   paddingStart,
   paddingTop,
-  paddingX,
-  paddingY,
+  paddingHorizontal,
+  paddingVertical,
   ...props
 }: VStackProps) {
   const insets = useSafeAreaInsets();
@@ -27,15 +27,15 @@ export function SafeVStack({
 
   // By spreading props this way, we make height overridable, but style always has the insets
   return (
-    <VStack height={"100%"} background="bg" {...props} style={style}>
+    <VStack height={"100%"} {...props} style={style}>
       <VStack
         padding={padding}
         paddingBottom={paddingBottom}
         paddingEnd={paddingEnd}
         paddingStart={paddingStart}
         paddingTop={paddingTop}
-        paddingX={paddingX}
-        paddingY={paddingY}
+        paddingHorizontal={paddingHorizontal}
+        paddingVertical={paddingVertical}
       >
         {props.children}
       </VStack>
