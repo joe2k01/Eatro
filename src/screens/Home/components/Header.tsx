@@ -1,11 +1,11 @@
 import { useCallback, useMemo } from "react";
-import { useUser } from "../../../contexts/UserContextProvider";
 import { format } from "date-fns";
 import { Box, HStack } from "@coinbase/cds-mobile/layout";
 import { AvatarButton } from "@coinbase/cds-mobile/buttons/AvatarButton";
 import { Text } from "@coinbase/cds-mobile/typography/Text";
 import { useNavigation } from "@react-navigation/native";
-import { useCenteredHeader } from "../../../hooks/useCenteredHeader";
+import { useUser } from "@contexts/UserContextProvider";
+import { useCenteredHeader } from "@hooks/useCenteredHeader";
 
 export function Header() {
   const user = useUser();

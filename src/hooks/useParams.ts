@@ -1,5 +1,5 @@
 import { useRoute } from "@react-navigation/native";
-import { RootStackParamsList } from "../AppRoutes";
+import { RootStackParamsList } from "src/AppRoutes";
 
 export function useParams<
   P extends RootStackParamsList[keyof RootStackParamsList],

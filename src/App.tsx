@@ -1,15 +1,15 @@
 import { StatusBar } from "expo-status-bar";
 import { ThemeProvider } from "@coinbase/cds-mobile";
 import { NavigationContainer } from "@react-navigation/native";
-import { AppRoutes } from "./AppRoutes";
 import { useFonts } from "expo-font";
 import * as Sentry from "@sentry/react-native";
 import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ApiClientProvier } from "./api/ApiClient";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { eatroTheme } from "./constants/theme";
-import { UserContextProvider } from "./contexts/UserContextProvider";
+import { UserContextProvider } from "@contexts/UserContextProvider";
+import { ApiClientProvier } from "@api/ApiClient";
+import { eatroTheme } from "@constants/theme";
+import { AppRoutes } from "./AppRoutes";
 
 Sentry.init({
   dsn: "https://0b9e10cd50dba3b6a2423d19dc8720fd@o4510450363727872.ingest.de.sentry.io/4510450365038672",

@@ -1,6 +1,6 @@
+import { useStorage } from "@hooks/useStorage";
 import React, { createContext, useContext, useEffect } from "react";
 import { z } from "zod";
-import { useStorage } from "../hooks/useStorage";
 
 const userSchema = z
   .object({
@@ -22,8 +22,6 @@ export function UserContextProvider({ children }: UserContextProviderProps) {
   useEffect(() => {
     storageApi.current?.load();
   }, [storageApi]);
-
-  console.log(user);
 
   return <UserContext.Provider value={user}>{children}</UserContext.Provider>;
 }

@@ -1,8 +1,8 @@
 import { Avatar } from "@coinbase/cds-mobile/media";
-import { SafeVStack } from "../../components";
-import { useUser } from "../../contexts/UserContextProvider";
 import { Header } from "./components/Header";
 import { Box } from "@coinbase/cds-mobile/layout";
+import { useUser } from "@contexts/UserContextProvider";
+import { SafeVStack } from "@components/SafeVStack";
 
 export function Settings() {
   const user = useUser();

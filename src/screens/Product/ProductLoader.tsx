@@ -1,12 +1,12 @@
 import { Box, Fallback, VStack } from "@coinbase/cds-mobile/layout";
-import { useParams } from "../../hooks/useParams";
-import { useApiClient } from "../../api/ApiClient";
 import { useQuery } from "@tanstack/react-query";
 import { useLocales } from "expo-localization";
 import { Text } from "@coinbase/cds-mobile/typography/Text";
 import { useEffect } from "react";
 import { useTheme } from "@coinbase/cds-mobile";
 import { useNavigation } from "@react-navigation/native";
+import { useParams } from "@hooks/useParams";
+import { useApiClient } from "@api/ApiClient";
 
 function LoaderError() {
   return (

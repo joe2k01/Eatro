@@ -1,9 +1,9 @@
 import { Box, HStack } from "@coinbase/cds-mobile/layout";
 import { Text } from "@coinbase/cds-mobile/typography/Text";
-import { useCenteredHeader } from "../../../hooks/useCenteredHeader";
 import { IconButton } from "@coinbase/cds-mobile/buttons/IconButton";
 import { useNavigation } from "@react-navigation/native";
 import { useCallback } from "react";
+import { useCenteredHeader } from "@hooks/useCenteredHeader";
 
 export function Header() {
   const { leftRef, rightRef } = useCenteredHeader();

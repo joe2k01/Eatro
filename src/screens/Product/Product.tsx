@@ -1,10 +1,10 @@
 import { VStack } from "@coinbase/cds-mobile/layout/VStack";
-import { GetProductDetails } from "../../api/validators/getProductDetails";
 import { useRoute } from "@react-navigation/native";
 import { Text } from "@coinbase/cds-mobile/typography/Text";
 import { useMemo } from "react";
 import { RemoteImage } from "@coinbase/cds-mobile/media/RemoteImage";
 import { Box } from "@coinbase/cds-mobile/layout/Box";
+import { GetProductDetails } from "@api/validators/getProductDetails";
 
 export function Product() {
   const { params } = useRoute();

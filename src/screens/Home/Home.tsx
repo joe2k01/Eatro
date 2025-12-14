@@ -1,4 +1,4 @@
-import { SafeVStack } from "../../components";
+import { SafeVStack } from "@components/SafeVStack";
 import { Header } from "./components/Header";
 
 export function Home() {

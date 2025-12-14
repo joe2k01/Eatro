@@ -2,15 +2,15 @@ import {
   createNativeStackNavigator,
   NativeStackNavigationOptions,
 } from "@react-navigation/native-stack";
-import { Home, HomeParams } from "./screens/Home";
-import { Scanner, ScannerParams } from "./screens/Scanner";
+import { Home, HomeParams } from "@screens/Home";
 import {
   Product,
   ProductLoader,
   ProductLoaderParams,
   ProductParams,
-} from "./screens/Product";
-import { Settings, SettingsParams } from "./screens/Settings";
+} from "@screens/Product";
+import { Scanner, ScannerParams } from "@screens/Scanner";
+import { Settings, SettingsParams } from "@screens/Settings";
 
 export type RootStackParamsList = {
   Home: HomeParams;
@@ -36,11 +36,7 @@ export function AppRoutes() {
     <Stack.Navigator initialRouteName="Home" screenOptions={StackOptions}>
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="Settings" component={Settings} />
-      <Stack.Screen
-        name="Scanner"
-        component={Scanner}
-        options={{ headerShown: false }}
-      />
+      <Stack.Screen name="Scanner" component={Scanner} />
       <Stack.Screen name="Product" component={Product} />
       <Stack.Screen name="ProductLoader" component={ProductLoader} />
     </Stack.Navigator>
