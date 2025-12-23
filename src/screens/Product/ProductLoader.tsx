@@ -8,12 +8,12 @@ import { useParams } from "@hooks/useParams";
 import { useApiClient } from "@api/ApiClient";
 import { VStack } from "@components/layout/VStack";
 import { Box } from "@components/layout/Box";
-import { Text } from "@components/typography/Text";
+import { TextBody } from "@components/typography/Text";
 
 function LoaderError() {
   return (
     <VStack>
-      <Text>Error view</Text>
+      <TextBody>Error view</TextBody>
     </VStack>
   );
 }

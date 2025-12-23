@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { useCenteredHeader } from "@hooks/useCenteredHeader";
 import { Box } from "@components/layout/Box";
 import { HStack } from "@components/layout/HStack";
-import { Text } from "@components/typography/Text";
+import { TextBody } from "@components/typography/Text";
 import { IconButton } from "@components/buttons/IconButton";
 
 export function Header() {
@@ -17,7 +17,7 @@ export function Header() {
       <Box ref={leftRef}>
         <IconButton name="chevron-left" onPress={onGoBack} />
       </Box>
-      <Text>User configuration</Text>
+      <TextBody>User configuration</TextBody>
       <Box ref={rightRef} />
     </HStack>
   );

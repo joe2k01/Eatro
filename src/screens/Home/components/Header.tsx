@@ -4,7 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useCenteredHeader } from "@hooks/useCenteredHeader";
 import { HStack } from "@components/layout/HStack";
 import { Box } from "@components/layout/Box";
-import { Text } from "@components/typography/Text";
+import { TextBody } from "@components/typography/Text";
 import { IconButton } from "@components/buttons/IconButton";
 
 export function Header() {
@@ -23,7 +23,7 @@ export function Header() {
       <Box ref={leftRef}>
         <IconButton name="person" onPress={onAvatarClick} />
       </Box>
-      <Text>Today, {dateString}</Text>
+      <TextBody>Today, {dateString}</TextBody>
       <Box ref={rightRef} />
     </HStack>
   );

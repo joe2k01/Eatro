@@ -1,7 +1,7 @@
 import { IconButton } from "@components/buttons/IconButton";
 import { Box } from "@components/layout/Box";
 import { VStack } from "@components/layout/VStack";
-import { Text } from "@components/typography/Text";
+import { TextBody } from "@components/typography/Text";
 import { useNavigation } from "@react-navigation/native";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Animated, ViewStyle } from "react-native";
@@ -43,9 +43,9 @@ export function Overlay() {
         />
       </Box>
       <Box style={bottomBoxStyle}>
-        <Text textAlign="center">
+        <TextBody textAlign="center">
           Scan a product&apos;s bar code to look up its data
-        </Text>
+        </TextBody>
       </Box>
     </VStack>
   );
