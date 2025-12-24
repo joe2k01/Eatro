@@ -25,7 +25,7 @@ export function Product() {
             source={imageUrl}
             width={"100%"}
             height={"100%"}
-            // shape="squircle"
+            shape="squircle"
           />
         </Box>
       </Box>
