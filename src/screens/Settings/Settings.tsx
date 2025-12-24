@@ -1,4 +1,3 @@
-import { Header } from "./components/Header";
 import { SafeVStack } from "@components/SafeVStack";
 import { Button } from "@components/buttons/Button";
 import { Box } from "@components/layout/Box";
@@ -11,22 +10,19 @@ export function Settings() {
   const toggleTheme = useToggleTheme();
 
   return (
-    <SafeVStack paddingHorizontal={2}>
-      <Header />
-      <VStack paddingTop={2}>
+    <SafeVStack paddingHorizontal={2} scrollable>
+      <VStack>
         <Button variant="primary" onPress={toggleTheme}>
           Toggle Theme
         </Button>
       </VStack>
-      <Box paddingTop={10} alignItems="center">
-        <UserSVG color={fg} size={"50%"} />
-        {/* <Avatar
-          colorScheme="red"
-          name={user.name ?? "Test"}
-          // style={AvatarSize}
-          size="xxxl"
-          alignSelf="center"
-        /> */}
+      <Box
+        alignItems="center"
+        width={"100%"}
+        aspectRatio={1}
+        backgroundColor={"green"}
+      >
+        <UserSVG color={fg} size={"100%"} />
       </Box>
     </SafeVStack>
   );

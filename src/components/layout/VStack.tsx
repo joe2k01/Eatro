@@ -1,12 +1,8 @@
-import { StyledViewProps } from "@constants/theme";
-import { useTheme } from "@contexts/ThemeProvider";
 import { useComposedStyle } from "@hooks/useComposedStyle";
-import { useMemo } from "react";
-import { StyleSheet, View, ViewProps, ViewStyle } from "react-native";
+import { StyleSheet, ViewStyle } from "react-native";
+import { ScrollableView, ScrollableViewProps } from "./ScrollableView";
 
-export type VStackProps = StyledViewProps<
-  Omit<ViewStyle, "display" | "flexDirection"> & ViewProps
->;
+export type VStackProps = ScrollableViewProps;
 
 const style = StyleSheet.create({
   vStack: {
@@ -15,27 +11,27 @@ const style = StyleSheet.create({
   },
 });
 
-export function VStack({ children, ...props }: VStackProps) {
+export function VStack({ children, ...props }: ScrollableViewProps) {
   const composedStyle = useComposedStyle<ViewStyle>({
     base: style.vStack,
     props,
   });
 
-  const { bg } = useTheme();
+  // const { bg } = useTheme();
 
-  const themeStyle = useMemo(
-    () =>
-      StyleSheet.create({
-        background: {
-          backgroundColor: bg,
-        },
-      }),
-    [bg],
-  );
+  // const themeStyle = useMemo(
+  //   () =>
+  //     StyleSheet.create({
+  //       background: {
+  //         backgroundColor: bg,
+  //       },
+  //     }),
+  //   [bg],
+  // );
 
   return (
-    <View {...props} style={[themeStyle.background, composedStyle]}>
+    <ScrollableView {...props} style={composedStyle}>
       {children}
-    </View>
+    </ScrollableView>
   );
 }

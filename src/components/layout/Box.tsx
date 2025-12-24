@@ -1,8 +1,10 @@
 import { useComposedStyle } from "@hooks/useComposedStyle";
 import { forwardRef } from "react";
 import { StyleSheet, View, ViewProps, ViewStyle } from "react-native";
+import { ScrollableView } from "./ScrollableView";
+import { StyledViewProps } from "@constants/theme";
 
-export type BoxProps = ViewProps & ViewStyle;
+export type BoxProps = StyledViewProps<ViewProps & ViewStyle>;
 
 const style = StyleSheet.create({
   box: {
@@ -20,8 +22,8 @@ export const Box = forwardRef<View, BoxProps>(function Box(
   });
 
   return (
-    <View {...props} style={composedStyle} ref={ref}>
+    <ScrollableView {...props} style={composedStyle} ref={ref}>
       {children}
-    </View>
+    </ScrollableView>
   );
 });

@@ -11,6 +11,7 @@ import {
 } from "@screens/Product";
 import { Scanner, ScannerParams } from "@screens/Scanner";
 import { Settings, SettingsParams } from "@screens/Settings";
+import { Header } from "@components/navigation/Header";
 
 export type RootStackParamsList = {
   Home: HomeParams;
@@ -19,6 +20,8 @@ export type RootStackParamsList = {
   Product: ProductParams;
   ProductLoader: ProductLoaderParams;
 };
+
+export type RouteNames = keyof RootStackParamsList;
 
 declare global {
   namespace ReactNavigation {
@@ -29,7 +32,10 @@ declare global {
 
 const Stack = createNativeStackNavigator<RootStackParamsList>();
 
-const StackOptions: NativeStackNavigationOptions = { headerShown: false };
+const StackOptions: NativeStackNavigationOptions = {
+  headerShown: true,
+  header: Header,
+};
 
 export function AppRoutes() {
   return (

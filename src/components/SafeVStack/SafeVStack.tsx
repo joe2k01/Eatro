@@ -1,24 +1,32 @@
 import { VStack, VStackProps } from "@components/layout/VStack";
 import { useMemo } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { StyleSheet } from "react-native";
 
-export function SafeVStack({ ...props }: VStackProps) {
+export type SafeVStackProps = VStackProps & {
+  guard?: "top" | "bottom" | "both";
+};
+
+export function SafeVStack({ guard = "bottom", ...props }: SafeVStackProps) {
   const insets = useSafeAreaInsets();
 
-  const style = useMemo<VStackProps["style"]>(
-    () => ({
-      ...(typeof props.style === "object" ? props.style : {}),
-      paddingTop: insets.top,
-      paddingBottom: insets.bottom,
+  const { paddingStyle } = useMemo(() => {
+    const padding = {
       paddingLeft: insets.left,
       paddingRight: insets.right,
-    }),
-    [insets.bottom, insets.left, insets.right, insets.top, props.style],
-  );
+      paddingTop: guard === "top" || guard === "both" ? insets.top : 0,
+      paddingBottom: guard === "bottom" || guard === "both" ? insets.bottom : 0,
+    };
 
-  // By spreading props this way, we make height overridable, but style always has the insets
+    return StyleSheet.create({
+      paddingStyle: {
+        ...padding,
+      },
+    });
+  }, [guard, insets.bottom, insets.left, insets.right, insets.top]);
+
   return (
-    <VStack height={"100%"} style={style}>
+    <VStack height={"100%"} style={paddingStyle}>
       <VStack {...props}>{props.children}</VStack>
     </VStack>
   );

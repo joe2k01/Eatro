@@ -1,24 +1,21 @@
-import { useNavigation } from "@react-navigation/native";
 import { useCallback } from "react";
-import { useCenteredHeader } from "@hooks/useCenteredHeader";
-import { Box } from "@components/layout/Box";
-import { HStack } from "@components/layout/HStack";
 import { TextBody } from "@components/typography/Text";
 import { IconButton } from "@components/buttons/IconButton";
+import { NativeStackHeaderProps } from "@react-navigation/native-stack";
+import { CenteredHeader } from "@components/navigation/CenteredHeader";
 
-export function Header() {
-  const { leftRef, rightRef } = useCenteredHeader();
-
-  const navigation = useNavigation();
-  const onGoBack = useCallback(() => navigation.goBack(), [navigation]);
+export function Header({ back, navigation }: NativeStackHeaderProps) {
+  const onGoBack = useCallback(
+    () => (back ? navigation.goBack() : undefined),
+    [back, navigation],
+  );
 
   return (
-    <HStack alignItems="center" justifyContent="space-between">
-      <Box ref={leftRef}>
-        <IconButton name="chevron-left" onPress={onGoBack} />
-      </Box>
-      <TextBody>User configuration</TextBody>
-      <Box ref={rightRef} />
-    </HStack>
+    <CenteredHeader
+      left={
+        <IconButton name="chevron-left" onPress={onGoBack} disabled={!back} />
+      }
+      center={<TextBody>User configuration</TextBody>}
+    />
   );
 }

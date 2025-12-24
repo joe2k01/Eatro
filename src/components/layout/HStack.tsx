@@ -1,8 +1,8 @@
 import { useComposedStyle } from "@hooks/useComposedStyle";
-import { StyleSheet, View, ViewProps, ViewStyle } from "react-native";
+import { StyleSheet, ViewStyle } from "react-native";
+import { ScrollableView, ScrollableViewProps } from "./ScrollableView";
 
-export type HStackProps = Omit<ViewStyle, "display" | "flexDirection"> &
-  ViewProps;
+export type HStackProps = ScrollableViewProps;
 
 const style = StyleSheet.create({
   hStack: {
@@ -18,8 +18,8 @@ export function HStack({ children, ...props }: HStackProps) {
   });
 
   return (
-    <View {...props} style={composedStyle}>
+    <ScrollableView {...props} style={composedStyle}>
       {children}
-    </View>
+    </ScrollableView>
   );
 }

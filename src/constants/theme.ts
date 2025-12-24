@@ -123,8 +123,5 @@ export type ColourViewProps<P> = P extends ViewColourStyle
 export const ColourPropsConcrete: ColourProps[] = ["color"];
 
 export type Style = ViewStyle | TextStyle | ImageStyle;
-export type SanitisedStyle<P> = Omit<P, "style"> & { style?: Style };
 
-export type StyledViewProps<P> = PaddedViewProps<
-  ColourViewProps<SanitisedStyle<P>>
->;
+export type StyledViewProps<P> = PaddedViewProps<ColourViewProps<P>>;

@@ -5,8 +5,14 @@ export default function UserSVG({
   color = "currentColor",
 }: Pick<SvgProps, "color"> & { size?: SvgProps["width"] }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
-      <Path d="M12 0a6 6 0 1 1 0 12a6 6 0 1 1 0-12M0 24c0-6.63 5.37-12 12-12s12 5.37 12 12Z" />
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill={color}
+      style={{ backgroundColor: "red" }}
+    >
+      <Path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4Zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4Z" />
     </Svg>
   );
 }
