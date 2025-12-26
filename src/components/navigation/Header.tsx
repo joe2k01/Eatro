@@ -1,27 +1,58 @@
-import { useMemo } from "react";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ViewStyle } from "react-native";
-import { intoThemeDimension } from "@hooks/useThemeDimension";
+import { useCallback, useMemo } from "react";
 import { NativeStackHeaderProps } from "@react-navigation/native-stack";
-import type { Route } from "@react-navigation/native";
-import { RouteNames } from "../../AppRoutes";
-import { SettingsHeader } from "@screens/Settings";
 import { Box } from "@components/layout/Box";
-import { HomeHeader } from "@screens/Home";
+import { intoThemeDimension } from "@hooks/useThemeDimension";
+import type { ViewStyle } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { CenteredHeader } from "./CenteredHeader";
+import { IconButton } from "@components/buttons/IconButton";
+import { Title1 } from "@components/typography/Text";
 
-const headers: Partial<
-  Record<RouteNames, (props: NativeStackHeaderProps) => React.ReactNode>
-> = {
-  Settings: SettingsHeader,
-  Home: HomeHeader,
-};
+function getHeaderTitle({
+  options,
+  route,
+}: Pick<NativeStackHeaderProps, "options" | "route">): string {
+  if (typeof options.headerTitle === "string") return options.headerTitle;
+  if (typeof options.title === "string") return options.title;
+  return route.name;
+}
+
+function HeaderContent({
+  options,
+  navigation,
+  back,
+  route,
+}: NativeStackHeaderProps) {
+  const title = useMemo(() => {
+    const title = getHeaderTitle({ options, route });
+
+    return <Title1>{title}</Title1>;
+  }, [options, route]);
+
+  const onGoBack = useCallback(() => {
+    if (back) navigation.goBack();
+  }, [back, navigation]);
+
+  const left = useMemo(() => {
+    if (options.headerLeft) {
+      return options.headerLeft({ canGoBack: !!back });
+    }
+
+    return (
+      <IconButton name="chevron-left" onPress={onGoBack} disabled={!back} />
+    );
+  }, [onGoBack, back, options]);
+
+  const right = useMemo(() => {
+    if (!options.headerRight) return null;
+    return options.headerRight({ canGoBack: !!back });
+  }, [back, options]);
+
+  return <CenteredHeader left={left} center={title} right={right} />;
+}
 
 export function Header(props: NativeStackHeaderProps) {
-  const route = (props.route as Route<RouteNames>).name;
-  const HeaderComponent = route in headers ? headers[route] : null;
-
   const insets = useSafeAreaInsets();
-
   const wrapperStyle = useMemo<ViewStyle>(() => {
     return {
       paddingTop: insets.top,
@@ -30,13 +61,9 @@ export function Header(props: NativeStackHeaderProps) {
     };
   }, [insets.top]);
 
-  if (!HeaderComponent) {
-    return null;
-  }
-
   return (
     <Box style={wrapperStyle}>
-      <HeaderComponent {...props} />
+      <HeaderContent {...props} />
     </Box>
   );
 }

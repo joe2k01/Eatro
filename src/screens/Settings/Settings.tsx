@@ -15,8 +15,20 @@ import { IconButton } from "@components/buttons/IconButton";
 import { Icon } from "@components/media/Icon";
 import { useThemeDimension } from "@hooks/useThemeDimension";
 import { Switch } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { SettingsStackParamsList } from "./routes";
+import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
+import { useStaticNavigationOptions } from "@hooks/useStaticNavigationOptions";
+
+export const settingsHomeHeaderOptions = {
+  title: "User configuration",
+} satisfies NativeStackNavigationOptions;
 
 export function Settings() {
+  useStaticNavigationOptions(settingsHomeHeaderOptions);
+  const navigation =
+    useNavigation<NativeStackNavigationProp<SettingsStackParamsList>>();
   const toggleTheme = useToggleTheme();
   const variant = useThemeVariant();
   const { secondary, popover, fgPopover, accent, fgAccent } = useTheme();
@@ -50,6 +62,7 @@ export function Settings() {
           }
           rightIcon={<Icon name="chevron-right" variant="primary" />}
           justifyContent="space-between"
+          onPress={() => navigation.navigate("GoalsConfiguration")}
         >
           Goals configuration
         </Button>

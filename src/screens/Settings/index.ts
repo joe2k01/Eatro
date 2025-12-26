@@ -1,4 +1,5 @@
-export { Settings } from "./Settings";
-export type { SettingsParams } from "./Settings";
+export { SettingsNavigator } from "./SettingsNavigator";
+export type { SettingsNavigatorParams } from "./SettingsNavigator";
 
-export { Header as SettingsHeader } from "./components/Header";
+export { GoalsConfiguration } from "./GoalsConfiguration";
+export type { SettingsStackParamsList } from "./routes";
