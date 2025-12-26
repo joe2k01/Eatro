@@ -1,6 +1,6 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { GoalsConfiguration } from "./GoalsConfiguration";
-import { Settings } from "./Settings";
+import { GoalsConfiguration } from "./screens/GoalsConfiguration";
+import { SettingsHome } from "./screens/SettingsHome";
 import type { SettingsStackParamsList } from "./routes";
 
 import { createAppStackNavigationOptions } from "@constants/navigation";
@@ -15,7 +15,7 @@ export function SettingsNavigator() {
       initialRouteName="SettingsHome"
       screenOptions={SettingsStackOptions}
     >
-      <Stack.Screen name="SettingsHome" component={Settings} />
+      <Stack.Screen name="SettingsHome" component={SettingsHome} />
       <Stack.Screen name="GoalsConfiguration" component={GoalsConfiguration} />
     </Stack.Navigator>
   );

@@ -24,9 +24,17 @@ function HeaderContent({
   route,
 }: NativeStackHeaderProps) {
   const title = useMemo(() => {
-    const title = getHeaderTitle({ options, route });
+    if (typeof options.headerTitle === "function") {
+      const node = options.headerTitle({ children: route.name });
+      return typeof node === "string" || typeof node === "number" ? (
+        <Title1>{node}</Title1>
+      ) : (
+        node
+      );
+    }
 
-    return <Title1>{title}</Title1>;
+    const titleString = getHeaderTitle({ options, route });
+    return <Title1>{titleString}</Title1>;
   }, [options, route]);
 
   const onGoBack = useCallback(() => {

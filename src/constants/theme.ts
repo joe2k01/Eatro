@@ -106,13 +106,25 @@ export type GapViewProps<P> = P extends ViewGapStyle
   : P;
 export const GapPropsConcrete: GapProps[] = ["gap"];
 
-export type ColourProps = Extract<keyof TextStyle, "color">;
-export type ThemeColourProps = { [K in ColourProps]?: AllColours };
-export type ViewColourStyle = Pick<TextStyle, ColourProps>;
+/**
+ * Style props that can be mapped from a theme token (e.g. "popover") to a real colour.
+ *
+ * Note: we intentionally allow raw strings too (e.g. "transparent", "#fff").
+ */
+export type ColourProps = "color" | "backgroundColor" | "borderColor";
+export type ThemeColourProps = { [K in ColourProps]?: AllColours | string };
+export type ViewColourStyle = Pick<
+  TextStyle & ViewStyle & ImageStyle,
+  ColourProps
+>;
 export type ColourViewProps<P> = P extends ViewColourStyle
   ? Omit<P, ColourProps> & ThemeColourProps
   : P;
-export const ColourPropsConcrete: ColourProps[] = ["color"];
+export const ColourPropsConcrete: ColourProps[] = [
+  "color",
+  "backgroundColor",
+  "borderColor",
+];
 
 export type Style = ViewStyle | TextStyle | ImageStyle;
 

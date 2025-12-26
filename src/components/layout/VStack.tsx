@@ -17,18 +17,6 @@ export function VStack({ children, ...props }: ScrollableViewProps) {
     props,
   });
 
-  // const { bg } = useTheme();
-
-  // const themeStyle = useMemo(
-  //   () =>
-  //     StyleSheet.create({
-  //       background: {
-  //         backgroundColor: bg,
-  //       },
-  //     }),
-  //   [bg],
-  // );
-
   return (
     <ScrollableView {...props} style={composedStyle}>
       {children}

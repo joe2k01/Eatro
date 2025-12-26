@@ -20,3 +20,5 @@ export default function UserSVG({ size = 24 }: { size?: SvgProps["width"] }) {
     </Svg>
   );
 }
+
+

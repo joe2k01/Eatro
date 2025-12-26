@@ -1,13 +1,12 @@
 import {
-  ColourPropsConcrete,
   DimensionGapProps,
   DimensionPaddingProps,
+  ColourPropsConcrete,
   GapPropsConcrete,
   PaddingPropsConcrete,
   Style,
   ThemeColourProps,
   ThemeVariant,
-  ViewColourStyle,
   ViewGapStyle,
   ViewPaddingStyle,
 } from "@constants/theme";
@@ -56,17 +55,24 @@ function handleGap<S extends Style>(props: S): S {
 function handleColour<S extends Style>(props: S, theme: ThemeVariant): S {
   const toReplace = ColourPropsConcrete.filter((p) => p in props);
 
-  let convertedProps: ViewColourStyle | undefined;
-  if (toReplace.length) {
-    const accessibleProps = props as Required<ThemeColourProps>;
-
-    convertedProps = toReplace.reduce((acc, p) => {
-      acc[p] = theme[accessibleProps[p]];
-      return acc;
-    }, {} as ViewColourStyle);
+  if (!toReplace.length) {
+    return props;
   }
 
-  return convertedProps ? { ...props, ...convertedProps } : props;
+  const accessibleProps = props as Required<ThemeColourProps>;
+
+  const converted = toReplace.reduce(
+    (acc, p) => {
+      const v = accessibleProps[p];
+      if (typeof v === "string" && v in theme) {
+        acc[p] = theme[v as keyof ThemeVariant];
+      }
+      return acc;
+    },
+    {} as Record<string, unknown>,
+  );
+
+  return { ...props, ...converted } as S;
 }
 
 export function useComposedStyle<S extends Style>({
@@ -80,7 +86,9 @@ export function useComposedStyle<S extends Style>({
     const gapProps = handleGap(paddedProps);
     const colouredProps = handleColour(gapProps, theme);
 
-    const propsStyle = StyleSheet.compose<S, S, S>(base, colouredProps);
+    const colouredBase = handleColour(base ?? ({} as S), theme);
+
+    const propsStyle = StyleSheet.compose<S, S, S>(colouredBase, colouredProps);
     return StyleSheet.flatten(StyleSheet.compose(propsStyle, props.style));
-  }, [base, props, theme]);
+  }, [base, props, theme]) as S;
 }
