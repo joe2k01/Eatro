@@ -16,7 +16,12 @@ const defaultThemeVariant = "dark";
 const ThemeContext = createContext<{
   theme: ThemeVariant;
   toggleTheme: () => void;
-}>({ theme: EatroTheme[defaultThemeVariant], toggleTheme: () => {} });
+  variant: "light" | "dark";
+}>({
+  theme: EatroTheme[defaultThemeVariant],
+  toggleTheme: () => {},
+  variant: defaultThemeVariant,
+});
 
 type ThemeProviderProps = {
   children?: ReactNode;
@@ -40,6 +45,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const ctx = useMemo(() => {
     return {
       theme: EatroTheme[variant],
+      variant,
       toggleTheme: () =>
         storageApi.current?.store(variant === "light" ? "dark" : "light"),
     };
@@ -70,4 +76,10 @@ export function useToggleTheme() {
   const { toggleTheme } = useThemeProvider();
 
   return toggleTheme;
+}
+
+export function useThemeVariant() {
+  const { variant } = useThemeProvider();
+
+  return variant;
 }

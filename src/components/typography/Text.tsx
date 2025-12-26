@@ -38,9 +38,10 @@ const textVariants = [
     size: 22,
   },
   { label: "TextBody", size: 16 },
+  { label: "TextCaption", size: 12 },
 ] as const;
 
-export const { TextBody, Headline, Title1 } = textVariants.reduce(
+export const { TextBody, Headline, Title1, TextCaption } = textVariants.reduce(
   (acc, { label, size }) => {
     acc[label] = function ({ children, ...props }: TextProps) {
       return (

@@ -1,11 +1,14 @@
 import {
   ColourPropsConcrete,
+  DimensionGapProps,
   DimensionPaddingProps,
+  GapPropsConcrete,
   PaddingPropsConcrete,
   Style,
   ThemeColourProps,
   ThemeVariant,
   ViewColourStyle,
+  ViewGapStyle,
   ViewPaddingStyle,
 } from "@constants/theme";
 import { useMemo } from "react";
@@ -35,6 +38,21 @@ function handlePadding<S extends Style>(props: S): S {
   return convertedProps ? { ...props, ...convertedProps } : props;
 }
 
+function handleGap<S extends Style>(props: S): S {
+  const toReplace = GapPropsConcrete.filter((p) => p in props);
+
+  let convertedProps: ViewGapStyle | undefined;
+  if (toReplace.length) {
+    const accessibleProps = props as Required<DimensionGapProps>;
+    convertedProps = toReplace.reduce((acc, p) => {
+      acc[p] = intoThemeDimension(accessibleProps[p]);
+      return acc;
+    }, {} as ViewGapStyle);
+  }
+
+  return convertedProps ? { ...props, ...convertedProps } : props;
+}
+
 function handleColour<S extends Style>(props: S, theme: ThemeVariant): S {
   const toReplace = ColourPropsConcrete.filter((p) => p in props);
 
@@ -54,14 +72,15 @@ function handleColour<S extends Style>(props: S, theme: ThemeVariant): S {
 export function useComposedStyle<S extends Style>({
   base,
   props,
-}: UseComposedStyleProps<S>): StyleProp<S> {
+}: UseComposedStyleProps<S>): Style {
   const theme = useTheme();
 
   return useMemo(() => {
     const paddedProps = handlePadding(props);
-    const colouredProps = handleColour(paddedProps, theme);
+    const gapProps = handleGap(paddedProps);
+    const colouredProps = handleColour(gapProps, theme);
 
     const propsStyle = StyleSheet.compose<S, S, S>(base, colouredProps);
-    return StyleSheet.compose(propsStyle, props.style);
+    return StyleSheet.flatten(StyleSheet.compose(propsStyle, props.style));
   }, [base, props, theme]);
 }

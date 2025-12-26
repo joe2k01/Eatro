@@ -1,21 +1,5 @@
 import type { TextStyle, ViewStyle, ImageStyle } from "react-native";
 
-const _redSpectrum = {
-  red0: "254,240,240",
-  red5: "254,242,242",
-  red10: "254,227,226",
-  red15: "253,205,203",
-  red20: "246,120,115",
-  red30: "253,169,166",
-  red40: "246,120,115",
-  red50: "237,76,70",
-  red60: "221,64,58",
-  red70: "183,36,30",
-  red80: "152,33,28",
-  red90: "126,34,30",
-  red100: "68,13,11",
-};
-
 export const IconSizes = {
   s: 20,
   m: 32,
@@ -53,40 +37,40 @@ export type Theme = {
 
 export const EatroTheme: Theme = {
   light: {
-    bg: "#f9f9f9",
-    fg: "#202020",
-    card: "#fcfcfc",
-    fgCard: "#202020",
-    popover: "#fcfcfc",
-    fgPopover: "#202020",
-    primary: "#644a40",
-    fgPrimary: "#ffffff",
-    secondary: "#ffdfb5",
-    fgSecondary: "#582d1d",
-    muted: "#efefef",
-    fgMuted: "#646464",
-    accent: "#e8e8e8",
-    fgAccent: "#202020",
+    bg: "#fafafa",
+    fg: "#09090b",
+    card: "#e4e4e7",
+    fgCard: "#09090b",
+    popover: "#e4e4e7",
+    fgPopover: "#09090b",
+    primary: "#2f27ce",
+    fgPrimary: "#fafafa",
+    secondary: "#fd9a00",
+    fgSecondary: "#09090b",
+    muted: "#52525c",
+    fgMuted: "#e4e4e7",
+    accent: "#fcc800",
+    fgAccent: "#09090b",
     destructive: "#e54d2e",
-    fgDestructive: "#ffffff",
+    fgDestructive: "#e7000b",
   },
   dark: {
-    bg: "#111111",
-    fg: "#eeeeee",
-    card: "#191919",
-    fgCard: "#eeeeee",
-    popover: "#191919",
-    fgPopover: "#eeeeee",
-    primary: "#ffe0c2",
-    fgPrimary: "#081a1b",
-    secondary: "#393028",
-    fgSecondary: "#ffe0c2",
-    muted: "#222222",
-    fgMuted: "#b4b4b4",
-    accent: "#2a2a2a",
-    fgAccent: "#eeeeee",
+    bg: "#09090b",
+    fg: "#fafafa",
+    card: "#e4e4e7",
+    fgCard: "#09090b",
+    popover: "#e4e4e7",
+    fgPopover: "#09090b",
+    primary: "#2f27ce",
+    fgPrimary: "#fafafa",
+    secondary: "#fd9a00",
+    fgSecondary: "#09090b",
+    muted: "#27272a",
+    fgMuted: "#52525c",
+    accent: "#fcc800",
+    fgAccent: "#09090b",
     destructive: "#e54d2e",
-    fgDestructive: "#ffffff",
+    fgDestructive: "#e7000b",
   },
 };
 
@@ -114,6 +98,14 @@ export const PaddingPropsConcrete: PaddingProps[] = [
   "paddingVertical",
 ];
 
+export type GapProps = Extract<keyof ViewStyle, "gap">;
+export type DimensionGapProps = { [K in GapProps]?: Dimension };
+export type ViewGapStyle = Pick<ViewStyle, GapProps>;
+export type GapViewProps<P> = P extends ViewGapStyle
+  ? Omit<P, GapProps> & DimensionGapProps
+  : P;
+export const GapPropsConcrete: GapProps[] = ["gap"];
+
 export type ColourProps = Extract<keyof TextStyle, "color">;
 export type ThemeColourProps = { [K in ColourProps]?: AllColours };
 export type ViewColourStyle = Pick<TextStyle, ColourProps>;
@@ -124,4 +116,6 @@ export const ColourPropsConcrete: ColourProps[] = ["color"];
 
 export type Style = ViewStyle | TextStyle | ImageStyle;
 
-export type StyledViewProps<P> = PaddedViewProps<ColourViewProps<P>>;
+export type StyledViewProps<P> = PaddedViewProps<
+  GapViewProps<ColourViewProps<P>>
+>;

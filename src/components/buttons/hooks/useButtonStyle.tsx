@@ -1,7 +1,7 @@
 import { Style } from "@constants/theme";
 import { useTheme } from "@contexts/ThemeProvider";
 import { useMemo } from "react";
-import { StyleProp, StyleSheet } from "react-native";
+import { ColorValue, StyleProp, StyleSheet } from "react-native";
 
 export type ButtonVariant = "primary" | "secondary" | "transparent" | "muted";
 
@@ -35,11 +35,13 @@ export function useButtonStyle({
         break;
     }
 
-    return StyleSheet.compose({ backgroundColor: background }, composedStyle);
+    return StyleSheet.flatten(
+      StyleSheet.compose({ backgroundColor: background }, composedStyle),
+    );
   }, [composedStyle, muted, primary, secondary, variant]);
 
   const innerStyle = useMemo(() => {
-    let color: string = "";
+    let color: ColorValue = "";
     switch (variant) {
       case "primary":
         color = fgPrimary;
@@ -56,11 +58,19 @@ export function useButtonStyle({
         break;
     }
 
-    if (composedStyle && "color" in composedStyle) {
-      return { color: composedStyle.color };
+    if (composedStyle && "color" in composedStyle && composedStyle.color) {
+      color = composedStyle.color;
     }
 
-    return { color };
+    const textAlign =
+      composedStyle && "textAlign" in composedStyle
+        ? composedStyle.textAlign
+        : "center";
+
+    return {
+      color,
+      textAlign,
+    };
   }, [composedStyle, fg, fgMuted, fgPrimary, fgSecondary, variant]);
 
   return { innerStyle, outerStyle };
