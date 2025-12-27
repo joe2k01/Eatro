@@ -7,6 +7,7 @@ import { UserContextProvider } from "@contexts/UserContextProvider";
 import { ApiClientProvier } from "@api/ApiClient";
 import { AppRoutes } from "./AppRoutes";
 import { ThemeProvider } from "@contexts/ThemeProvider";
+import { SnackbarProvider } from "@components/feedback";
 
 Sentry.init({
   dsn: "https://0b9e10cd50dba3b6a2423d19dc8720fd@o4510450363727872.ingest.de.sentry.io/4510450365038672",
@@ -37,8 +38,10 @@ export default Sentry.wrap(function App() {
           <QueryClientProvider client={queryClient}>
             <ApiClientProvier>
               <ThemeProvider>
-                <AppRoutes />
-                <StatusBar />
+                <SnackbarProvider>
+                  <AppRoutes />
+                  <StatusBar />
+                </SnackbarProvider>
               </ThemeProvider>
             </ApiClientProvier>
           </QueryClientProvider>

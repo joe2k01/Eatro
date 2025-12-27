@@ -9,13 +9,19 @@ import { useStorage } from "@hooks/useStorage";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { StyleSheet } from "react-native";
 import { z } from "zod";
-import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
+import type {
+  NativeStackNavigationOptions,
+  NativeStackNavigationProp,
+} from "@react-navigation/native-stack";
 import { useStaticNavigationOptions } from "@hooks/useStaticNavigationOptions";
 import { DonutChart, useDonut } from "@components/charts";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormInput } from "@components/forms";
 import { KeyboardView } from "@components/layout/KeyboardView";
+import { SnackbarVariant, useSnackbar } from "@components/feedback";
+import { useNavigation } from "@react-navigation/native";
+import { SettingsStackParamsList } from "@screens/Settings/routes";
 
 const goalsSchema = z
   .object({
@@ -55,16 +61,25 @@ export const goalsConfigurationHeaderOptions = {
 
 export function GoalsConfiguration() {
   useStaticNavigationOptions(goalsConfigurationHeaderOptions);
+  const showSnackbar = useSnackbar();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<SettingsStackParamsList>>();
   const { primary, secondary, accent } = useTheme();
   const { data, update } = useStorage("goals", goalsSchema, defaultFormValues);
   const [isCaloriesManual, setIsCaloriesManual] = useState(false);
 
-  const { control, handleSubmit, reset, setValue, watch } =
-    useForm<GoalsFormValues>({
-      defaultValues: defaultFormValues,
-      resolver: zodResolver(goalsSchema),
-      mode: "onChange",
-    });
+  const {
+    control,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { isSubmitting },
+  } = useForm<GoalsFormValues>({
+    defaultValues: defaultFormValues,
+    resolver: zodResolver(goalsSchema),
+    mode: "onChange",
+  });
 
   useEffect(() => {
     setIsCaloriesManual(data.calories !== undefined);
@@ -117,8 +132,13 @@ export function GoalsConfiguration() {
   const onSave = useCallback(
     async (values: GoalsFormValues) => {
       await update(values);
+      showSnackbar({
+        message: "Goals saved",
+        variant: SnackbarVariant.Success,
+      });
+      navigation.popToTop();
     },
-    [update],
+    [showSnackbar, update, navigation],
   );
 
   const caloriesValue = watch("calories");
@@ -214,7 +234,10 @@ export function GoalsConfiguration() {
           </HStack>
 
           <Box paddingTop={1}>
-            <Button onPress={handleSubmit(onSave)} disabled={invalidCalories}>
+            <Button
+              onPress={handleSubmit(onSave)}
+              disabled={invalidCalories || isSubmitting}
+            >
               Save goals
             </Button>
           </Box>
