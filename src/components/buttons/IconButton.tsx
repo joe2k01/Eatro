@@ -32,6 +32,7 @@ export function IconButton({
   size = "m",
   name,
   variant,
+  disabled,
   ...props
 }: IconButtonProps) {
   const composedStyle = useComposedStyle<ViewStyle>({
@@ -39,10 +40,14 @@ export function IconButton({
     props,
   });
 
-  const { outerStyle, innerStyle } = useButtonStyle({ variant, composedStyle });
+  const { outerStyle, innerStyle } = useButtonStyle({
+    variant,
+    composedStyle,
+    disabled,
+  });
 
   return (
-    <Pressable {...props} style={outerStyle}>
+    <Pressable {...props} style={outerStyle} disabled={disabled}>
       <MaterialIcons
         name={name}
         size={IconSizes[size]}

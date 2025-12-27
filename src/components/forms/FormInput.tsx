@@ -28,6 +28,8 @@ export type FormInputProps<
   unit?: string;
   /** Called with raw text as the user types. */
   onTextChange?: (text: string) => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
   /** Parse raw text into the form value. */
   parse: (text: string) => TFieldValues[TName];
   /** Format the form value into a string for display. */
@@ -43,8 +45,7 @@ function defaultFormat(value: unknown): string {
 const baseStyles = StyleSheet.create({
   container: {
     borderRadius: intoThemeDimension(0.5),
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: intoThemeDimension(1.5),
     alignItems: "center",
     backgroundColor: "popover",
   },
@@ -54,6 +55,7 @@ const baseStyles = StyleSheet.create({
     padding: 0,
     margin: 0,
     color: "fgPopover",
+    paddingVertical: intoThemeDimension(1.5),
   },
   unit: {
     opacity: 0.72,
@@ -72,6 +74,8 @@ export function FormInput<
   keyboardType = "default",
   unit,
   onTextChange,
+  onFocus,
+  onBlur,
   parse,
   format,
   inputStyle = {},
@@ -98,7 +102,7 @@ export function FormInput<
     <Controller
       control={control}
       name={name}
-      render={({ field: { onChange, value } }) => (
+      render={({ field: { onChange, onBlur: rhfOnBlur, value } }) => (
         <VStack backgroundColor="transparent" flex={1} gap={0.5}>
           {labelElement}
           <HStack style={containerComposedStyle} alignItems="center">
@@ -107,6 +111,11 @@ export function FormInput<
               onChangeText={(text) => {
                 onTextChange?.(text);
                 onChange(parse(text));
+              }}
+              onFocus={() => onFocus?.()}
+              onBlur={() => {
+                rhfOnBlur();
+                onBlur?.();
               }}
               placeholder={placeholder}
               keyboardType={keyboardType}

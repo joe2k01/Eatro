@@ -8,19 +8,24 @@ export type ButtonVariant = "primary" | "secondary" | "transparent" | "muted";
 type UseButtonStyleProps = {
   variant?: ButtonVariant;
   composedStyle: StyleProp<Style>;
+  disabled?: boolean | null;
 };
 
 export function useButtonStyle({
   variant,
   composedStyle,
+  disabled,
 }: UseButtonStyleProps) {
   const { primary, fgPrimary, secondary, fgSecondary, muted, fgMuted, fg } =
     useTheme();
 
   const outerStyle = useMemo(() => {
-    let background: string = "";
+    let background: string = "transparent";
+    const effectiveVariant: ButtonVariant | undefined = disabled
+      ? "muted"
+      : variant;
 
-    switch (variant) {
+    switch (effectiveVariant) {
       case "primary":
         background = primary;
         break;
@@ -28,6 +33,7 @@ export function useButtonStyle({
         background = secondary;
         break;
       case "transparent":
+        background = "transparent";
         break;
       case "muted":
       default:
@@ -35,14 +41,21 @@ export function useButtonStyle({
         break;
     }
 
-    return StyleSheet.flatten(
+    const base = StyleSheet.flatten(
       StyleSheet.compose({ backgroundColor: background }, composedStyle),
     );
-  }, [composedStyle, muted, primary, secondary, variant]);
+
+    // Disabled always falls back to the muted background, regardless of variant.
+    return disabled ? { ...base, backgroundColor: muted } : base;
+  }, [composedStyle, disabled, muted, primary, secondary, variant]);
 
   const innerStyle = useMemo(() => {
     let color: ColorValue = "";
-    switch (variant) {
+    const effectiveVariant: ButtonVariant | undefined = disabled
+      ? "muted"
+      : variant;
+
+    switch (effectiveVariant) {
       case "primary":
         color = fgPrimary;
         break;
@@ -71,7 +84,7 @@ export function useButtonStyle({
       color,
       textAlign,
     };
-  }, [composedStyle, fg, fgMuted, fgPrimary, fgSecondary, variant]);
+  }, [composedStyle, disabled, fg, fgMuted, fgPrimary, fgSecondary, variant]);
 
   return { innerStyle, outerStyle };
 }

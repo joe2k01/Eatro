@@ -53,6 +53,7 @@ export function Button({
   secondaryText,
   leftIcon,
   rightIcon,
+  disabled,
   ...props
 }: ButtonProps) {
   const composedStyle = useComposedStyle<ViewStyle>({
@@ -60,10 +61,14 @@ export function Button({
     props,
   });
 
-  const { outerStyle, innerStyle } = useButtonStyle({ variant, composedStyle });
+  const { outerStyle, innerStyle } = useButtonStyle({
+    variant,
+    composedStyle,
+    disabled,
+  });
 
   return (
-    <Pressable {...props}>
+    <Pressable {...props} disabled={disabled}>
       <HStack
         backgroundColor="transparent"
         alignItems="center"

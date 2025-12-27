@@ -8,7 +8,7 @@ export const IconSizes = {
 
 export type IconSize = keyof typeof IconSizes;
 
-export type Dimension = 0.5 | 1 | 2 | 3 | 4;
+export type Dimension = 0 | 0.5 | 1 | 1.5 | 2 | 3 | 4;
 export const DimensionSize = 8;
 
 type ColourTypes =
@@ -37,40 +37,44 @@ export type Theme = {
 
 export const EatroTheme: Theme = {
   light: {
-    bg: "#fafafa",
-    fg: "#09090b",
-    card: "#e4e4e7",
-    fgCard: "#09090b",
-    popover: "#e4e4e7",
-    fgPopover: "#09090b",
-    primary: "#2f27ce",
-    fgPrimary: "#fafafa",
-    secondary: "#fd9a00",
-    fgSecondary: "#09090b",
-    muted: "#52525c",
-    fgMuted: "#e4e4e7",
-    accent: "#fcc800",
-    fgAccent: "#09090b",
-    destructive: "#e54d2e",
-    fgDestructive: "#e7000b",
+    bg: "#FBF8F2",
+    fg: "#141412",
+    card: "#EFE8DD",
+    fgCard: "#141412",
+    popover: "#F4EEE4",
+    fgPopover: "#141412",
+    // Community / trust
+    primary: "#1F6F4A",
+    fgPrimary: "#FFFFFF",
+    // Food / warmth (good for CTAs, highlights)
+    secondary: "#F2B84B",
+    fgSecondary: "#141412",
+    // Individual ownership (badges, chips, “my contributions”)
+    accent: "#C56A3D",
+    fgAccent: "#FFF7F0",
+    muted: "#6A655D",
+    fgMuted: "#EFE8DD",
+    destructive: "#D64545",
+    fgDestructive: "#FFFFFF",
   },
+
   dark: {
-    bg: "#09090b",
-    fg: "#fafafa",
-    card: "#e4e4e7",
-    fgCard: "#09090b",
-    popover: "#e4e4e7",
-    fgPopover: "#09090b",
-    primary: "#2f27ce",
-    fgPrimary: "#fafafa",
-    secondary: "#fd9a00",
-    fgSecondary: "#09090b",
-    muted: "#27272a",
-    fgMuted: "#52525c",
-    accent: "#fcc800",
-    fgAccent: "#09090b",
-    destructive: "#e54d2e",
-    fgDestructive: "#e7000b",
+    bg: "#0F1411",
+    fg: "#F6F3ED",
+    card: "#18201B",
+    fgCard: "#F6F3ED",
+    popover: "#121A15",
+    fgPopover: "#F6F3ED",
+    primary: "#3ABF84",
+    fgPrimary: "#08100C",
+    secondary: "#F3C56B",
+    fgSecondary: "#0B0F0C",
+    accent: "#D08B5B",
+    fgAccent: "#101312",
+    muted: "#2A332E",
+    fgMuted: "#9AA79F",
+    destructive: "#FF6B6B",
+    fgDestructive: "#101312",
   },
 };
 

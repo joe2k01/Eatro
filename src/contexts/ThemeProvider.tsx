@@ -28,11 +28,11 @@ type ThemeProviderProps = {
 };
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const { data, storageApi } = useStorage("theme", themeVariantShema);
-
-  useEffect(() => {
-    storageApi.current?.load();
-  }, [storageApi]);
+  const { data, update } = useStorage(
+    "theme",
+    themeVariantShema,
+    defaultThemeVariant,
+  );
 
   useEffect(() => {
     Appearance.setColorScheme(
@@ -46,10 +46,9 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     return {
       theme: EatroTheme[variant],
       variant,
-      toggleTheme: () =>
-        storageApi.current?.store(variant === "light" ? "dark" : "light"),
+      toggleTheme: () => update(variant === "light" ? "dark" : "light"),
     };
-  }, [storageApi, variant]);
+  }, [update, variant]);
 
   return <ThemeContext.Provider value={ctx}>{children}</ThemeContext.Provider>;
 }

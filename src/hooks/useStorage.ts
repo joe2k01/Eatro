@@ -1,18 +1,7 @@
 import * as Sentry from "@sentry/react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  RefObject,
-  useCallback,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { z, ZodType } from "zod";
-
-interface Storage<Z extends ZodType> {
-  load: () => Promise<void>;
-  store: (data: z.output<Z>) => Promise<void>;
-}
 
 const loadingFallback = {};
 
@@ -47,40 +36,74 @@ async function store<Z extends ZodType>(key: string, data: z.output<Z>) {
 
 type StorageFallback = object;
 
-type UseStorage<Z extends ZodType> = {
+export type UseStorageResult<Z extends ZodType> = {
   data: z.output<Z> | StorageFallback;
-  storageApi: RefObject<Storage<Z> | undefined>;
+  /** True while the hook is loading from storage (and during update persistence). */
+  loading: boolean;
+  /** Reload the persisted value (also updates `data`). */
+  reload: () => Promise<void>;
+  /** Update state and persist (also updates `data`). */
+  update: (next: z.output<Z>) => Promise<void>;
 };
 
 export function useStorage<Z extends ZodType>(
   key: string,
   validator: Z,
-): UseStorage<Z> {
-  const [data, setData] = useState<z.output<Z> | object>({});
-  const storageApi = useRef<Storage<Z>>(undefined);
+  initialData: z.output<Z>,
+): Omit<UseStorageResult<Z>, "data"> & { data: z.output<Z> };
+export function useStorage<Z extends ZodType>(
+  key: string,
+  validator: Z,
+): UseStorageResult<Z>;
 
-  const onLoad = useCallback(async () => {
+export function useStorage<Z extends ZodType>(
+  key: string,
+  validator: Z,
+  initialData?: z.output<Z>,
+): UseStorageResult<Z> {
+  const [data, setData] = useState<z.output<Z> | object>(
+    initialData ?? loadingFallback,
+  );
+  const [loading, setLoading] = useState(true);
+  const hasInitialData = useRef(initialData !== undefined);
+
+  useEffect(() => {
+    hasInitialData.current = initialData !== undefined;
+  }, [initialData]);
+
+  const reload = useCallback(async () => {
+    setLoading(true);
     const mData = await load(key, validator);
 
+    // If a caller provided initial data, keep it when storage is empty.
+    if (hasInitialData.current && Object.is(mData, loadingFallback)) {
+      setLoading(false);
+      return;
+    }
+
     setData(mData);
+    setLoading(false);
   }, [key, validator]);
 
-  const onStore = useCallback(
-    async (data: z.output<Z>) => {
-      await store(key, data);
-      onLoad();
+  const update = useCallback(
+    async (next: z.output<Z>) => {
+      try {
+        setLoading(true);
+        const parsed = await validator.parseAsync(next);
+        setData(parsed);
+        await store(key, parsed);
+      } catch (e) {
+        Sentry.captureException(e);
+      } finally {
+        setLoading(false);
+      }
     },
-    [key, onLoad],
+    [key, validator],
   );
 
-  useImperativeHandle(
-    storageApi,
-    () => ({
-      load: onLoad,
-      store: onStore,
-    }),
-    [onLoad, onStore],
-  );
+  useEffect(() => {
+    reload();
+  }, [reload]);
 
-  return { data, storageApi };
+  return { data, loading, reload, update };
 }

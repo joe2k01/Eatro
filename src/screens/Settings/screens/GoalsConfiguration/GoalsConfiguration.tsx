@@ -6,16 +6,16 @@ import { VStack } from "@components/layout/VStack";
 import { TextCaption, Title1 } from "@components/typography/Text";
 import { useTheme } from "@contexts/ThemeProvider";
 import { useStorage } from "@hooks/useStorage";
-import { useThemeDimension } from "@hooks/useThemeDimension";
-import { useCallback, useEffect, useMemo, useRef } from "react";
-import { KeyboardAvoidingView, StyleSheet } from "react-native";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { StyleSheet } from "react-native";
 import { z } from "zod";
 import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import { useStaticNavigationOptions } from "@hooks/useStaticNavigationOptions";
-import { DonutChart } from "./components/DonutChart";
+import { DonutChart, useDonut } from "@components/charts";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormInput } from "@components/forms";
+import { KeyboardView } from "@components/layout/KeyboardView";
 
 const goalsSchema = z
   .object({
@@ -35,6 +35,12 @@ const defaultFormValues: GoalsFormValues = {
   fat: undefined,
 };
 
+const styles = StyleSheet.create({
+  input: {
+    textAlign: "center",
+  },
+});
+
 function parseOptionalInt(value: string): number | undefined {
   const trimmed = value.trim();
   if (!trimmed) return undefined;
@@ -49,10 +55,9 @@ export const goalsConfigurationHeaderOptions = {
 
 export function GoalsConfiguration() {
   useStaticNavigationOptions(goalsConfigurationHeaderOptions);
-  const { popover, fgPopover, muted, primary, secondary, accent, destructive } =
-    useTheme();
-  const { data, storageApi } = useStorage("goals", goalsSchema);
-  const caloriesManuallyEditedRef = useRef(false);
+  const { primary, secondary, accent } = useTheme();
+  const { data, update } = useStorage("goals", goalsSchema, defaultFormValues);
+  const [isCaloriesManual, setIsCaloriesManual] = useState(false);
 
   const { control, handleSubmit, reset, setValue, watch } =
     useForm<GoalsFormValues>({
@@ -62,39 +67,9 @@ export function GoalsConfiguration() {
     });
 
   useEffect(() => {
-    storageApi.current?.load();
-  }, [storageApi]);
-
-  useEffect(() => {
-    const mData = data as GoalsFormValues;
-    caloriesManuallyEditedRef.current = false;
-    reset({
-      calories: typeof mData.calories === "number" ? mData.calories : undefined,
-      protein: typeof mData.protein === "number" ? mData.protein : undefined,
-      carbs: typeof mData.carbs === "number" ? mData.carbs : undefined,
-      fat: typeof mData.fat === "number" ? mData.fat : undefined,
-    });
+    setIsCaloriesManual(data.calories !== undefined);
+    reset(data);
   }, [data, reset]);
-
-  const borderRadius = useThemeDimension(0.5);
-
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        input: {
-          backgroundColor: popover,
-          color: fgPopover,
-          borderRadius,
-          paddingHorizontal: 12,
-          paddingVertical: 10,
-          fontSize: 16,
-        },
-        inputCentered: {
-          textAlign: "center",
-        },
-      }),
-    [borderRadius, fgPopover, popover],
-  );
 
   const caloriesNumber = watch("calories") ?? 0;
   const proteinNumber = watch("protein") ?? 0;
@@ -113,72 +88,60 @@ export function GoalsConfiguration() {
     };
   }, [carbsNumber, fatNumber, proteinNumber]);
 
+  const applyAutoCalories = useCallback(
+    (mMacroCalories: typeof macroCalories) => {
+      const nextCalories =
+        mMacroCalories.total > 0 ? mMacroCalories.total : undefined;
+      setValue("calories", nextCalories, {
+        shouldDirty: false,
+        shouldValidate: true,
+      });
+    },
+    [setValue],
+  );
+
   useEffect(() => {
-    // Auto-update calories when the user edits macros, but don't override a
-    // manually-edited calorie target.
-    if (caloriesManuallyEditedRef.current) {
-      return;
-    }
-
-    const nextCalories =
-      macroCalories.total > 0 ? macroCalories.total : undefined;
-
-    setValue("calories", nextCalories, {
+    // Auto-update calories from macros unless the user has set a manual target.
+    if (!isCaloriesManual) {
       // Macros being edited already marks the form dirty.
-      shouldDirty: false,
-      shouldValidate: true,
-    });
-  }, [macroCalories.total, setValue]);
+      applyAutoCalories(macroCalories);
+    }
+  }, [applyAutoCalories, isCaloriesManual, macroCalories]);
 
-  const donutSegments = useMemo(() => {
-    const total = Math.max(caloriesNumber, macroCalories.total, 1);
-    const remainder = Math.max(0, total - macroCalories.total);
-    const isOverTarget =
-      caloriesNumber > 0 && macroCalories.total > caloriesNumber;
-
-    return {
-      total,
-      remainder,
-      isOverTarget,
-      segments: [
-        {
-          key: "protein",
-          value: macroCalories.proteinCalories,
-          color: primary,
-        },
-        { key: "carbs", value: macroCalories.carbsCalories, color: secondary },
-        { key: "fat", value: macroCalories.fatCalories, color: accent },
-        {
-          key: "remainder",
-          value: remainder,
-          color: isOverTarget ? destructive : muted,
-        },
-      ],
-    };
-  }, [
-    accent,
-    caloriesNumber,
-    destructive,
-    macroCalories,
-    muted,
-    primary,
-    secondary,
+  const donut = useDonut([
+    { key: "protein", value: macroCalories.proteinCalories, color: primary },
+    { key: "carbs", value: macroCalories.carbsCalories, color: secondary },
+    { key: "fat", value: macroCalories.fatCalories, color: accent },
   ]);
 
   const onSave = useCallback(
     async (values: GoalsFormValues) => {
-      await storageApi.current?.store(values);
+      await update(values);
     },
-    [storageApi],
+    [update],
   );
 
-  const onCaloriesChange = useCallback(() => {
-    caloriesManuallyEditedRef.current = true;
-  }, []);
+  const caloriesValue = watch("calories");
+  const onCaloriesBlur = useCallback(() => {
+    // Commit manual mode only when leaving the field.
+    // If the user cleared the field, return to auto-calculated calories
+    // immediately (even if macros didn't change), so dependent UI like the
+    // disabled state stays correct.
+    if (caloriesValue === undefined) {
+      setIsCaloriesManual(false);
+      applyAutoCalories(macroCalories);
+      return;
+    }
+
+    setIsCaloriesManual(true);
+  }, [applyAutoCalories, caloriesValue, macroCalories]);
+
+  const invalidCalories =
+    macroCalories.total > caloriesNumber || !caloriesNumber;
 
   return (
-    <SafeVStack paddingHorizontal={2}>
-      <KeyboardAvoidingView behavior={"position"} keyboardVerticalOffset={100}>
+    <KeyboardView>
+      <SafeVStack paddingHorizontal={2}>
         <VStack paddingBlock={2} gap={2}>
           <VStack gap={1}>
             <Title1>Calorie Goal</Title1>
@@ -189,23 +152,22 @@ export function GoalsConfiguration() {
             control={control}
             name="calories"
             label="Calories"
-            placeholder="e.g. 2200"
+            placeholder="2000"
             keyboardType="number-pad"
             unit="kcal"
             parse={parseOptionalInt}
-            onTextChange={onCaloriesChange}
+            onBlur={onCaloriesBlur}
           />
 
           <VStack alignItems="center" gap={1}>
             <DonutChart
-              size={220}
               strokeWidth={18}
-              gapDegrees={7}
-              backgroundColor={popover}
-              segments={donutSegments.segments}
+              total={caloriesNumber}
+              donutData={donut}
+              width={"75%"}
             />
 
-            <TextCaption>
+            <TextCaption color={invalidCalories ? "destructive" : "fg"}>
               Macros: {macroCalories.total} kcal{" "}
               {caloriesNumber > 0 ? `(target ${caloriesNumber} kcal)` : ""}
             </TextCaption>
@@ -225,7 +187,7 @@ export function GoalsConfiguration() {
               keyboardType="number-pad"
               unit="g"
               parse={parseOptionalInt}
-              inputStyle={styles.inputCentered}
+              inputStyle={styles.input}
             />
 
             <FormInput
@@ -236,7 +198,7 @@ export function GoalsConfiguration() {
               keyboardType="number-pad"
               unit="g"
               parse={parseOptionalInt}
-              inputStyle={styles.inputCentered}
+              inputStyle={styles.input}
             />
 
             <FormInput
@@ -247,15 +209,17 @@ export function GoalsConfiguration() {
               keyboardType="number-pad"
               unit="g"
               parse={parseOptionalInt}
-              inputStyle={styles.inputCentered}
+              inputStyle={styles.input}
             />
           </HStack>
 
           <Box paddingTop={1}>
-            <Button onPress={handleSubmit(onSave)}>Save goals</Button>
+            <Button onPress={handleSubmit(onSave)} disabled={invalidCalories}>
+              Save goals
+            </Button>
           </Box>
         </VStack>
-      </KeyboardAvoidingView>
-    </SafeVStack>
+      </SafeVStack>
+    </KeyboardView>
   );
 }
