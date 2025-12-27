@@ -7,6 +7,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import * as Haptics from "expo-haptics";
 import { useTheme } from "@contexts/ThemeProvider";
 import { Box } from "@components/layout/Box";
 import { TextCaption, TextBody } from "@components/typography/Text";
@@ -52,6 +53,10 @@ export function Snackbar({ message, variant, visible }: SnackbarProps) {
     const targetTranslate = visible ? 0 : 24;
     const targetOpacity = visible ? 1 : 0;
     const targetScale = visible ? 1 : 0.8;
+
+    if (visible) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
 
     translateY.value = withTiming(targetTranslate, {
       duration: ANIMATION_DURATION_MS,
