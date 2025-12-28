@@ -8,7 +8,6 @@ import { useTheme } from "@contexts/ThemeProvider";
 import { useStorage } from "@hooks/useStorage";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { StyleSheet } from "react-native";
-import { z } from "zod";
 import type {
   NativeStackNavigationOptions,
   NativeStackNavigationProp,
@@ -22,19 +21,10 @@ import { KeyboardView } from "@components/layout/KeyboardView";
 import { SnackbarVariant, useSnackbar } from "@components/feedback";
 import { useNavigation } from "@react-navigation/native";
 import { SettingsStackParamsList } from "@screens/Settings/routes";
+import type { Goals } from "@constants/storage/validators";
+import { goalsValidator } from "@constants/storage/validators/goals";
 
-const goalsSchema = z
-  .object({
-    calories: z.number().int().nonnegative(),
-    protein: z.number().int().nonnegative(),
-    carbs: z.number().int().nonnegative(),
-    fat: z.number().int().nonnegative(),
-  })
-  .partial();
-
-type GoalsFormValues = z.infer<typeof goalsSchema>;
-
-const defaultFormValues: GoalsFormValues = {
+const defaultFormValues: Goals = {
   calories: undefined,
   protein: undefined,
   carbs: undefined,
@@ -65,7 +55,7 @@ export function GoalsConfiguration() {
   const navigation =
     useNavigation<NativeStackNavigationProp<SettingsStackParamsList>>();
   const { primary, secondary, accent } = useTheme();
-  const { data, update } = useStorage("goals", goalsSchema, defaultFormValues);
+  const { data, update } = useStorage("goals", defaultFormValues);
   const [isCaloriesManual, setIsCaloriesManual] = useState(false);
 
   const {
@@ -75,9 +65,9 @@ export function GoalsConfiguration() {
     setValue,
     watch,
     formState: { isSubmitting },
-  } = useForm<GoalsFormValues>({
+  } = useForm<Goals>({
     defaultValues: defaultFormValues,
-    resolver: zodResolver(goalsSchema),
+    resolver: zodResolver(goalsValidator),
     mode: "onChange",
   });
 
@@ -130,7 +120,7 @@ export function GoalsConfiguration() {
   ]);
 
   const onSave = useCallback(
-    async (values: GoalsFormValues) => {
+    async (values: Goals) => {
       await update(values);
       showSnackbar({
         message: "Goals saved",

@@ -8,9 +8,7 @@ import {
   useMemo,
 } from "react";
 import { Appearance } from "react-native";
-import { z } from "zod";
 
-const themeVariantShema = z.literal("light").or(z.literal("dark"));
 const defaultThemeVariant = "dark";
 
 const ThemeContext = createContext<{
@@ -28,11 +26,7 @@ type ThemeProviderProps = {
 };
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const { data, update } = useStorage(
-    "theme",
-    themeVariantShema,
-    defaultThemeVariant,
-  );
+  const { data, update } = useStorage("theme", defaultThemeVariant);
 
   useEffect(() => {
     Appearance.setColorScheme(

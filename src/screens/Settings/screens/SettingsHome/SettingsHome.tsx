@@ -16,9 +16,11 @@ import { Icon } from "@components/media/Icon";
 import { useThemeDimension } from "@hooks/useThemeDimension";
 import { Switch } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type {
+  NativeStackNavigationProp,
+  NativeStackNavigationOptions,
+} from "@react-navigation/native-stack";
 import type { SettingsStackParamsList } from "../../routes";
-import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import { useStaticNavigationOptions } from "@hooks/useStaticNavigationOptions";
 
 export const settingsHomeHeaderOptions = {
@@ -80,5 +82,3 @@ export function SettingsHome() {
     </SafeVStack>
   );
 }
-
-

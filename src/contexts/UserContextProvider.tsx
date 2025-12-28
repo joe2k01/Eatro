@@ -1,14 +1,8 @@
 import { useStorage } from "@hooks/useStorage";
+import type { User } from "@constants/storage/validators";
 import React, { createContext, useContext } from "react";
-import { z } from "zod";
 
-const userSchema = z
-  .object({
-    name: z.string(),
-  })
-  .partial();
-
-type TUserContext = z.infer<typeof userSchema>;
+type TUserContext = User;
 
 const UserContext = createContext<TUserContext>({});
 
@@ -17,7 +11,7 @@ type UserContextProviderProps = {
 };
 
 export function UserContextProvider({ children }: UserContextProviderProps) {
-  const { data: user } = useStorage("user", userSchema, {});
+  const { data: user } = useStorage("user", {});
 
   return <UserContext.Provider value={user}>{children}</UserContext.Provider>;
 }

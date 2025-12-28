@@ -1,14 +1,17 @@
 import * as Sentry from "@sentry/react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { z, ZodType } from "zod";
+import type { z } from "zod";
+import { storageSchema, type StorageKey } from "@constants/storage";
+
+type StorageSchema = typeof storageSchema;
 
 const loadingFallback = {};
 
-async function load<Z extends ZodType>(
-  key: string,
-  validator: Z,
-): Promise<z.output<Z> | object> {
+async function load<K extends StorageKey>(
+  key: K,
+): Promise<z.output<StorageSchema[K]> | object> {
+  const validator = storageSchema[key];
   try {
     const loadedData = await AsyncStorage.getItem(key);
     const parsedData = loadedData ? JSON.parse(loadedData) : loadingFallback;
@@ -26,7 +29,10 @@ async function load<Z extends ZodType>(
   }
 }
 
-async function store<Z extends ZodType>(key: string, data: z.output<Z>) {
+async function store<K extends StorageKey>(
+  key: K,
+  data: z.output<StorageSchema[K]>,
+) {
   try {
     await AsyncStorage.setItem(key, JSON.stringify(data));
   } catch (e) {
@@ -36,32 +42,30 @@ async function store<Z extends ZodType>(key: string, data: z.output<Z>) {
 
 type StorageFallback = object;
 
-export type UseStorageResult<Z extends ZodType> = {
-  data: z.output<Z> | StorageFallback;
+export type UseStorageResult<K extends StorageKey> = {
+  data: z.output<StorageSchema[K]> | StorageFallback;
   /** True while the hook is loading from storage (and during update persistence). */
   loading: boolean;
   /** Reload the persisted value (also updates `data`). */
   reload: () => Promise<void>;
   /** Update state and persist (also updates `data`). */
-  update: (next: z.output<Z>) => Promise<void>;
+  update: (next: z.output<StorageSchema[K]>) => Promise<void>;
 };
 
-export function useStorage<Z extends ZodType>(
-  key: string,
-  validator: Z,
-  initialData: z.output<Z>,
-): Omit<UseStorageResult<Z>, "data"> & { data: z.output<Z> };
-export function useStorage<Z extends ZodType>(
-  key: string,
-  validator: Z,
-): UseStorageResult<Z>;
+export function useStorage<K extends StorageKey>(
+  key: K,
+  initialData: z.output<StorageSchema[K]>,
+): Omit<UseStorageResult<K>, "data"> & {
+  data: z.output<StorageSchema[K]>;
+};
+export function useStorage<K extends StorageKey>(key: K): UseStorageResult<K>;
 
-export function useStorage<Z extends ZodType>(
-  key: string,
-  validator: Z,
-  initialData?: z.output<Z>,
-): UseStorageResult<Z> {
-  const [data, setData] = useState<z.output<Z> | object>(
+export function useStorage<K extends StorageKey>(
+  key: K,
+  initialData?: z.output<StorageSchema[K]>,
+): UseStorageResult<K> {
+  const validator = storageSchema[key];
+  const [data, setData] = useState<z.output<StorageSchema[K]> | object>(
     initialData ?? loadingFallback,
   );
   const [loading, setLoading] = useState(true);
@@ -73,7 +77,7 @@ export function useStorage<Z extends ZodType>(
 
   const reload = useCallback(async () => {
     setLoading(true);
-    const mData = await load(key, validator);
+    const mData = await load(key);
 
     // If a caller provided initial data, keep it when storage is empty.
     if (hasInitialData.current && Object.is(mData, loadingFallback)) {
@@ -83,10 +87,10 @@ export function useStorage<Z extends ZodType>(
 
     setData(mData);
     setLoading(false);
-  }, [key, validator]);
+  }, [key]);
 
   const update = useCallback(
-    async (next: z.output<Z>) => {
+    async (next: z.output<StorageSchema[K]>) => {
       try {
         setLoading(true);
         const parsed = await validator.parseAsync(next);

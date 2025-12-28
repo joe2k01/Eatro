@@ -3,9 +3,10 @@ import type { NativeStackNavigationOptions } from "@react-navigation/native-stac
 import { useStaticNavigationOptions } from "@hooks/useStaticNavigationOptions";
 import { format } from "date-fns";
 import { AvatarButton } from "./components/AvatarButton";
+import { Title1 } from "@components/typography/Text";
 
 export const homeHeaderOptions = {
-  headerTitle: () => `Today, ${format(new Date(), "MMMM do")}`,
+  headerTitle: () => <Title1>Today, {format(new Date(), "MMMM do")}</Title1>,
   headerLeft: () => <AvatarButton />,
 } satisfies NativeStackNavigationOptions;
 
