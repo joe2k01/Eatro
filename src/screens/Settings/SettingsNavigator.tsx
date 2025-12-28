@@ -2,18 +2,17 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { GoalsConfiguration } from "./screens/GoalsConfiguration";
 import { SettingsHome } from "./screens/SettingsHome";
 import type { SettingsStackParamsList } from "./routes";
-
-import { createAppStackNavigationOptions } from "@constants/navigation";
+import { useAppStackNavigationOptions } from "@hooks/useAppStackNavigationOptions";
 
 const Stack = createNativeStackNavigator<SettingsStackParamsList>();
 
-const SettingsStackOptions = createAppStackNavigationOptions();
-
 export function SettingsNavigator() {
+  const stackOptions = useAppStackNavigationOptions();
+
   return (
     <Stack.Navigator
       initialRouteName="SettingsHome"
-      screenOptions={SettingsStackOptions}
+      screenOptions={stackOptions}
     >
       <Stack.Screen name="SettingsHome" component={SettingsHome} />
       <Stack.Screen name="GoalsConfiguration" component={GoalsConfiguration} />

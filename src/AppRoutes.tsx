@@ -8,10 +8,8 @@ import {
 } from "@screens/Product";
 import { Scanner, ScannerParams } from "@screens/Scanner";
 import { SettingsNavigator, SettingsNavigatorParams } from "@screens/Settings";
-import {
-  createAppStackNavigationOptions,
-  nestedStackSharedOptions,
-} from "@constants/navigation";
+import { nestedStackSharedOptions } from "@constants/navigation";
+import { useAppStackNavigationOptions } from "@hooks/useAppStackNavigationOptions";
 
 export type RootStackParamsList = {
   Home: HomeParams;
@@ -32,11 +30,11 @@ declare global {
 
 const Stack = createNativeStackNavigator<RootStackParamsList>();
 
-const StackOptions = createAppStackNavigationOptions();
-
 export function AppRoutes() {
+  const stackOptions = useAppStackNavigationOptions();
+
   return (
-    <Stack.Navigator initialRouteName="Home" screenOptions={StackOptions}>
+    <Stack.Navigator initialRouteName="Home" screenOptions={stackOptions}>
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen
         name="Settings"
