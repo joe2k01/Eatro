@@ -6,11 +6,21 @@ import {
   useCameraPermission,
   useCodeScanner,
 } from "react-native-vision-camera";
-import { Overlay } from "./components/Overlay";
 import { useNavigation } from "@react-navigation/native";
-import { Box } from "@components/layout/Box";
+import { useStaticNavigationOptions } from "@hooks/useStaticNavigationOptions";
+import { NativeStackNavigationOptions } from "@react-navigation/native-stack";
+import { BackArrow } from "@components/navigation/BackArrow";
+
+const scannerHeaderOptions = {
+  title: "",
+  headerStyle: {
+    backgroundColor: "transparent",
+  },
+  headerLeft: (props) => <BackArrow {...props} variant="destructive" />,
+} satisfies NativeStackNavigationOptions;
 
 export function Scanner() {
+  useStaticNavigationOptions(scannerHeaderOptions);
   const navigation = useNavigation();
 
   const [barcode, setBarcode] = useState<string | undefined>();
@@ -72,15 +82,12 @@ export function Scanner() {
   }
 
   return (
-    <Box position="relative" width="100%" height="100%">
-      <Camera
-        device={device}
-        isActive={!barcode}
-        style={StyleSheet.absoluteFill}
-        codeScanner={codeScanner}
-      />
-      <Overlay />
-    </Box>
+    <Camera
+      device={device}
+      isActive={!barcode}
+      style={StyleSheet.absoluteFill}
+      codeScanner={codeScanner}
+    />
   );
 }
 

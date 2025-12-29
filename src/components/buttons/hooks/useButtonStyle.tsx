@@ -6,10 +6,12 @@ import { ColorValue, StyleProp, StyleSheet } from "react-native";
 export type ButtonVariant =
   | "primary"
   | "secondary"
+  | "destructive"
   | "transparent"
   | "muted"
   | "primaryTranslucent"
-  | "secondaryTranslucent";
+  | "secondaryTranslucent"
+  | "destructiveTranslucent";
 
 type UseButtonStyleProps = {
   variant?: ButtonVariant;
@@ -22,8 +24,17 @@ export function useButtonStyle({
   composedStyle,
   disabled,
 }: UseButtonStyleProps) {
-  const { primary, fgPrimary, secondary, fgSecondary, muted, fgMuted, fg } =
-    useTheme();
+  const {
+    primary,
+    fgPrimary,
+    secondary,
+    fgSecondary,
+    destructive,
+    fgDestructive,
+    muted,
+    fgMuted,
+    fg,
+  } = useTheme();
 
   const outerStyle = useMemo(() => {
     let background: string = "transparent";
@@ -38,11 +49,17 @@ export function useButtonStyle({
       case "secondary":
         background = secondary;
         break;
+      case "destructive":
+        background = destructive;
+        break;
       case "primaryTranslucent":
         background = `${primary}26`; // 15% opacity (26 in hex = ~15%)
         break;
       case "secondaryTranslucent":
         background = `${secondary}26`; // 15% opacity
+        break;
+      case "destructiveTranslucent":
+        background = `${destructive}26`; // 15% opacity
         break;
       case "transparent":
         background = "transparent";
@@ -82,11 +99,17 @@ export function useButtonStyle({
       case "secondary":
         color = fgSecondary;
         break;
+      case "destructive":
+        color = fgDestructive;
+        break;
       case "primaryTranslucent":
         color = primary; // Foreground is the solid primary color
         break;
       case "secondaryTranslucent":
         color = secondary; // Foreground is the solid secondary color
+        break;
+      case "destructiveTranslucent":
+        color = destructive; // Foreground is the solid destructive color
         break;
       case "transparent":
         color = fg;
@@ -113,6 +136,8 @@ export function useButtonStyle({
   }, [
     composedStyle,
     disabled,
+    destructive,
+    fgDestructive,
     fg,
     fgMuted,
     fgPrimary,

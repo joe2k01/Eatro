@@ -1,12 +1,13 @@
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { NativeStackHeaderProps } from "@react-navigation/native-stack";
 import { Box } from "@components/layout/Box";
 import { intoThemeDimension } from "@hooks/useThemeDimension";
-import type { ViewStyle } from "react-native";
+import { type ViewStyle, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CenteredHeader } from "./CenteredHeader";
-import { IconButton } from "@components/buttons/IconButton";
 import { Title1 } from "@components/typography/Text";
+import { useComposedStyle } from "@hooks/useComposedStyle";
+import { BackArrow } from "./BackArrow";
 
 function getHeaderTitle({
   options,
@@ -17,12 +18,7 @@ function getHeaderTitle({
   return route.name;
 }
 
-function HeaderContent({
-  options,
-  navigation,
-  back,
-  route,
-}: NativeStackHeaderProps) {
+function HeaderContent({ options, back, route }: NativeStackHeaderProps) {
   const title = useMemo(() => {
     if (typeof options.headerTitle === "function") {
       const node = options.headerTitle({ children: route.name });
@@ -37,19 +33,13 @@ function HeaderContent({
     return <Title1>{titleString}</Title1>;
   }, [options, route]);
 
-  const onGoBack = useCallback(() => {
-    if (back) navigation.goBack();
-  }, [back, navigation]);
-
   const left = useMemo(() => {
     if (options.headerLeft) {
       return options.headerLeft({ canGoBack: !!back });
     }
 
-    return (
-      <IconButton name="chevron-left" onPress={onGoBack} disabled={!back} />
-    );
-  }, [onGoBack, back, options]);
+    return <BackArrow canGoBack={!!back} />;
+  }, [back, options]);
 
   const right = useMemo(() => {
     if (!options.headerRight) return null;
@@ -69,8 +59,18 @@ export function Header(props: NativeStackHeaderProps) {
     };
   }, [insets.top]);
 
+  const headerStyle = useMemo(
+    () => StyleSheet.flatten(props.options.headerStyle ?? {}),
+    [props.options.headerStyle],
+  );
+
+  const style = useComposedStyle({
+    base: wrapperStyle,
+    props: headerStyle,
+  });
+
   return (
-    <Box style={wrapperStyle}>
+    <Box style={style}>
       <HeaderContent {...props} />
     </Box>
   );

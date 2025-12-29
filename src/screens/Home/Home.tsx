@@ -14,6 +14,7 @@ import { MacroProgress } from "./components/MacroProgress";
 import { useMemo } from "react";
 import { Button } from "@components/buttons/Button";
 import { Icon } from "@components/media/Icon";
+import { useNavigation } from "@react-navigation/native";
 
 export const homeHeaderOptions = {
   headerTitle: () => <Title1>Today, {format(new Date(), "MMMM do")}</Title1>,
@@ -31,6 +32,8 @@ const macros: Exclude<keyof Goals, "calories">[] = ["protein", "carbs", "fat"];
 
 export function Home() {
   useStaticNavigationOptions(homeHeaderOptions);
+
+  const navigation = useNavigation();
 
   const cals = 200;
 
@@ -103,6 +106,7 @@ export function Home() {
               />
             }
             variant="secondaryTranslucent"
+            onPress={() => navigation.navigate("Scanner")}
           >
             Scan
           </Button>

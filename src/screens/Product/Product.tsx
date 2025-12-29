@@ -4,7 +4,7 @@ import { GetProductDetails } from "@api/validators/getProductDetails";
 import { VStack } from "@components/layout/VStack";
 import { Box } from "@components/layout/Box";
 import { RemoteImage } from "@components/media/RemoteImage";
-import { TextBody } from "@components/typography/Text";
+import { Headline, TextCaption } from "@components/typography/Text";
 
 export function Product() {
   const { params } = useRoute();
@@ -16,8 +16,8 @@ export function Product() {
   return (
     <VStack padding={2} gap={2} width="100%">
       <VStack gap={1}>
-        <TextBody>{product_name}</TextBody>
-        <TextBody>{brand}</TextBody>
+        <Headline>{product_name}</Headline>
+        <TextCaption>{brand}</TextCaption>
       </VStack>
       <Box width={"100%"} aspectRatio={1} alignItems="center">
         <Box height={"100%"} aspectRatio={imageRatio}>

@@ -1,6 +1,7 @@
-import type { StyleProp, ViewStyle } from "react-native";
+import type { StyleProp } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import * as Sentry from "@sentry/react-native";
+import { Style } from "@constants/theme";
 
 // A runtime list of valid `ViewStyle` keys (RN 0.81.x), used to prevent
 // style-like props from being forwarded to native components as unknown props.
@@ -170,7 +171,7 @@ export function useExtractViewStyleProps<T extends Record<string, unknown>>(
   props: T,
 ): {
   passthroughProps: Omit<T, "style">;
-  styleProps: ViewStyle & { style?: StyleProp<ViewStyle> };
+  styleProps: Style & { style?: StyleProp<Style> };
 } {
   const [styleProps, setStyleProps] = useState<Record<string, unknown>>({});
   const [passthroughProps, setPassthroughProps] = useState<Omit<T, "style">>(

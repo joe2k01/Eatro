@@ -9,7 +9,7 @@ import { useExtractViewStyleProps } from "@hooks/useExtractViewStyleProps";
 
 type MaterialIconsProps = ComponentProps<typeof MaterialIcons>;
 
-type IconButtonProps = StyledViewProps<
+export type IconButtonProps = StyledViewProps<
   {
     size?: IconSize;
     variant?: ButtonVariant;
