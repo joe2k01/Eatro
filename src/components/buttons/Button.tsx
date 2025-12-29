@@ -4,9 +4,9 @@ import { Pressable, PressableProps, StyleSheet, View } from "react-native";
 import type { TextStyle, ViewStyle } from "react-native";
 import { ButtonVariant, useButtonStyle } from "./hooks/useButtonStyle";
 import { TextBody, TextCaption } from "@components/typography/Text";
-import { ReactNode } from "react";
+import { ReactNode, useMemo } from "react";
 import { intoThemeDimension } from "@hooks/useThemeDimension";
-import { HStack } from "@components/layout/HStack";
+import { useExtractViewStyleProps } from "@hooks/useExtractViewStyleProps";
 import { VStack } from "@components/layout/VStack";
 
 type ButtonTextAlign = Extract<
@@ -35,6 +35,16 @@ const style = StyleSheet.create({
     borderRadius: intoThemeDimension(0.5),
     justifyContent: "center",
   },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
+    gap: intoThemeDimension(1),
+  },
+  pressed: {
+    opacity: 0.9,
+  },
   iconLeft: {
     // paddingRight: intoThemeDimension(1),
   },
@@ -47,18 +57,21 @@ const style = StyleSheet.create({
   },
 });
 
-export function Button({
-  children,
-  variant = "primary",
-  secondaryText,
-  leftIcon,
-  rightIcon,
-  disabled,
-  ...props
-}: ButtonProps) {
+export function Button(props: ButtonProps) {
+  const { passthroughProps, styleProps } = useExtractViewStyleProps(props);
+
+  const {
+    variant = "primary",
+    disabled = false,
+    children,
+    secondaryText,
+    leftIcon,
+    rightIcon,
+  } = passthroughProps;
+
   const composedStyle = useComposedStyle<ViewStyle>({
     base: style.button,
-    props,
+    props: styleProps,
   });
 
   const { outerStyle, innerStyle } = useButtonStyle({
@@ -67,25 +80,36 @@ export function Button({
     disabled,
   });
 
+  const baseOuterStyle = useMemo(
+    () => StyleSheet.compose(style.row, outerStyle),
+    [outerStyle],
+  );
+  const pressedOuterStyle = useMemo(
+    () =>
+      disabled
+        ? baseOuterStyle
+        : StyleSheet.compose(baseOuterStyle, style.pressed),
+    [baseOuterStyle, disabled],
+  );
+
   return (
-    <Pressable {...props} disabled={disabled} style={{ flex: outerStyle.flex }}>
-      <HStack
-        backgroundColor="transparent"
-        alignItems="center"
-        gap={1}
-        style={outerStyle}
-      >
-        {leftIcon && <View style={style.iconLeft}>{leftIcon}</View>}
+    <Pressable
+      {...passthroughProps}
+      disabled={disabled}
+      style={({ pressed }) => (pressed ? pressedOuterStyle : baseOuterStyle)}
+    >
+      {leftIcon && <View style={style.iconLeft}>{leftIcon}</View>}
 
-        <VStack backgroundColor="transparent" gap={0.5}>
-          <TextBody style={innerStyle}>{children}</TextBody>
-          {secondaryText && (
-            <TextCaption style={innerStyle}>{secondaryText}</TextCaption>
-          )}
-        </VStack>
+      <VStack backgroundColor="transparent" gap={0.5}>
+        <TextBody style={innerStyle}>{children}</TextBody>
+        {secondaryText && (
+          <TextCaption style={[style.secondaryText, innerStyle]}>
+            {secondaryText}
+          </TextCaption>
+        )}
+      </VStack>
 
-        {rightIcon && <View style={style.iconRight}>{rightIcon}</View>}
-      </HStack>
+      {rightIcon && <View style={style.iconRight}>{rightIcon}</View>}
     </Pressable>
   );
 }

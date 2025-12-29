@@ -21,5 +21,3 @@ export function useStaticNavigationOptions(
     navigation.setOptions(optionsRef.current);
   }, [navigation]);
 }
-
-

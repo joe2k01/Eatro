@@ -1,43 +1,46 @@
-import { IconSize, IconSizes } from "@constants/theme";
+import { IconSize, IconSizes, StyledViewProps } from "@constants/theme";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useComposedStyle } from "@hooks/useComposedStyle";
 import { intoThemeDimension } from "@hooks/useThemeDimension";
-import { ComponentProps } from "react";
-import {
-  Pressable,
-  PressableProps,
-  StyleProp,
-  StyleSheet,
-  ViewStyle,
-} from "react-native";
+import { ComponentProps, useMemo } from "react";
+import { Pressable, PressableProps, StyleSheet, ViewStyle } from "react-native";
 import { ButtonVariant, useButtonStyle } from "./hooks/useButtonStyle";
+import { useExtractViewStyleProps } from "@hooks/useExtractViewStyleProps";
 
 type MaterialIconsProps = ComponentProps<typeof MaterialIcons>;
 
-type IconButtonProps = Omit<PressableProps, "style"> & {
-  size?: IconSize;
-  style?: StyleProp<ViewStyle>;
-  variant?: ButtonVariant;
-} & Pick<MaterialIconsProps, "name"> &
-  ViewStyle;
+type IconButtonProps = StyledViewProps<
+  {
+    size?: IconSize;
+    variant?: ButtonVariant;
+  } & Pick<MaterialIconsProps, "name"> &
+    ViewStyle &
+    PressableProps
+>;
 
 const style = StyleSheet.create({
   iconButton: {
     borderRadius: 999,
     padding: intoThemeDimension(1),
   },
+  pressed: {
+    opacity: 0.9,
+  },
 });
 
-export function IconButton({
-  size = "m",
-  name,
-  variant,
-  disabled,
-  ...props
-}: IconButtonProps) {
+export function IconButton(props: IconButtonProps) {
+  const { passthroughProps, styleProps } = useExtractViewStyleProps(props);
+
+  const {
+    size = "m",
+    name,
+    variant = "muted",
+    disabled = false,
+  } = passthroughProps;
+
   const composedStyle = useComposedStyle<ViewStyle>({
     base: style.iconButton,
-    props,
+    props: styleProps,
   });
 
   const { outerStyle, innerStyle } = useButtonStyle({
@@ -46,8 +49,18 @@ export function IconButton({
     disabled,
   });
 
+  const pressedOuterStyle = useMemo(
+    () =>
+      disabled ? outerStyle : StyleSheet.compose(outerStyle, style.pressed),
+    [disabled, outerStyle],
+  );
+
   return (
-    <Pressable {...props} style={outerStyle} disabled={disabled}>
+    <Pressable
+      {...passthroughProps}
+      disabled={disabled}
+      style={({ pressed }) => (pressed ? pressedOuterStyle : outerStyle)}
+    >
       <MaterialIcons
         name={name}
         size={IconSizes[size]}

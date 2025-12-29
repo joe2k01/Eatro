@@ -58,7 +58,15 @@ export function useButtonStyle({
     );
 
     // Disabled always falls back to the muted background, regardless of variant.
-    return disabled ? { ...base, backgroundColor: muted } : base;
+    const finalBase = disabled ? { ...base, backgroundColor: muted } : base;
+
+    // Make disabled/pressed feedback consistent while allowing callers to
+    // override `opacity` if they explicitly set it.
+    if (disabled && finalBase.opacity === undefined) {
+      finalBase.opacity = 0.72;
+    }
+
+    return finalBase;
   }, [composedStyle, disabled, muted, primary, secondary, variant]);
 
   const innerStyle = useMemo(() => {

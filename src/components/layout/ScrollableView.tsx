@@ -1,6 +1,7 @@
 import { StyledViewProps } from "@constants/theme";
 import {
   ScrollView,
+  ScrollViewProps,
   StyleSheet,
   View,
   ViewProps,
@@ -9,48 +10,68 @@ import {
 import { useTheme } from "@contexts/ThemeProvider";
 import { forwardRef, RefObject, useMemo } from "react";
 import { useComposedStyle } from "@hooks/useComposedStyle";
+import { splitScrollableStyles } from "./splitScrollableStyles";
+import { useExtractViewStyleProps } from "@hooks/useExtractViewStyleProps";
+
+type ScrollableViewExtraProps = Pick<
+  ScrollViewProps,
+  "contentContainerStyle" | "keyboardShouldPersistTaps"
+>;
 
 export type ScrollableViewProps = StyledViewProps<
-  Omit<ViewStyle, "display" | "flexDirection"> &
-    ViewProps & { scrollable?: boolean }
+  ViewStyle & ViewProps & ScrollableViewExtraProps & { scrollable?: boolean }
 >;
 
 export const ScrollableView = forwardRef<
   View | ScrollView,
   ScrollableViewProps
->(function ScrollableView(
-  { children, scrollable, ...props }: ScrollableViewProps,
-  ref,
-) {
+>(function ScrollableView(props: ScrollableViewProps, ref) {
   const { bg } = useTheme();
 
-  const { background } = useMemo(
-    () => StyleSheet.create({ background: { backgroundColor: bg } }),
-    [bg],
-  );
+  // Keep the base background stable while still reacting to theme changes.
+  const baseBackground = useMemo(() => ({ backgroundColor: bg }), [bg]);
+
+  const { passthroughProps, styleProps } = useExtractViewStyleProps(props);
 
   const themedStyle = useComposedStyle<ViewStyle>({
-    base: background,
-    props,
+    base: baseBackground,
+    props: styleProps,
   });
 
-  if (scrollable) {
+  const { scrollStyle, contentStyle } = useMemo(
+    () => splitScrollableStyles(themedStyle),
+    [themedStyle],
+  );
+  const mergedContentContainerStyle = useMemo(
+    () =>
+      StyleSheet.flatten([
+        contentStyle,
+        passthroughProps.contentContainerStyle,
+      ]),
+    [contentStyle, passthroughProps.contentContainerStyle],
+  );
+
+  if (passthroughProps.scrollable) {
     return (
       <ScrollView
-        {...props}
-        style={themedStyle}
-        contentContainerStyle={{ gap: themedStyle.gap }}
+        {...passthroughProps}
+        style={scrollStyle}
+        contentContainerStyle={mergedContentContainerStyle}
         alwaysBounceVertical={false}
         ref={ref as RefObject<ScrollView>}
       >
-        {children}
+        {passthroughProps.children}
       </ScrollView>
     );
   }
 
   return (
-    <View {...props} style={themedStyle} ref={ref as RefObject<View>}>
-      {children}
+    <View
+      {...passthroughProps}
+      style={themedStyle}
+      ref={ref as RefObject<View>}
+    >
+      {passthroughProps.children}
     </View>
   );
 });

@@ -7,4 +7,3 @@ export const userValidator = z
   .partial();
 
 export type User = z.infer<typeof userValidator>;
-

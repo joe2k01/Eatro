@@ -1,3 +1,4 @@
-export { GoalsConfiguration, goalsConfigurationHeaderOptions } from "./GoalsConfiguration";
-
-
+export {
+  GoalsConfiguration,
+  goalsConfigurationHeaderOptions,
+} from "./GoalsConfiguration";
