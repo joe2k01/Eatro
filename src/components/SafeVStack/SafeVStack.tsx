@@ -10,6 +10,7 @@ export type SafeVStackProps = VStackProps & {
 export function SafeVStack({
   guard = "bottom",
   scrollable = true,
+  children,
   ...props
 }: SafeVStackProps) {
   const insets = useSafeAreaInsets();
@@ -32,7 +33,7 @@ export function SafeVStack({
   return (
     <VStack height={"100%"} style={paddingStyle}>
       <VStack {...props} scrollable={scrollable}>
-        {props.children}
+        {children}
       </VStack>
     </VStack>
   );

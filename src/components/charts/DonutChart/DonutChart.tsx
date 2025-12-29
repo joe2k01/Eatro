@@ -218,7 +218,7 @@ export function DonutChart({
   }, [circumference, renderDenom, segments, sum, totalGap]);
 
   return (
-    <Box width={width} aspectRatio={1}>
+    <Box width={width} aspectRatio={1} backgroundColor="transparent">
       <Svg width={"100%"} height={"100%"} viewBox={viewBox}>
         <Circle
           cx={DonutGeometry.radius}

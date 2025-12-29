@@ -3,7 +3,13 @@ import { useTheme } from "@contexts/ThemeProvider";
 import { useMemo } from "react";
 import { ColorValue, StyleProp, StyleSheet } from "react-native";
 
-export type ButtonVariant = "primary" | "secondary" | "transparent" | "muted";
+export type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "transparent"
+  | "muted"
+  | "primaryTranslucent"
+  | "secondaryTranslucent";
 
 type UseButtonStyleProps = {
   variant?: ButtonVariant;
@@ -31,6 +37,12 @@ export function useButtonStyle({
         break;
       case "secondary":
         background = secondary;
+        break;
+      case "primaryTranslucent":
+        background = `${primary}26`; // 15% opacity (26 in hex = ~15%)
+        break;
+      case "secondaryTranslucent":
+        background = `${secondary}26`; // 15% opacity
         break;
       case "transparent":
         background = "transparent";
@@ -62,6 +74,12 @@ export function useButtonStyle({
       case "secondary":
         color = fgSecondary;
         break;
+      case "primaryTranslucent":
+        color = primary; // Foreground is the solid primary color
+        break;
+      case "secondaryTranslucent":
+        color = secondary; // Foreground is the solid secondary color
+        break;
       case "transparent":
         color = fg;
         break;
@@ -84,7 +102,17 @@ export function useButtonStyle({
       color,
       textAlign,
     };
-  }, [composedStyle, disabled, fg, fgMuted, fgPrimary, fgSecondary, variant]);
+  }, [
+    composedStyle,
+    disabled,
+    fg,
+    fgMuted,
+    fgPrimary,
+    fgSecondary,
+    primary,
+    secondary,
+    variant,
+  ]);
 
   return { innerStyle, outerStyle };
 }

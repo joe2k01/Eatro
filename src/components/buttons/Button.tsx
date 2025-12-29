@@ -68,7 +68,7 @@ export function Button({
   });
 
   return (
-    <Pressable {...props} disabled={disabled}>
+    <Pressable {...props} disabled={disabled} style={{ flex: outerStyle.flex }}>
       <HStack
         backgroundColor="transparent"
         alignItems="center"

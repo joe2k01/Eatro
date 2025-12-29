@@ -32,25 +32,27 @@ function Text({ children, ...props }: TextProps) {
 }
 
 const textVariants = [
-  { label: "Headline", size: 26 },
+  { label: "Massive", textProps: { fontSize: 32, fontWeight: "bold" } },
+  { label: "Headline", textProps: { fontSize: 26, fontWeight: "bold" } },
   {
     label: "Title1",
-    size: 22,
+    textProps: { fontSize: 22 },
   },
-  { label: "TextBody", size: 16 },
-  { label: "TextCaption", size: 12 },
+  { label: "TextBody", textProps: { fontSize: 16 } },
+  { label: "TextCaption", textProps: { fontSize: 12 } },
 ] as const;
 
-export const { TextBody, Headline, Title1, TextCaption } = textVariants.reduce(
-  (acc, { label, size }) => {
-    acc[label] = function ({ children, ...props }: TextProps) {
-      return (
-        <Text {...props} fontSize={size}>
-          {children}
-        </Text>
-      );
-    };
-    return acc;
-  },
-  {} as Record<(typeof textVariants)[number]["label"], typeof Text>,
-);
+export const { Massive, TextBody, Headline, Title1, TextCaption } =
+  textVariants.reduce(
+    (acc, { label, textProps }) => {
+      acc[label] = function ({ children, ...props }: TextProps) {
+        return (
+          <Text {...props} {...textProps}>
+            {children}
+          </Text>
+        );
+      };
+      return acc;
+    },
+    {} as Record<(typeof textVariants)[number]["label"], typeof Text>,
+  );

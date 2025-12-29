@@ -39,6 +39,7 @@ export const ScrollableView = forwardRef<
       <ScrollView
         {...props}
         style={themedStyle}
+        contentContainerStyle={{ gap: themedStyle.gap }}
         alwaysBounceVertical={false}
         ref={ref as RefObject<ScrollView>}
       >

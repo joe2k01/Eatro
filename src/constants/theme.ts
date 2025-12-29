@@ -1,6 +1,7 @@
 import type { TextStyle, ViewStyle, ImageStyle } from "react-native";
 
 export const IconSizes = {
+  xs: 16,
   s: 20,
   m: 32,
   l: 50,
@@ -28,7 +29,7 @@ export type ThemeVariant = {
   [FG in Exclude<ColourTypes, "bg" | "fg"> as `fg${Capitalize<FG>}`]: string;
 };
 
-type AllColours = keyof ThemeVariant;
+export type AllColours = keyof ThemeVariant;
 
 export type Theme = {
   light: ThemeVariant;
