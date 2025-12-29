@@ -1,7 +1,5 @@
 import { ReactNode } from "react";
-import { Box } from "../layout/Box";
-import { HStack } from "../layout/HStack";
-import { useCenteredHeader } from "../../hooks/useCenteredHeader";
+import { StyleSheet, View } from "react-native";
 
 export type CenteredHeaderProps = {
   left?: ReactNode;
@@ -10,17 +8,44 @@ export type CenteredHeaderProps = {
 };
 
 /**
- * A 3-slot header layout that keeps the center visually centered by
- * mirroring the left slot width into the right slot.
+ * A 3-slot header layout that keeps the center visually centered using only
+ * flexbox (no measuring, no absolute positioning).
+ *
+ * Left and right take equal flex space, while the center shrinks if needed.
  */
 export function CenteredHeader({ left, center, right }: CenteredHeaderProps) {
-  const { leftRef, rightRef } = useCenteredHeader();
-
   return (
-    <HStack alignItems="center" justifyContent="space-between">
-      <Box ref={leftRef}>{left}</Box>
-      <Box>{center}</Box>
-      <Box ref={rightRef}>{right}</Box>
-    </HStack>
+    <View style={styles.row}>
+      <View style={styles.sideLeft}>{left}</View>
+      <View style={styles.center} pointerEvents="none">
+        {center}
+      </View>
+      <View style={styles.sideRight}>{right}</View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  sideLeft: {
+    flexGrow: 1,
+    flexBasis: 0,
+    alignItems: "flex-start",
+  },
+  sideRight: {
+    flexGrow: 1,
+    flexBasis: 0,
+    alignItems: "flex-end",
+  },
+  center: {
+    flexGrow: 0,
+    flexShrink: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    // Prevent long titles from pushing sides off-screen.
+    maxWidth: "70%",
+  },
+});
