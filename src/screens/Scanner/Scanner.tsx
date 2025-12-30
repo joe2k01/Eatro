@@ -43,7 +43,7 @@ export function Scanner() {
       }
 
       setBarcode(barcode);
-      navigation.navigate("ProductLoader", { barcode });
+      navigation.navigate("Product", { barcode });
     },
     [navigation],
   );

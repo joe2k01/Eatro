@@ -1,2 +1,2 @@
-export { Product, ProductParams } from "./Product";
-export { ProductLoader, ProductLoaderParams } from "./ProductLoader";
+export { Product, ProductParams, type ProductDetails } from "./Product";
+export { ProductLoader } from "./ProductLoader";

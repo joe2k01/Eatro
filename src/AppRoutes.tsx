@@ -1,11 +1,6 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Home, HomeParams } from "@screens/Home";
-import {
-  Product,
-  ProductLoader,
-  ProductLoaderParams,
-  ProductParams,
-} from "@screens/Product";
+import { Product, ProductParams } from "@screens/Product";
 import { Scanner, ScannerParams } from "@screens/Scanner";
 import { SettingsNavigator, SettingsNavigatorParams } from "@screens/Settings";
 import { nestedStackSharedOptions } from "@constants/navigation";
@@ -16,7 +11,6 @@ export type RootStackParamsList = {
   Settings: SettingsNavigatorParams;
   Scanner: ScannerParams;
   Product: ProductParams;
-  ProductLoader: ProductLoaderParams;
 };
 
 export type RouteNames = keyof RootStackParamsList;
@@ -43,7 +37,6 @@ export function AppRoutes() {
       />
       <Stack.Screen name="Scanner" component={Scanner} />
       <Stack.Screen name="Product" component={Product} />
-      <Stack.Screen name="ProductLoader" component={ProductLoader} />
     </Stack.Navigator>
   );
 }

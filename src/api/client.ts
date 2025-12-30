@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import { zGetProductDetails } from "./validators/getProductDetails";
+import { ApiError } from "./ApiError";
 
 export class ApiClient {
   private static URL =
@@ -15,6 +16,11 @@ export class ApiClient {
     const res = await fetch(`${ApiClient.URL}${slug}`, {
       headers: ApiClient.HEADERS,
     });
+
+    if (!res.ok) {
+      throw new ApiError(`Get request failed at: ${slug}`, res.status);
+    }
+
     const json = await res.json();
 
     return validator.parseAsync(json);
