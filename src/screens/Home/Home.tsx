@@ -15,6 +15,8 @@ import { useMemo } from "react";
 import { Button } from "@components/buttons/Button";
 import { Icon } from "@components/media/Icon";
 import { useNavigation } from "@react-navigation/native";
+import { useDailySummary } from "../../db/hooks/useDailySummary";
+import { UnixSeconds } from "../../db/time";
 
 export const homeHeaderOptions = {
   headerTitle: () => <Title1>Today, {format(new Date(), "MMMM do")}</Title1>,
@@ -35,7 +37,15 @@ export function Home() {
 
   const navigation = useNavigation();
 
-  const cals = 200;
+  const dayStartTs = useMemo(() => {
+    return UnixSeconds.now().dayStartUtc();
+  }, []);
+
+  const { data: day } = useDailySummary(dayStartTs.seconds);
+
+  const cals = useMemo(() => {
+    return Math.round(day?.total_calories ?? 0);
+  }, [day?.total_calories]);
 
   const { data: goals } = useStorage("goals", defaultGoals);
 
@@ -81,8 +91,21 @@ export function Home() {
           alignItems="center"
           backgroundColor="transparent"
         >
+          {/*
+            Use the `days` table for fast daily access; values are updated incrementally by entry mutations.
+          */}
           {macros.map((macro) => (
-            <MacroProgress key={macro} label={macro} />
+            <MacroProgress
+              key={macro}
+              label={macro}
+              consumedGrams={
+                macro === "protein"
+                  ? (day?.total_protein ?? 0)
+                  : macro === "carbs"
+                    ? (day?.total_carbs ?? 0)
+                    : (day?.total_fat ?? 0)
+              }
+            />
           ))}
         </HStack>
       </VStack>

@@ -20,6 +20,7 @@ export class ApiClient {
     if (!res.ok) {
       throw new ApiError(`Get request failed at: ${slug}`, res.status);
     }
+    console.log(slug);
 
     const json = await res.json();
 

@@ -12,6 +12,7 @@ type MacroLabel = Exclude<keyof Goals, "calories">;
 
 type MacroProgressProps = {
   label: MacroLabel;
+  consumedGrams: number;
 };
 
 const labels: Record<MacroLabel, [string, AllColours]> = {
@@ -27,13 +28,16 @@ const defaultGoals: Goals = {
   fat: 50,
 };
 
-export function MacroProgress({ label }: MacroProgressProps) {
-  const progress = Math.round(Math.random() * 100);
+export function MacroProgress({ label, consumedGrams }: MacroProgressProps) {
   const [labelText, labelVariant] = labels[label];
 
   const colour = useTheme()[labelVariant];
 
   const { data: goals } = useStorage("goals", defaultGoals);
+
+  const progress = useMemo(() => {
+    return Math.round(consumedGrams);
+  }, [consumedGrams]);
 
   const roundGoal = useMemo(() => {
     return Math.round(goals?.[label] ?? 0);

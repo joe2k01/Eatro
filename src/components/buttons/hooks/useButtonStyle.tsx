@@ -84,7 +84,15 @@ export function useButtonStyle({
     }
 
     return finalBase;
-  }, [composedStyle, disabled, muted, primary, secondary, variant]);
+  }, [
+    composedStyle,
+    destructive,
+    disabled,
+    muted,
+    primary,
+    secondary,
+    variant,
+  ]);
 
   const innerStyle = useMemo(() => {
     let color: ColorValue = "";
