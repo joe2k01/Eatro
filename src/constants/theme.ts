@@ -9,7 +9,7 @@ export const IconSizes = {
 
 export type IconSize = keyof typeof IconSizes;
 
-export type Dimension = 0 | 0.5 | 1 | 1.5 | 2 | 3 | 4;
+export type Dimension = 0 | 0.25 | 0.5 | 0.75 | 1 | 1.5 | 2 | 3 | 4;
 export const DimensionSize = 8;
 
 type ColourTypes =
@@ -53,8 +53,10 @@ export const EatroTheme: Theme = {
     // Individual ownership (badges, chips, “my contributions”)
     accent: "#C56A3D",
     fgAccent: "#FFF7F0",
-    muted: "#6A655D",
-    fgMuted: "#EFE8DD",
+    // `muted` is intended to be a *surface/background* colour.
+    // `fgMuted` is the readable text/icon colour on top of `muted`.
+    muted: "#EFE8DD",
+    fgMuted: "#6A655D",
     destructive: "#D64545",
     fgDestructive: "#FFFFFF",
   },

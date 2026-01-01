@@ -4,7 +4,7 @@ import { intoThemeDimension } from "@hooks/useThemeDimension";
 import { useComposedStyle } from "@hooks/useComposedStyle";
 import type { Control, FieldPath, FieldValues } from "react-hook-form";
 import { Controller } from "react-hook-form";
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   StyleSheet,
   TextInput,
@@ -14,33 +14,7 @@ import {
 } from "react-native";
 import { HStack } from "@components/layout/HStack";
 import { VStack } from "@components/layout/VStack";
-
-export type FormInputProps<
-  TFieldValues extends FieldValues,
-  TName extends FieldPath<TFieldValues>,
-> = {
-  control: Control<TFieldValues>;
-  name: TName;
-  /** Optional label/caption displayed above the input. */
-  label?: ReactNode;
-  placeholder?: string;
-  keyboardType?: TextInputProps["keyboardType"];
-  unit?: string;
-  /** Called with raw text as the user types. */
-  onTextChange?: (text: string) => void;
-  onFocus?: () => void;
-  onBlur?: () => void;
-  /** Parse raw text into the form value. */
-  parse: (text: string) => TFieldValues[TName];
-  /** Format the form value into a string for display. */
-  format?: (value: TFieldValues[TName]) => string;
-  inputStyle?: TextStyle;
-  containerStyle?: ViewStyle;
-};
-
-function defaultFormat(value: unknown): string {
-  return value === undefined || value === null ? "" : String(value);
-}
+import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 
 const baseStyles = StyleSheet.create({
   container: {
@@ -63,30 +37,84 @@ const baseStyles = StyleSheet.create({
   },
 });
 
-export function FormInput<
+type ControlledInputProps<
+  TFieldValues extends FieldValues,
+  TName extends FieldPath<TFieldValues>,
+> = {
+  /** Optional label/caption displayed above the input. */
+  label?: ReactNode;
+  placeholder?: string;
+  keyboardType?: TextInputProps["keyboardType"];
+  unit?: string;
+  /** Called with raw text as the user types. */
+  onTextChange?: (text: string) => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
+  /** Format the form value into a string for display. */
+  format?: (value: TFieldValues[TName]) => string;
+  inputStyle?: TextStyle;
+  containerStyle?: ViewStyle;
+  inTray?: boolean;
+  value: TFieldValues[TName];
+  onChange: (value: TFieldValues[TName]) => void;
+  rhfOnBlur: () => void;
+};
+
+function defaultFormat(value: unknown): string {
+  return value === undefined || value === null ? "" : String(value);
+}
+
+function ControlledInput<
   TFieldValues extends FieldValues,
   TName extends FieldPath<TFieldValues>,
 >({
-  control,
-  name,
   label,
+  containerStyle = {},
+  inputStyle = {},
   placeholder,
-  keyboardType = "default",
+  keyboardType,
   unit,
   onTextChange,
   onFocus,
   onBlur,
-  parse,
   format,
-  inputStyle = {},
-  containerStyle = {},
-}: FormInputProps<TFieldValues, TName>) {
+  value,
+  onChange,
+  rhfOnBlur,
+  inTray,
+}: ControlledInputProps<TFieldValues, TName>) {
   const labelElement = useMemo(() => {
     if (typeof label === "string") {
       return <TextCaption>{label}</TextCaption>;
     }
     return label;
   }, [label]);
+
+  const formatFn = useMemo(() => format ?? defaultFormat, [format]);
+
+  const [isFocused, setIsFocused] = useState(false);
+  const [text, setText] = useState(() => formatFn(value));
+
+  const mOnChange = useCallback(
+    (value: string) => {
+      onTextChange?.(value);
+      setText(value);
+
+      onChange(value as TFieldValues[TName]);
+    },
+    [onChange, onTextChange],
+  );
+
+  const mOnFocus = useCallback(() => {
+    setIsFocused(true);
+    onFocus?.();
+  }, [onFocus]);
+
+  const mOnBlur = useCallback(() => {
+    setIsFocused(false);
+    rhfOnBlur();
+    onBlur?.();
+  }, [rhfOnBlur, onBlur]);
 
   const containerComposedStyle = useComposedStyle<ViewStyle>({
     base: baseStyles.container,
@@ -98,37 +126,66 @@ export function FormInput<
     props: inputStyle,
   });
 
+  const TextInputComponent = useMemo(
+    () => (inTray ? BottomSheetTextInput : TextInput),
+    [inTray],
+  );
+
+  return (
+    <VStack
+      backgroundColor="transparent"
+      flex={1}
+      gap={0.5}
+      style={containerComposedStyle}
+    >
+      {labelElement}
+      <HStack alignItems="center" backgroundColor="transparent">
+        <TextInputComponent
+          value={isFocused ? text : formatFn(value)}
+          onChangeText={mOnChange}
+          onFocus={mOnFocus}
+          onBlur={mOnBlur}
+          placeholder={placeholder}
+          keyboardType={keyboardType}
+          style={inputComposedStyle}
+          returnKeyType="done"
+        />
+        {unit ? (
+          <TextCaption color="fgPopover" style={baseStyles.unit}>
+            {unit}
+          </TextCaption>
+        ) : null}
+      </HStack>
+    </VStack>
+  );
+}
+
+export type FormInputProps<
+  TFieldValues extends FieldValues,
+  TName extends FieldPath<TFieldValues>,
+> = {
+  control: Control<TFieldValues>;
+  name: TName;
+} & Omit<
+  ControlledInputProps<TFieldValues, TName>,
+  "value" | "onChange" | "rhfOnBlur"
+>;
+
+export function FormInput<
+  TFieldValues extends FieldValues,
+  TName extends FieldPath<TFieldValues>,
+>({ control, name, ...props }: FormInputProps<TFieldValues, TName>) {
   return (
     <Controller
       control={control}
       name={name}
       render={({ field: { onChange, onBlur: rhfOnBlur, value } }) => (
-        <VStack backgroundColor="transparent" flex={1} gap={0.5}>
-          {labelElement}
-          <HStack style={containerComposedStyle} alignItems="center">
-            <TextInput
-              value={(format ?? (defaultFormat as never))(value)}
-              onChangeText={(text) => {
-                onTextChange?.(text);
-                onChange(parse(text));
-              }}
-              onFocus={() => onFocus?.()}
-              onBlur={() => {
-                rhfOnBlur();
-                onBlur?.();
-              }}
-              placeholder={placeholder}
-              keyboardType={keyboardType}
-              style={inputComposedStyle}
-              returnKeyType="done"
-            />
-            {unit ? (
-              <TextCaption color="fgPopover" style={baseStyles.unit}>
-                {unit}
-              </TextCaption>
-            ) : null}
-          </HStack>
-        </VStack>
+        <ControlledInput
+          {...props}
+          value={value}
+          onChange={onChange}
+          rhfOnBlur={rhfOnBlur}
+        />
       )}
     />
   );

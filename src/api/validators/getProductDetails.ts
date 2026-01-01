@@ -1,11 +1,65 @@
 import { z } from "zod";
 
+type NutrimentsVariant = {
+  energy?: number;
+  carbohydrates?: number;
+  fat?: number;
+  protein?: number;
+};
+
+const servingsRegex = /^(\d+[\.,]?\d+?)([ a-zA-Z]+)?/g;
+
+const nutrimentsSchema = z
+  .object({
+    "energy-kcal_100g": z.number(),
+    "energy-kcal_serving": z.number(),
+    carbohydrates_100g: z.number(),
+    carbohydrates_serving: z.number(),
+    fat_100g: z.number(),
+    fat_serving: z.number(),
+    protein_100g: z.number(),
+    protein_serving: z.number(),
+  })
+  .partial()
+  .transform((nutriments) => {
+    const per100g: NutrimentsVariant = {};
+    const perServing: NutrimentsVariant = {};
+
+    for (const [key, value] of Object.entries(nutriments)) {
+      if (value === undefined || value === null) continue;
+
+      const [baseRaw, unit] = key.split("_") as [string, string];
+
+      const base: keyof NutrimentsVariant =
+        baseRaw === "energy-kcal"
+          ? "energy"
+          : (baseRaw as keyof NutrimentsVariant);
+
+      switch (unit) {
+        case "100g":
+          per100g[base] = value;
+          break;
+        case "serving":
+          perServing[base] = value;
+          break;
+        default:
+          break;
+      }
+    }
+
+    return {
+      per100g: Object.keys(per100g).length ? per100g : undefined,
+      perServing: Object.keys(perServing).length ? perServing : undefined,
+    };
+  });
+
 export const zGetProductDetails = z
   .object({
     product: z.object({
       lang: z.string(),
       product_name: z.string(),
       brands: z.string(),
+      serving_size: z.string().optional(),
       nutriments: z.record(
         z.string(),
         z.number().or(z.string()).or(z.array(z.string())),
@@ -33,7 +87,10 @@ export const zGetProductDetails = z
         front: { display: imageUrls },
       },
       lang,
-      ...rest
+      product_name,
+      serving_size,
+      nutriments,
+      brands,
     } = product;
 
     const imageUrl = lang in imageUrls ? imageUrls[lang] : undefined;
@@ -49,10 +106,27 @@ export const zGetProductDetails = z
       dimensions = images[computedFront].sizes.full;
     }
 
+    const servingsMatch = servingsRegex.exec(serving_size ?? "");
+
+    let servingSize: number | undefined;
+    let servingsUnit: string | undefined;
+
+    if (Array.isArray(servingsMatch)) {
+      const [, servings, unit] = servingsMatch;
+      const servingsNum = parseFloat(servings);
+
+      servingSize = servingsNum;
+      servingsUnit = unit;
+    }
+
     return {
-      ...rest,
       imageUrl,
       imageRatio: dimensions.w / dimensions.h,
+      name: product_name,
+      servingSize,
+      servingsUnit,
+      nutriments: nutrimentsSchema.parse(nutriments),
+      brand: brands.split(",")[0],
     };
   });
 

@@ -30,7 +30,8 @@ export class ApiClient {
   public getProductDetails(barcode: string, params: { lc?: string }) {
     const mParams = new URLSearchParams({
       ...params,
-      fields: "lang,nutriments,product_name,brands,images,selected_images",
+      fields:
+        "lang,nutriments,product_name,brands,images,selected_images,serving_size",
     });
 
     return this.get(

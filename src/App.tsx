@@ -8,6 +8,7 @@ import { ApiClientProvier } from "@api/ApiClient";
 import { AppRoutes } from "./AppRoutes";
 import { ThemeProvider } from "@contexts/ThemeProvider";
 import { SnackbarProvider } from "@components/feedback";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 Sentry.init({
   dsn: "https://0b9e10cd50dba3b6a2423d19dc8720fd@o4510450363727872.ingest.de.sentry.io/4510450365038672",
@@ -33,20 +34,22 @@ const queryClient = new QueryClient();
 export default Sentry.wrap(function App() {
   return (
     <SafeAreaProvider>
-      <UserContextProvider>
-        <NavigationContainer>
-          <QueryClientProvider client={queryClient}>
-            <ApiClientProvier>
-              <ThemeProvider>
-                <SnackbarProvider>
-                  <AppRoutes />
-                  <StatusBar />
-                </SnackbarProvider>
-              </ThemeProvider>
-            </ApiClientProvier>
-          </QueryClientProvider>
-        </NavigationContainer>
-      </UserContextProvider>
+      <GestureHandlerRootView>
+        <UserContextProvider>
+          <NavigationContainer>
+            <QueryClientProvider client={queryClient}>
+              <ApiClientProvier>
+                <ThemeProvider>
+                  <SnackbarProvider>
+                    <AppRoutes />
+                    <StatusBar />
+                  </SnackbarProvider>
+                </ThemeProvider>
+              </ApiClientProvier>
+            </QueryClientProvider>
+          </NavigationContainer>
+        </UserContextProvider>
+      </GestureHandlerRootView>
     </SafeAreaProvider>
   );
 });

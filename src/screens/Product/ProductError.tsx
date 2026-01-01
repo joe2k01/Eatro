@@ -1,7 +1,7 @@
 import { ApiError } from "@api/ApiError";
 import { CommonActions, useNavigation } from "@react-navigation/native";
 import { Ramen404 } from "@components/media/Ramen404";
-import { useThemeVariant } from "@contexts/ThemeProvider";
+import { useTheme } from "@contexts/ThemeProvider";
 import { VStack } from "@components/layout/VStack";
 import { Box } from "@components/layout/Box";
 import { Headline, TextBody } from "@components/typography/Text";
@@ -16,7 +16,7 @@ export function ProductError({
 }) {
   const navigation = useNavigation();
 
-  const themeVariant = useThemeVariant();
+  const { fgMuted } = useTheme();
 
   if (error instanceof ApiError && error.status === 404) {
     return (
@@ -27,10 +27,7 @@ export function ProductError({
 
         <VStack gap={0.5} alignItems="center">
           <Headline>Product not found</Headline>
-          <TextBody
-            color={themeVariant === "dark" ? "fgMuted" : "muted"}
-            textAlign="center"
-          >
+          <TextBody color={fgMuted} textAlign="center">
             We couldn’t find a product for this barcode.
           </TextBody>
         </VStack>

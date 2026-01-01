@@ -9,7 +9,7 @@ export type SafeVStackProps = VStackProps & {
 
 export function SafeVStack({
   guard = "bottom",
-  scrollable = true,
+  scrollable = false,
   children,
   ...props
 }: SafeVStackProps) {
@@ -31,7 +31,7 @@ export function SafeVStack({
   }, [guard, insets.bottom, insets.left, insets.right, insets.top]);
 
   return (
-    <VStack height={"100%"} style={paddingStyle}>
+    <VStack flex={1} width="100%" style={paddingStyle}>
       <VStack {...props} scrollable={scrollable}>
         {children}
       </VStack>

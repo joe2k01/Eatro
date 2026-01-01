@@ -23,6 +23,8 @@ import { useNavigation } from "@react-navigation/native";
 import { SettingsStackParamsList } from "@screens/Settings/routes";
 import type { Goals } from "@constants/storage/validators";
 import { goalsValidator } from "@constants/storage/validators/goals";
+import { safeParseOrDefault } from "@constants/storage/validators/safeParseOrDefault";
+import { nonNegativeNumber } from "@constants/storage/validators/numberParsers";
 
 const defaultFormValues: Goals = {
   calories: undefined,
@@ -36,14 +38,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
-
-function parseOptionalInt(value: string): number | undefined {
-  const trimmed = value.trim();
-  if (!trimmed) return undefined;
-  const n = Number(trimmed);
-  if (!Number.isFinite(n)) return undefined;
-  return Math.max(0, Math.trunc(n));
-}
 
 export const goalsConfigurationHeaderOptions = {
   title: "Goals configuration",
@@ -65,8 +59,13 @@ export function GoalsConfiguration() {
     setValue,
     watch,
     formState: { isSubmitting },
-  } = useForm<Goals>({
-    defaultValues: defaultFormValues,
+  } = useForm({
+    defaultValues: {
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fat: 0,
+    },
     resolver: zodResolver(goalsValidator),
     mode: "onChange",
   });
@@ -76,22 +75,24 @@ export function GoalsConfiguration() {
     reset(data);
   }, [data, reset]);
 
-  const caloriesNumber = watch("calories") ?? 0;
-  const proteinNumber = watch("protein") ?? 0;
-  const carbsNumber = watch("carbs") ?? 0;
-  const fatNumber = watch("fat") ?? 0;
+  const calories = watch("calories");
+  const protein = watch("protein");
+  const carbs = watch("carbs");
+  const fat = watch("fat");
 
   const macroCalories = useMemo(() => {
-    const proteinCalories = proteinNumber * 4;
-    const carbsCalories = carbsNumber * 4;
-    const fatCalories = fatNumber * 9;
+    const proteinNumber = safeParseOrDefault(protein, nonNegativeNumber, 0);
+
+    const carbsNumber = safeParseOrDefault(carbs, nonNegativeNumber, 0);
+    const fatNumber = safeParseOrDefault(fat, nonNegativeNumber, 0);
+
     return {
-      proteinCalories,
-      carbsCalories,
-      fatCalories,
-      total: proteinCalories + carbsCalories + fatCalories,
+      protein: proteinNumber * 4,
+      carbs: carbsNumber * 4,
+      fat: fatNumber * 9,
+      total: proteinNumber * 4 + carbsNumber * 4 + fatNumber * 9,
     };
-  }, [carbsNumber, fatNumber, proteinNumber]);
+  }, [carbs, fat, protein]);
 
   const applyAutoCalories = useCallback(
     (mMacroCalories: typeof macroCalories) => {
@@ -105,6 +106,11 @@ export function GoalsConfiguration() {
     [setValue],
   );
 
+  const caloriesNumber = useMemo(
+    () => safeParseOrDefault(calories, nonNegativeNumber, 0),
+    [calories],
+  );
+
   useEffect(() => {
     // Auto-update calories from macros unless the user has set a manual target.
     if (!isCaloriesManual) {
@@ -114,9 +120,9 @@ export function GoalsConfiguration() {
   }, [applyAutoCalories, isCaloriesManual, macroCalories]);
 
   const donut = useDonut([
-    { key: "protein", value: macroCalories.proteinCalories, color: primary },
-    { key: "carbs", value: macroCalories.carbsCalories, color: secondary },
-    { key: "fat", value: macroCalories.fatCalories, color: accent },
+    { key: "protein", value: macroCalories.protein, color: primary },
+    { key: "carbs", value: macroCalories.carbs, color: secondary },
+    { key: "fat", value: macroCalories.fat, color: accent },
   ]);
 
   const onSave = useCallback(
@@ -165,7 +171,6 @@ export function GoalsConfiguration() {
             placeholder="2000"
             keyboardType="number-pad"
             unit="kcal"
-            parse={parseOptionalInt}
             onBlur={onCaloriesBlur}
           />
 
@@ -196,7 +201,6 @@ export function GoalsConfiguration() {
               placeholder="0"
               keyboardType="number-pad"
               unit="g"
-              parse={parseOptionalInt}
               inputStyle={styles.input}
             />
 
@@ -207,7 +211,6 @@ export function GoalsConfiguration() {
               placeholder="0"
               keyboardType="number-pad"
               unit="g"
-              parse={parseOptionalInt}
               inputStyle={styles.input}
             />
 
@@ -218,7 +221,6 @@ export function GoalsConfiguration() {
               placeholder="0"
               keyboardType="number-pad"
               unit="g"
-              parse={parseOptionalInt}
               inputStyle={styles.input}
             />
           </HStack>

@@ -1,12 +1,13 @@
 import { z } from "zod";
+import { optionalNonNegativeInt } from "./numberParsers";
 
 export const goalsValidator = z
   .object({
-    calories: z.number().int().nonnegative(),
-    protein: z.number().int().nonnegative(),
-    carbs: z.number().int().nonnegative(),
-    fat: z.number().int().nonnegative(),
+    calories: optionalNonNegativeInt,
+    protein: optionalNonNegativeInt,
+    carbs: optionalNonNegativeInt,
+    fat: optionalNonNegativeInt,
   })
   .partial();
 
-export type Goals = z.infer<typeof goalsValidator>;
+export type Goals = z.output<typeof goalsValidator>;

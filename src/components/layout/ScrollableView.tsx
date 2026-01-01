@@ -59,6 +59,8 @@ export const ScrollableView = forwardRef<
         contentContainerStyle={mergedContentContainerStyle}
         alwaysBounceVertical={false}
         ref={ref as RefObject<ScrollView>}
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
       >
         {passthroughProps.children}
       </ScrollView>
