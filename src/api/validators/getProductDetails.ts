@@ -4,7 +4,7 @@ type NutrimentsVariant = {
   energy?: number;
   carbohydrates?: number;
   fat?: number;
-  protein?: number;
+  proteins?: number;
 };
 
 const servingsRegex = /^(\d+[\.,]?\d+?)([ a-zA-Z]+)?/g;
@@ -17,8 +17,8 @@ const nutrimentsSchema = z
     carbohydrates_serving: z.number(),
     fat_100g: z.number(),
     fat_serving: z.number(),
-    protein_100g: z.number(),
-    protein_serving: z.number(),
+    proteins_100g: z.number(),
+    proteins_serving: z.number(),
   })
   .partial()
   .transform((nutriments) => {

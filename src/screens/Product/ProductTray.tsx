@@ -1,4 +1,4 @@
-import { useMemo, type RefObject } from "react";
+import { useMemo, useState, type RefObject } from "react";
 import { useForm } from "react-hook-form";
 import { Tray, type TrayApi } from "@components/layout/Tray";
 import { VStack } from "@components/layout/VStack";
@@ -38,6 +38,7 @@ const styles = StyleSheet.create({
 
 export type ProductTrayProps = {
   trayRef: RefObject<TrayApi | null>;
+  barcode: string;
   name: string;
   brand: string;
   nutriments: GetProductDetails["nutriments"];
@@ -54,6 +55,7 @@ const productTrayFormSchema = z.object({
 
 export function ProductTray({
   trayRef,
+  barcode,
   name,
   brand,
   nutriments,
@@ -61,6 +63,8 @@ export function ProductTray({
   servingSize,
   servingsUnit,
 }: ProductTrayProps) {
+  const [saving, setSaving] = useState(false);
+
   const defaultServingSize = useMemo(() => {
     if (selectedUnit === "per100g") return 100;
     if (servingSize !== undefined) return servingSize;
@@ -88,44 +92,38 @@ export function ProductTray({
   }, [nutriments.per100g, nutriments.perServing, servingSize]);
 
   const { control, watch } = useForm({
-    defaultValues: {
-      servings: 1,
-      servingSize: defaultServingSize,
-      servingUnit: unit,
-    },
     resolver: zodResolver(productTrayFormSchema),
   });
 
   const servingsInput = watch("servings");
   const servingSizeInput = watch("servingSize");
 
+  const servingsValue = useMemo(() => {
+    return safeParseOrDefault(servingsInput, nonNegativeNumber, 0);
+  }, [servingsInput]);
+
+  const servingSizeValue = useMemo(() => {
+    return safeParseOrDefault(servingSizeInput, nonNegativeNumber, 0);
+  }, [servingSizeInput]);
+
   const computedNutriments = useMemo(() => {
     const {
       base,
       carbohydrates = 0,
       fat = 0,
-      protein = 0,
+      proteins = 0,
       energy = 0,
     } = nutrimentsForCalc;
-
-    const servingsValue = safeParseOrDefault(
-      servingsInput,
-      nonNegativeNumber,
-      0,
-    );
-    const servingSizeValue = safeParseOrDefault(
-      servingSizeInput,
-      nonNegativeNumber,
-      0,
-    );
 
     return {
       carbohydrates: (carbohydrates * servingsValue * servingSizeValue) / base,
       fat: (fat * servingsValue * servingSizeValue) / base,
-      protein: (protein * servingsValue * servingSizeValue) / base,
+      proteins: (proteins * servingsValue * servingSizeValue) / base,
       energy: (energy * servingsValue * servingSizeValue) / base,
     };
-  }, [nutrimentsForCalc, servingSizeInput, servingsInput]);
+  }, [nutrimentsForCalc, servingSizeValue, servingsValue]);
+
+  const canAdd = servingsValue > 0 && servingSizeValue > 0 && !saving;
 
   return (
     <Tray ref={trayRef}>
@@ -182,14 +180,14 @@ export function ProductTray({
             name="servingSize"
             placeholder={String(defaultServingSize)}
             keyboardType="decimal-pad"
-            unit="g"
+            unit={unit}
             format={(v) => (v === undefined ? "" : String(v))}
             inTray
             containerStyle={styles.inputContainer}
           />
         </HStack>
 
-        <Button variant="primary" onPress={() => trayRef.current?.closeTray()}>
+        <Button variant="primary" disabled={!canAdd}>
           Add to meal
         </Button>
       </VStack>

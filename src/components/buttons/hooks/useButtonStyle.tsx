@@ -38,9 +38,7 @@ export function useButtonStyle({
 
   const outerStyle = useMemo(() => {
     let background: string = "transparent";
-    const effectiveVariant: ButtonVariant | undefined = disabled
-      ? "muted"
-      : variant;
+    const effectiveVariant: ButtonVariant | undefined = variant;
 
     switch (effectiveVariant) {
       case "primary":
@@ -74,8 +72,12 @@ export function useButtonStyle({
       StyleSheet.compose({ backgroundColor: background }, composedStyle),
     );
 
-    // Disabled always falls back to the muted background, regardless of variant.
-    const finalBase = disabled ? { ...base, backgroundColor: muted } : base;
+    const finalBase = { ...base };
+
+    // If a button is visually "transparent", give disabled state a visible surface.
+    if (disabled && finalBase.backgroundColor === "transparent") {
+      finalBase.backgroundColor = muted;
+    }
 
     // Make disabled/pressed feedback consistent while allowing callers to
     // override `opacity` if they explicitly set it.
@@ -96,9 +98,7 @@ export function useButtonStyle({
 
   const innerStyle = useMemo(() => {
     let color: ColorValue = "";
-    const effectiveVariant: ButtonVariant | undefined = disabled
-      ? "muted"
-      : variant;
+    const effectiveVariant: ButtonVariant | undefined = variant;
 
     switch (effectiveVariant) {
       case "primary":

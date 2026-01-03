@@ -29,6 +29,7 @@ import { Button } from "@components/buttons/Button";
 import { SafeVStack } from "@components/SafeVStack/SafeVStack";
 import type { TrayApi } from "@components/layout/Tray";
 import { ProductTray } from "./ProductTray";
+import { useUpsertFood } from "@db/hooks/useUpsertFood";
 
 type NutrimentsUnit = keyof GetProductDetails["nutriments"];
 
@@ -48,6 +49,8 @@ function ProductContent({ barcode }: { barcode: string }) {
         lc: locale.languageCode ?? "en",
       }),
   });
+
+  useUpsertFood(data, barcode);
 
   const {
     brand,
@@ -171,11 +174,13 @@ function ProductContent({ barcode }: { barcode: string }) {
       </SafeVStack>
       <ProductTray
         trayRef={tray}
+        barcode={barcode}
         name={name}
         brand={brand}
         nutriments={nutriments}
         selectedUnit={selectedUnit}
-        servingSize={data.servingSize}
+        servingSize={servingSize}
+        servingsUnit={servingsUnit}
       />
     </Box>
   );

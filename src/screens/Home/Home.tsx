@@ -15,8 +15,6 @@ import { useMemo } from "react";
 import { Button } from "@components/buttons/Button";
 import { Icon } from "@components/media/Icon";
 import { useNavigation } from "@react-navigation/native";
-import { useDailySummary } from "../../db/hooks/useDailySummary";
-import { UnixSeconds } from "../../db/time";
 
 export const homeHeaderOptions = {
   headerTitle: () => <Title1>Today, {format(new Date(), "MMMM do")}</Title1>,
@@ -37,11 +35,17 @@ export function Home() {
 
   const navigation = useNavigation();
 
-  const dayStartTs = useMemo(() => {
-    return UnixSeconds.now().dayStartUtc();
-  }, []);
+  // const dayStartTs = useMemo(() => {
+  //   return UnixSeconds.now().dayStartUtc();
+  // }, []);
 
-  const { data: day } = useDailySummary(dayStartTs.seconds);
+  // const { data: day } = useDailySummary(dayStartTs.seconds);
+  const day = {
+    total_calories: 1000,
+    total_protein: 50,
+    total_carbs: 100,
+    total_fat: 20,
+  };
 
   const cals = useMemo(() => {
     return Math.round(day?.total_calories ?? 0);

@@ -4270,6 +4270,9 @@ __metadata:
     eslint-config-prettier: "npm:^10.1.8"
     eslint-plugin-prettier: "npm:^5.5.4"
     expo: "npm:^54.0.0"
+    expo-asset: "npm:~12.0.12"
+    expo-drizzle-studio-plugin: "npm:^0.2.1"
+    expo-file-system: "npm:~19.0.21"
     expo-font: "npm:~14.0.10"
     expo-haptics: "npm:~15.0.8"
     expo-image: "npm:~3.0.11"
@@ -4903,6 +4906,16 @@ __metadata:
     expo: "*"
     react-native: "*"
   checksum: 10c0/9dab3f1d685b17c25ae4179823162b763a7edeea8b976f96f25e37fabbfbc190f05cd774431664e5145196f3982e34303ebf5a1f5a82a1409218ae93187f710f
+  languageName: node
+  linkType: hard
+
+"expo-drizzle-studio-plugin@npm:^0.2.1":
+  version: 0.2.1
+  resolution: "expo-drizzle-studio-plugin@npm:0.2.1"
+  peerDependencies:
+    expo: ">=53.0.5"
+    expo-sqlite: ">=15.2.9"
+  checksum: 10c0/b6aee4e52db45a2a5a88b4af252bce3f472cf99c711f2abe7fa04d01bf729be9db753068c664feb3ae10b1a3e81226a56c1da5b97d0f9edd9bf766ec35f43242
   languageName: node
   linkType: hard
 

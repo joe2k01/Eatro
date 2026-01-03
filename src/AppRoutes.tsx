@@ -5,6 +5,8 @@ import { Scanner, ScannerParams } from "@screens/Scanner";
 import { SettingsNavigator, SettingsNavigatorParams } from "@screens/Settings";
 import { nestedStackSharedOptions } from "@constants/navigation";
 import { useAppStackNavigationOptions } from "@hooks/useAppStackNavigationOptions";
+import { useSQLiteContext } from "expo-sqlite";
+import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
 
 export type RootStackParamsList = {
   Home: HomeParams;
@@ -26,6 +28,9 @@ const Stack = createNativeStackNavigator<RootStackParamsList>();
 
 export function AppRoutes() {
   const stackOptions = useAppStackNavigationOptions();
+
+  const db = useSQLiteContext();
+  useDrizzleStudio(db);
 
   return (
     <Stack.Navigator initialRouteName="Home" screenOptions={stackOptions}>

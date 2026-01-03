@@ -26,9 +26,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "permissions": [
-        "android.permission.CAMERA"
-      ],
+      "permissions": ["android.permission.CAMERA"],
       "package": "com.anonymous.Eatro"
     },
     "web": {
@@ -52,7 +50,13 @@
       ],
       "@sentry/react-native",
       "expo-font",
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-asset",
+        {
+          "assets": ["src/db/migrations/initial_schema.sql"]
+        }
+      ]
     ]
   }
 }
