@@ -15,6 +15,7 @@ import { useMemo } from "react";
 import { Button } from "@components/buttons/Button";
 import { Icon } from "@components/media/Icon";
 import { useNavigation } from "@react-navigation/native";
+import { useGetToday } from "@db/hooks/useGetToday";
 
 export const homeHeaderOptions = {
   headerTitle: () => <Title1>Today, {format(new Date(), "MMMM do")}</Title1>,
@@ -28,28 +29,28 @@ const defaultGoals: Goals = {
   fat: 50,
 };
 
-const macros: Exclude<keyof Goals, "calories">[] = ["protein", "carbs", "fat"];
+const macroKeys: Exclude<keyof Goals, "calories">[] = [
+  "protein",
+  "carbs",
+  "fat",
+];
 
 export function Home() {
   useStaticNavigationOptions(homeHeaderOptions);
 
   const navigation = useNavigation();
+  const { macros, meals: _meals } = useGetToday();
 
-  // const dayStartTs = useMemo(() => {
-  //   return UnixSeconds.now().dayStartUtc();
-  // }, []);
-
-  // const { data: day } = useDailySummary(dayStartTs.seconds);
   const day = {
-    total_calories: 1000,
-    total_protein: 50,
-    total_carbs: 100,
-    total_fat: 20,
+    total_calories: macros?.energy ?? 0,
+    total_protein: macros?.proteins ?? 0,
+    total_carbs: macros?.carbohydrates ?? 0,
+    total_fat: macros?.fat ?? 0,
   };
 
   const cals = useMemo(() => {
-    return Math.round(day?.total_calories ?? 0);
-  }, [day?.total_calories]);
+    return Math.round(day.total_calories);
+  }, [day.total_calories]);
 
   const { data: goals } = useStorage("goals", defaultGoals);
 
@@ -95,10 +96,8 @@ export function Home() {
           alignItems="center"
           backgroundColor="transparent"
         >
-          {/*
-            Use the `days` table for fast daily access; values are updated incrementally by entry mutations.
-          */}
-          {macros.map((macro) => (
+          {/* TODO: Day totals are now derived from meals (days table removed). */}
+          {macroKeys.map((macro) => (
             <MacroProgress
               key={macro}
               label={macro}

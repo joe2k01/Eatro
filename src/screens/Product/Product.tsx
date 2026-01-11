@@ -50,7 +50,7 @@ function ProductContent({ barcode }: { barcode: string }) {
       }),
   });
 
-  useUpsertFood(data, barcode);
+  const foodId = useUpsertFood(data, barcode);
 
   const {
     brand,

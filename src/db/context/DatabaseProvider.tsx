@@ -2,7 +2,7 @@ import { SQLiteProvider } from "expo-sqlite";
 import React, { Suspense } from "react";
 import { ErrorBoundary } from "@components/feedback/ErrorBoundary";
 import { migrateDbIfNeeded } from "../migrations/migrate";
-// import * as SQLite from "expo-sqlite";
+import * as SQLite from "expo-sqlite";
 
 type DatabaseProviderProps = {
   children: React.ReactNode;
@@ -15,7 +15,7 @@ export function DatabaseProvider({
   fallback,
   errorFallback,
 }: DatabaseProviderProps) {
-  // SQLite.deleteDatabaseSync("eatro.db");
+  SQLite.deleteDatabaseSync("eatro.db");
 
   return (
     <ErrorBoundary fallback={errorFallback}>

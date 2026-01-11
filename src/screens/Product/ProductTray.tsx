@@ -1,4 +1,10 @@
-import { useMemo, useState, type RefObject } from "react";
+import {
+  useMemo,
+  useState,
+  type RefObject,
+  useCallback,
+  useEffect,
+} from "react";
 import { useForm } from "react-hook-form";
 import { Tray, type TrayApi } from "@components/layout/Tray";
 import { VStack } from "@components/layout/VStack";
@@ -12,6 +18,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { StyleSheet } from "react-native";
 import { nonNegativeNumber } from "@constants/storage/validators/numberParsers";
 import { safeParseOrDefault } from "@constants/storage/validators/safeParseOrDefault";
+import { useSQLiteContext } from "expo-sqlite";
+import { FoodSource, MealType } from "@db/schemas";
+import { FoodRepository } from "@db/repositories/FoodRepository";
+import { MealRepository } from "@db/repositories/MealRepository";
+import { LogToMealControls } from "./components/LogToMealControls";
+import { utcStartOfTodaySeconds } from "@db/utils/utc";
 
 type NutrimentsUnit = keyof GetProductDetails["nutriments"];
 
@@ -51,7 +63,36 @@ const productTrayFormSchema = z.object({
   servings: inputQuantity,
   servingSize: inputQuantity,
   servingUnit: z.string(),
+  customMealType: z.string().optional().default(""),
 });
+
+type NutrimentsForCalc = {
+  base: number;
+  carbohydrates?: number;
+  fat?: number;
+  proteins?: number;
+  energy?: number;
+};
+
+function computePerServingFromNutriments(
+  nutrimentsForCalc: NutrimentsForCalc,
+  servingSize: number,
+) {
+  const {
+    base,
+    carbohydrates = 0,
+    fat = 0,
+    proteins = 0,
+    energy = 0,
+  } = nutrimentsForCalc;
+
+  return {
+    carbohydrates: (carbohydrates * servingSize) / base,
+    fat: (fat * servingSize) / base,
+    proteins: (proteins * servingSize) / base,
+    energy: (energy * servingSize) / base,
+  };
+}
 
 export function ProductTray({
   trayRef,
@@ -64,6 +105,14 @@ export function ProductTray({
   servingsUnit,
 }: ProductTrayProps) {
   const [saving, setSaving] = useState(false);
+  const [showLogControls, setShowLogControls] = useState(false);
+
+  const [dayUtcSeconds, setDayUtcSeconds] = useState(() =>
+    utcStartOfTodaySeconds(),
+  );
+  const [mealType, setMealType] = useState<MealType>(MealType.Snack);
+
+  const db = useSQLiteContext();
 
   const defaultServingSize = useMemo(() => {
     if (selectedUnit === "per100g") return 100;
@@ -77,7 +126,7 @@ export function ProductTray({
     [selectedUnit, servingsUnit],
   );
 
-  const nutrimentsForCalc = useMemo(() => {
+  const nutrimentsForCalc: NutrimentsForCalc = useMemo(() => {
     if (nutriments.per100g) {
       return {
         ...nutriments.per100g,
@@ -91,9 +140,40 @@ export function ProductTray({
     };
   }, [nutriments.per100g, nutriments.perServing, servingSize]);
 
-  const { control, watch } = useForm({
+  const { control, watch, reset } = useForm({
+    defaultValues: {
+      servings: 1,
+      servingSize: defaultServingSize || 100,
+      servingUnit: unit,
+      customMealType: "",
+    },
     resolver: zodResolver(productTrayFormSchema),
   });
+
+  useEffect(() => {
+    // Keep sensible defaults when switching between per-100g and per-serving views.
+    reset((current) => {
+      const currentServingSize =
+        typeof current.servingSize === "number"
+          ? current.servingSize
+          : undefined;
+      const currentServings =
+        typeof current.servings === "number" ? current.servings : undefined;
+
+      return {
+        ...current,
+        servingUnit: unit,
+        servingSize:
+          currentServingSize !== undefined && currentServingSize > 0
+            ? currentServingSize
+            : defaultServingSize || 100,
+        servings:
+          currentServings !== undefined && currentServings > 0
+            ? currentServings
+            : 1,
+      };
+    });
+  }, [defaultServingSize, reset, unit]);
 
   const servingsInput = watch("servings");
   const servingSizeInput = watch("servingSize");
@@ -123,7 +203,108 @@ export function ProductTray({
     };
   }, [nutrimentsForCalc, servingSizeValue, servingsValue]);
 
-  const canAdd = servingsValue > 0 && servingSizeValue > 0 && !saving;
+  const canConfirm = servingsValue > 0 && servingSizeValue > 0 && !saving;
+
+  const onOpenLogControls = useCallback(() => {
+    if (saving) return;
+    setShowLogControls(true);
+  }, [saving]);
+
+  const onCancelLog = useCallback(() => {
+    if (saving) return;
+    setShowLogControls(false);
+  }, [saving]);
+
+  const customMealType = watch("customMealType") ?? "";
+
+  const onConfirmLog = useCallback(async () => {
+    if (!canConfirm) return;
+    if (saving) return;
+
+    if (mealType === MealType.Custom && !customMealType?.trim()) {
+      // Keep it simple: we just block until they provide a name.
+      // (Could also show inline error via RHF if desired.)
+      return;
+    }
+
+    setSaving(true);
+
+    try {
+      const nowMs = Date.now();
+      const perServing = computePerServingFromNutriments(
+        nutrimentsForCalc,
+        servingSizeValue,
+      );
+
+      const foodRepo = new FoodRepository(db);
+      const mealRepo = new MealRepository(db);
+
+      // 1) Upsert the food with the *chosen serving size* so `meal_foods.quantity`
+      // can stay as "number of servings".
+      const foodId = await foodRepo.upsertFood({
+        name,
+        brand: brand?.trim() ? brand.trim() : null,
+        unit,
+        serving_size: servingSizeValue,
+        energy_per_serving: perServing.energy,
+        proteins_per_serving: perServing.proteins,
+        carbohydrates_per_serving: perServing.carbohydrates,
+        fat_per_serving: perServing.fat,
+        barcode,
+        source: FoodSource.Api,
+        created_at: nowMs,
+        updated_at: nowMs,
+      });
+
+      if (!foodId) {
+        throw new Error("Failed to upsert food");
+      }
+
+      // 2) Upsert meal + insert meal_foods + increment totals (single tx).
+      const normalizedCustomType =
+        mealType === MealType.Custom ? customMealType.trim() : null;
+
+      const delta = {
+        energy: perServing.energy * servingsValue,
+        proteins: perServing.proteins * servingsValue,
+        carbohydrates: perServing.carbohydrates * servingsValue,
+        fat: perServing.fat * servingsValue,
+      };
+
+      const mealId = await mealRepo.upsertMealAndLogFoodTx({
+        dayUtcSeconds,
+        type: mealType,
+        customType: normalizedCustomType,
+        foodId,
+        quantityServings: servingsValue,
+        delta,
+        nowMs,
+      });
+
+      if (!mealId) {
+        throw new Error("Failed to upsert meal");
+      }
+
+      trayRef.current?.closeTray();
+    } finally {
+      setSaving(false);
+    }
+  }, [
+    barcode,
+    brand,
+    canConfirm,
+    customMealType,
+    db,
+    dayUtcSeconds,
+    mealType,
+    name,
+    nutrimentsForCalc,
+    saving,
+    servingSizeValue,
+    servingsValue,
+    trayRef,
+    unit,
+  ]);
 
   return (
     <Tray ref={trayRef}>
@@ -187,9 +368,30 @@ export function ProductTray({
           />
         </HStack>
 
-        <Button variant="primary" disabled={!canAdd}>
-          Add to meal
-        </Button>
+        {showLogControls ? (
+          <LogToMealControls
+            dayUtcSeconds={dayUtcSeconds}
+            setDayUtcSeconds={setDayUtcSeconds}
+            mealType={mealType}
+            setMealType={setMealType}
+            saving={saving}
+            canConfirm={
+              canConfirm &&
+              (mealType !== MealType.Custom || !!customMealType.trim())
+            }
+            control={control}
+            onCancel={onCancelLog}
+            onConfirm={onConfirmLog}
+          />
+        ) : (
+          <Button
+            variant="primary"
+            onPress={onOpenLogControls}
+            disabled={saving}
+          >
+            Add to meal
+          </Button>
+        )}
       </VStack>
     </Tray>
   );

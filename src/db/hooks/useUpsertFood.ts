@@ -1,6 +1,6 @@
 import type { GetProductDetails } from "@api/validators/getProductDetails";
 import { useSQLiteContext } from "expo-sqlite";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Food, FoodSource } from "@db/schemas";
 import { FoodRepository } from "@db/repositories/FoodRepository";
 
@@ -96,6 +96,7 @@ export function useUpsertFood(
   barcode?: string | null,
 ) {
   const db = useSQLiteContext();
+  const [foodId, setFoodId] = useState<number | null>(null);
 
   useEffect(() => {
     // Step 1: Normalize inputs into a single `Food` shape.
@@ -109,6 +110,8 @@ export function useUpsertFood(
 
     const repo = new FoodRepository(db);
 
-    repo.upsertFood(food);
+    repo.upsertFood(food).then(setFoodId);
   }, [db, data, barcode]);
+
+  return foodId;
 }
