@@ -18,12 +18,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { StyleSheet } from "react-native";
 import { nonNegativeNumber } from "@constants/storage/validators/numberParsers";
 import { safeParseOrDefault } from "@constants/storage/validators/safeParseOrDefault";
-import { useSQLiteContext } from "expo-sqlite";
 import { FoodSource, MealType } from "@db/schemas";
-import { FoodRepository } from "@db/repositories/FoodRepository";
-import { MealRepository } from "@db/repositories/MealRepository";
 import { LogToMealControls } from "./components/LogToMealControls";
 import { utcStartOfTodaySeconds } from "@db/utils/utc";
+import { useRepositories } from "@db/context/DatabaseProvider";
 
 type NutrimentsUnit = keyof GetProductDetails["nutriments"];
 
@@ -112,7 +110,8 @@ export function ProductTray({
   );
   const [mealType, setMealType] = useState<MealType>(MealType.Snack);
 
-  const db = useSQLiteContext();
+  const { food: foodRepo, meal: mealRepo, mealFood: mealFoodRepo } =
+    useRepositories();
 
   const defaultServingSize = useMemo(() => {
     if (selectedUnit === "per100g") return 100;
@@ -236,9 +235,6 @@ export function ProductTray({
         servingSizeValue,
       );
 
-      const foodRepo = new FoodRepository(db);
-      const mealRepo = new MealRepository(db);
-
       // 1) Upsert the food with the *chosen serving size* so `meal_foods.quantity`
       // can stay as "number of servings".
       const foodId = await foodRepo.upsertFood({
@@ -271,15 +267,18 @@ export function ProductTray({
         fat: perServing.fat * servingsValue,
       };
 
-      const mealId = await mealRepo.upsertMealAndLogFoodTx({
-        dayUtcSeconds,
-        type: mealType,
-        customType: normalizedCustomType,
-        foodId,
-        quantityServings: servingsValue,
-        delta,
-        nowMs,
-      });
+      const mealId = await mealRepo.upsertMealAndLogFoodTx(
+        {
+          dayUtcSeconds,
+          type: mealType,
+          customType: normalizedCustomType,
+          foodId,
+          quantityServings: servingsValue,
+          delta,
+          nowMs,
+        },
+        mealFoodRepo,
+      );
 
       if (!mealId) {
         throw new Error("Failed to upsert meal");
@@ -294,8 +293,10 @@ export function ProductTray({
     brand,
     canConfirm,
     customMealType,
-    db,
     dayUtcSeconds,
+    foodRepo,
+    mealFoodRepo,
+    mealRepo,
     mealType,
     name,
     nutrimentsForCalc,

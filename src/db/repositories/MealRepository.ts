@@ -7,26 +7,30 @@ import {
   DayTotalsSchema,
 } from "@db/schemas";
 import { BaseRepository, type QueryResult } from "./BaseRepository";
+import { MealFoodRepository } from "./MealFoodRepository";
 
 export class MealRepository extends BaseRepository {
   /**
    * Upsert a meal (by day/type[/custom_type]) and apply all side effects
    * (insert `meal_foods`, increment meal totals) inside a single SQLite transaction.
    */
-  public async upsertMealAndLogFoodTx(args: {
-    dayUtcSeconds: number;
-    type: MealType;
-    customType: string | null;
-    foodId: number;
-    quantityServings: number;
-    delta: {
-      energy: number;
-      proteins: number;
-      carbohydrates: number;
-      fat: number;
-    };
-    nowMs: number;
-  }): QueryResult<number> {
+  public async upsertMealAndLogFoodTx(
+    args: {
+      dayUtcSeconds: number;
+      type: MealType;
+      customType: string | null;
+      foodId: number;
+      quantityServings: number;
+      delta: {
+        energy: number;
+        proteins: number;
+        carbohydrates: number;
+        fat: number;
+      };
+      nowMs: number;
+    },
+    mealFoodRepo: MealFoodRepository,
+  ): QueryResult<number> {
     const {
       dayUtcSeconds,
       type,
@@ -92,30 +96,15 @@ export class MealRepository extends BaseRepository {
       const { id: mealId } = await SqliteIdRowSchema.parseAsync(upsertRow);
 
       // 2) Record the food entry (quantity = servings).
-      const mealFoodStatement = await this.prepareStatement(
-        `
-          INSERT INTO meal_foods (meal_id, food_id, quantity, created_at, updated_at, deleted_at)
-          VALUES ($meal_id, $food_id, $quantity, $created_at, $updated_at, NULL);
-        `,
-        "insertMealFood",
+      const mealFoodInserted = await mealFoodRepo.insertMealFood(
+        mealId,
+        foodId,
+        quantityServings,
+        nowMs,
       );
 
-      if (!mealFoodStatement)
-        throw new Error("Failed to prepare meal_foods insert");
-
-      const mealFoodResult = await this.executeStatement(mealFoodStatement, {
-        $meal_id: mealId,
-        $food_id: foodId,
-        $quantity: quantityServings,
-        $created_at: nowMs,
-        $updated_at: nowMs,
-      });
-      if (!mealFoodResult)
-        throw new Error("meal_foods insert failed to execute");
-      if (mealFoodResult.changes !== 1) {
-        throw new Error(
-          `meal_foods insert unexpected changes: ${mealFoodResult.changes}`,
-        );
+      if (!mealFoodInserted) {
+        throw new Error("meal_foods insert failed");
       }
 
       return mealId;

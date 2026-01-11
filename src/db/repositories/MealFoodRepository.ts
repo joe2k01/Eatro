@@ -1,52 +1,42 @@
-import { type SQLiteDatabase, SQLiteStatement } from "expo-sqlite";
-import * as Sentry from "@sentry/react-native";
+import { BaseRepository, type QueryResult } from "./BaseRepository";
 
-type QueryResult<T> = Promise<T | null>;
-
-export class MealFoodRepository {
-  constructor(private readonly db: SQLiteDatabase) {}
-
-  private async executeStatement<T>(
-    statement: SQLiteStatement,
-    handler: () => Promise<T | null>,
-  ) {
-    let result;
-
-    try {
-      result = await handler();
-    } catch (error) {
-      Sentry.captureException(error);
-      console.error(error);
-      return null;
-    } finally {
-      await statement.finalizeAsync();
-    }
-
-    return result;
-  }
-
+export class MealFoodRepository extends BaseRepository {
+  /**
+   * Insert a meal_foods entry.
+   * This should typically be called within a transaction.
+   */
   public async insertMealFood(
     mealId: number,
     foodId: number,
     quantityServings: number,
     nowMs: number,
-  ) {
-    const statement = await this.db.prepareAsync(`
+  ): QueryResult<boolean> {
+    const statement = await this.prepareStatement(
+      `
       INSERT INTO meal_foods (meal_id, food_id, quantity, created_at, updated_at, deleted_at)
       VALUES ($meal_id, $food_id, $quantity, $created_at, $updated_at, NULL);
-    `);
+    `,
+      "insertMealFood",
+    );
 
-    return await this.executeStatement(statement, async () => {
-      const result = await statement.executeAsync({
-        $meal_id: mealId,
-        $food_id: foodId,
-        $quantity: quantityServings,
-        $created_at: nowMs,
-        $updated_at: nowMs,
-      });
-      return result.changes > 0;
+    if (!statement) return null;
+
+    const result = await this.executeStatement(statement, {
+      $meal_id: mealId,
+      $food_id: foodId,
+      $quantity: quantityServings,
+      $created_at: nowMs,
+      $updated_at: nowMs,
     });
+
+    if (!result) return null;
+
+    if (result.changes !== 1) {
+      throw new Error(
+        `meal_foods insert unexpected changes: ${result.changes}`,
+      );
+    }
+
+    return true;
   }
 }
-
-

@@ -1,7 +1,5 @@
 import { Food, FoodSchema, FoodSource } from "@db/schemas";
-import { BaseRepository } from "./BaseRepository";
-
-type QueryResult<T> = Promise<T | null>;
+import { BaseRepository, type QueryResult } from "./BaseRepository";
 
 export class FoodRepository extends BaseRepository {
   public async getFoodByIdentifier(
@@ -33,7 +31,9 @@ export class FoodRepository extends BaseRepository {
     return data ? FoodSchema.parse(data) : null;
   }
 
-  public async upsertFood(food: Omit<Food, "id" | "deleted_at">) {
+  public async upsertFood(
+    food: Omit<Food, "id" | "deleted_at">,
+  ): QueryResult<number> {
     const statement = await this.prepareStatement(
       `
         INSERT INTO foods (name, brand, unit, serving_size, energy_per_serving, proteins_per_serving, carbohydrates_per_serving, fat_per_serving, barcode, source, created_at, updated_at)

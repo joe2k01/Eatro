@@ -1,8 +1,7 @@
 import type { GetProductDetails } from "@api/validators/getProductDetails";
-import { useSQLiteContext } from "expo-sqlite";
 import { useEffect, useState } from "react";
 import { Food, FoodSource } from "@db/schemas";
-import { FoodRepository } from "@db/repositories/FoodRepository";
+import { useRepositories } from "@db/context/DatabaseProvider";
 
 type Nutriments = GetProductDetails["nutriments"];
 type NutrimentsVariant = NonNullable<Nutriments[keyof Nutriments]>;
@@ -95,7 +94,7 @@ export function useUpsertFood(
   data: GetProductDetails | OperatingFood,
   barcode?: string | null,
 ) {
-  const db = useSQLiteContext();
+  const { food: foodRepo } = useRepositories();
   const [foodId, setFoodId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -108,10 +107,8 @@ export function useUpsertFood(
       food = apiDetailsToFood(data, barcode);
     }
 
-    const repo = new FoodRepository(db);
-
-    repo.upsertFood(food).then(setFoodId);
-  }, [db, data, barcode]);
+    foodRepo.upsertFood(food).then(setFoodId);
+  }, [foodRepo, data, barcode]);
 
   return foodId;
 }

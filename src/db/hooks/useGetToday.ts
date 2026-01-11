@@ -1,9 +1,8 @@
-import { useSQLiteContext } from "expo-sqlite";
 import { useState, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { MealRepository } from "@db/repositories/MealRepository";
 import { utcStartOfTodaySeconds } from "@db/utils/utc";
 import type { Meal } from "@db/schemas";
+import { useRepositories } from "@db/context/DatabaseProvider";
 
 type DayTotals = {
   energy: number;
@@ -23,24 +22,23 @@ type UseGetTodayResult = {
  * Automatically refetches when the screen is focused.
  */
 export function useGetToday(): UseGetTodayResult {
-  const db = useSQLiteContext();
+  const { meal: mealRepo } = useRepositories();
   const [macros, setMacros] = useState<DayTotals | null>(null);
   const [meals, setMeals] = useState<Meal[] | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchToday = useCallback(async () => {
     const dayUtcSeconds = utcStartOfTodaySeconds();
-    const repo = new MealRepository(db);
 
     const [totalsResult, mealsResult] = await Promise.all([
-      repo.getDayTotals(dayUtcSeconds),
-      repo.getMealsByDay(dayUtcSeconds),
+      mealRepo.getDayTotals(dayUtcSeconds),
+      mealRepo.getMealsByDay(dayUtcSeconds),
     ]);
 
     setMacros(totalsResult);
     setMeals(mealsResult);
     setLoading(false);
-  }, [db]);
+  }, [mealRepo]);
 
   useFocusEffect(
     useCallback(() => {
