@@ -1,19 +1,25 @@
-import type { StyleProp, ViewStyle } from 'react-native';
-
-export type OnLoadEventPayload = {
-  url: string;
-};
+import type { StyleProp, ViewStyle } from "react-native";
 
 export type PopupButtonModuleEvents = {
-  onChange: (params: ChangeEventPayload) => void;
+  onOptionSelect: (params: ChangeEventPayload) => void;
 };
 
-export type ChangeEventPayload = {
-  value: string;
+export type ChangeEventPayload<T = any> = {
+  label: string;
+  value: T;
 };
 
-export type PopupButtonViewProps = {
-  url: string;
-  onLoad: (event: { nativeEvent: OnLoadEventPayload }) => void;
+export type PopupButtonOption<T = any> = {
+  label: string;
+  value: T;
+};
+
+export type PopupButtonPreferredMenuElementOrder = "fixed" | "automatic";
+
+export type PopupButtonViewProps<T = any> = {
+  options?: PopupButtonOption<T>[];
+  onOptionSelect?: (option: ChangeEventPayload<T>) => void;
   style?: StyleProp<ViewStyle>;
+  children?: React.ReactNode;
+  preferredMenuElementOrder?: PopupButtonPreferredMenuElementOrder;
 };
