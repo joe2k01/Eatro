@@ -1,4 +1,3 @@
-import { StyledViewProps } from "@constants/theme";
 import {
   ScrollView,
   ScrollViewProps,
@@ -6,6 +5,7 @@ import {
   View,
   ViewProps,
   ViewStyle,
+  StyleProp,
 } from "react-native";
 import { useTheme } from "@contexts/ThemeProvider";
 import { forwardRef, RefObject, useMemo } from "react";
@@ -18,18 +18,23 @@ type ScrollableViewExtraProps = Pick<
   "contentContainerStyle" | "keyboardShouldPersistTaps"
 >;
 
-export type ScrollableViewProps = StyledViewProps<
-  ViewStyle & ViewProps & ScrollableViewExtraProps & { scrollable?: boolean }
->;
+export type ScrollableViewProps = ViewProps &
+  ScrollableViewExtraProps & {
+    style?: StyleProp<ViewStyle>;
+    scrollable?: boolean;
+  };
 
 export const ScrollableView = forwardRef<
   View | ScrollView,
   ScrollableViewProps
 >(function ScrollableView(props: ScrollableViewProps, ref) {
-  const { bg } = useTheme();
+  const theme = useTheme();
 
   // Keep the base background stable while still reacting to theme changes.
-  const baseBackground = useMemo(() => ({ backgroundColor: bg }), [bg]);
+  const baseBackground = useMemo(
+    () => ({ backgroundColor: theme.bg }),
+    [theme.bg],
+  );
 
   const { passthroughProps, styleProps } = useExtractViewStyleProps(props);
 
