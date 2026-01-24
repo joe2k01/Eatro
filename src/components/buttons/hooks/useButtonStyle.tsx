@@ -1,158 +1,123 @@
-import { Style } from "@constants/theme";
 import { useTheme } from "@contexts/ThemeProvider";
 import { useMemo } from "react";
-import { ColorValue, StyleProp, StyleSheet } from "react-native";
+import { TextStyle, ViewStyle } from "react-native";
 
 export type ButtonVariant =
   | "primary"
   | "secondary"
+  | "tertiary"
   | "destructive"
-  | "transparent"
+  | "ghost";
+
+export type InvertibleVariant = Exclude<ButtonVariant, "ghost">;
+
+/** @deprecated Use ButtonVariant instead */
+export type LegacyButtonVariant =
   | "muted"
+  | "transparent"
   | "primaryTranslucent"
   | "secondaryTranslucent"
   | "destructiveTranslucent";
 
-type UseButtonStyleProps = {
-  variant?: ButtonVariant;
-  composedStyle: StyleProp<Style>;
+// Legacy variant mapping for backward compatibility
+const LEGACY_VARIANT_MAP: Record<LegacyButtonVariant, ButtonVariant> = {
+  muted: "tertiary",
+  transparent: "ghost",
+  primaryTranslucent: "primary",
+  secondaryTranslucent: "secondary",
+  destructiveTranslucent: "destructive",
+};
+
+type GhostButtonStyleProps = {
+  variant: "ghost" | "transparent";
   disabled?: boolean | null;
 };
 
-export function useButtonStyle({
-  variant,
-  composedStyle,
-  disabled,
-}: UseButtonStyleProps) {
-  const {
-    primary,
-    fgPrimary,
-    secondary,
-    fgSecondary,
-    destructive,
-    fgDestructive,
-    muted,
-    fgMuted,
-    fg,
-  } = useTheme();
+type StandardButtonStyleProps = {
+  variant?: InvertibleVariant | Exclude<LegacyButtonVariant, "transparent">;
+  /** Inverts the button: transparent background with colored border/text. */
+  inverted?: boolean;
+  disabled?: boolean | null;
+};
 
-  const outerStyle = useMemo(() => {
-    let background: string = "transparent";
-    const effectiveVariant: ButtonVariant | undefined = variant;
+type UseButtonStyleProps = GhostButtonStyleProps | StandardButtonStyleProps;
 
-    switch (effectiveVariant) {
+type ButtonStyles = {
+  containerStyle: ViewStyle;
+  textStyle: TextStyle;
+};
+
+export function useButtonStyle(props: UseButtonStyleProps): ButtonStyles {
+  const theme = useTheme();
+
+  const variant = props.variant ?? "primary";
+  const inverted = "inverted" in props ? props.inverted : false;
+  const disabled = props.disabled;
+
+  return useMemo(() => {
+    // Map legacy variants to new ones
+    const resolvedVariant =
+      (LEGACY_VARIANT_MAP as Record<string, ButtonVariant>)[variant] ??
+      (variant as ButtonVariant);
+
+    // Ghost cannot be inverted (enforced by types, but double-check at runtime)
+    const isInverted = inverted && resolvedVariant !== "ghost";
+
+    let backgroundColor: string;
+    let highlightColor: string;
+    let textColor: string;
+
+    switch (resolvedVariant) {
       case "primary":
-        background = primary;
+        highlightColor = theme.semantic.primary;
+        backgroundColor = theme.semantic.primary;
+        textColor = theme.text.inverse;
         break;
       case "secondary":
-        background = secondary;
+        highlightColor = theme.text.primary;
+        backgroundColor = theme.surface.secondary;
+        textColor = theme.text.primary;
+        break;
+      case "tertiary":
+        highlightColor = theme.text.secondary;
+        backgroundColor = theme.surface.tertiary;
+        textColor = theme.text.secondary;
         break;
       case "destructive":
-        background = destructive;
+        highlightColor = theme.semantic.destructive;
+        backgroundColor = theme.semantic.destructive;
+        textColor = theme.text.inverse;
         break;
-      case "primaryTranslucent":
-        background = `${primary}26`; // 15% opacity (26 in hex = ~15%)
+      case "ghost":
+        highlightColor = theme.text.primary;
+        backgroundColor = "transparent";
+        textColor = theme.text.primary;
         break;
-      case "secondaryTranslucent":
-        background = `${secondary}26`; // 15% opacity
-        break;
-      case "destructiveTranslucent":
-        background = `${destructive}26`; // 15% opacity
-        break;
-      case "transparent":
-        background = "transparent";
-        break;
-      case "muted":
       default:
-        background = muted;
-        break;
+        highlightColor = theme.semantic.primary;
+        backgroundColor = theme.semantic.primary;
+        textColor = theme.text.inverse;
     }
 
-    const base = StyleSheet.flatten(
-      StyleSheet.compose({ backgroundColor: background }, composedStyle),
-    );
+    const containerStyle: ViewStyle = isInverted
+      ? {
+          backgroundColor: "transparent",
+          borderWidth: 1,
+          borderColor: highlightColor,
+          opacity: disabled ? 0.5 : 1,
+        }
+      : {
+          backgroundColor,
+          opacity: disabled ? 0.5 : 1,
+        };
 
-    const finalBase = { ...base };
-
-    // If a button is visually "transparent", give disabled state a visible surface.
-    if (disabled && finalBase.backgroundColor === "transparent") {
-      finalBase.backgroundColor = muted;
-    }
-
-    // Make disabled/pressed feedback consistent while allowing callers to
-    // override `opacity` if they explicitly set it.
-    if (disabled && finalBase.opacity === undefined) {
-      finalBase.opacity = 0.72;
-    }
-
-    return finalBase;
-  }, [
-    composedStyle,
-    destructive,
-    disabled,
-    muted,
-    primary,
-    secondary,
-    variant,
-  ]);
-
-  const innerStyle = useMemo(() => {
-    let color: ColorValue = "";
-    const effectiveVariant: ButtonVariant | undefined = variant;
-
-    switch (effectiveVariant) {
-      case "primary":
-        color = fgPrimary;
-        break;
-      case "secondary":
-        color = fgSecondary;
-        break;
-      case "destructive":
-        color = fgDestructive;
-        break;
-      case "primaryTranslucent":
-        color = primary; // Foreground is the solid primary color
-        break;
-      case "secondaryTranslucent":
-        color = secondary; // Foreground is the solid secondary color
-        break;
-      case "destructiveTranslucent":
-        color = destructive; // Foreground is the solid destructive color
-        break;
-      case "transparent":
-        color = fg;
-        break;
-      case "muted":
-      default:
-        color = fgMuted;
-        break;
-    }
-
-    if (composedStyle && "color" in composedStyle && composedStyle.color) {
-      color = composedStyle.color;
-    }
-
-    const textAlign =
-      composedStyle && "textAlign" in composedStyle
-        ? composedStyle.textAlign
-        : "center";
-
-    return {
-      color,
-      textAlign,
+    const textStyle: TextStyle = {
+      color: isInverted ? highlightColor : textColor,
     };
-  }, [
-    composedStyle,
-    destructive,
-    fgDestructive,
-    fg,
-    fgMuted,
-    fgPrimary,
-    fgSecondary,
-    primary,
-    secondary,
-    variant,
-  ]);
 
-  return { innerStyle, outerStyle };
+    return { containerStyle, textStyle };
+  }, [variant, inverted, disabled, theme]);
 }
+
+// Legacy export for backward compatibility
+export { useButtonStyle as default };
