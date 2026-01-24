@@ -19,7 +19,7 @@ export type LogToMealControlsProps = {
   canConfirm: boolean;
   // Intentionally loose: `zodResolver` allows string inputs for numeric fields,
   // and strict typing here tends to fight RHF + Zod inference.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   control: Control<any>;
   onCancel: () => void;
   onConfirm: () => void;

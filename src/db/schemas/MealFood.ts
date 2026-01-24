@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { NullableTimestampMsSchema, SqliteIdSchema, TimestampMsSchema } from "./common";
+import {
+  NullableTimestampMsSchema,
+  SqliteIdSchema,
+  TimestampMsSchema,
+} from "./common";
 
 // Matches `meal_foods` table row shape (see `migrations/initial_schema.sql`)
 export const MealFoodSchema = z.object({
@@ -13,5 +17,3 @@ export const MealFoodSchema = z.object({
 });
 
 export type MealFood = z.infer<typeof MealFoodSchema>;
-
-

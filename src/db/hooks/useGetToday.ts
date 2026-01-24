@@ -49,4 +49,3 @@ export function useGetToday(): UseGetTodayResult {
 
   return { macros, meals, loading };
 }
-

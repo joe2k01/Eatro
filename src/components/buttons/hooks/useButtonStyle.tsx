@@ -143,7 +143,6 @@ export function useButtonStyle({
     };
   }, [
     composedStyle,
-    disabled,
     destructive,
     fgDestructive,
     fg,

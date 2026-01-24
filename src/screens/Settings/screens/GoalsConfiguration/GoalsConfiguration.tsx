@@ -17,7 +17,6 @@ import { DonutChart, useDonut } from "@components/charts";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormInput } from "@components/forms";
-import { KeyboardView } from "@components/layout/KeyboardView";
 import { SnackbarVariant, useSnackbar } from "@components/feedback";
 import { useNavigation } from "@react-navigation/native";
 import { SettingsStackParamsList } from "@screens/Settings/routes";
@@ -156,85 +155,83 @@ export function GoalsConfiguration() {
     macroCalories.total > caloriesNumber || !caloriesNumber;
 
   return (
-    <KeyboardView>
-      <SafeVStack paddingHorizontal={2}>
-        <VStack paddingBlock={2} gap={2}>
-          <VStack gap={1}>
-            <Title1>Calorie Goal</Title1>
-            <TextCaption>Set your daily target for calorie intake.</TextCaption>
-          </VStack>
+    <SafeVStack paddingHorizontal={2}>
+      <VStack paddingBlock={2} gap={2}>
+        <VStack gap={1}>
+          <Title1>Calorie Goal</Title1>
+          <TextCaption>Set your daily target for calorie intake.</TextCaption>
+        </VStack>
+
+        <FormInput
+          control={control}
+          name="calories"
+          label="Calories"
+          placeholder="2000"
+          keyboardType="number-pad"
+          unit="kcal"
+          onBlur={onCaloriesBlur}
+        />
+
+        <VStack alignItems="center" gap={1}>
+          <DonutChart
+            strokeWidth={18}
+            total={caloriesNumber}
+            donutData={donut}
+            width={"75%"}
+          />
+
+          <TextCaption color={invalidCalories ? "destructive" : "fg"}>
+            Macros: {macroCalories.total} kcal{" "}
+            {caloriesNumber > 0 ? `(target ${caloriesNumber} kcal)` : ""}
+          </TextCaption>
+        </VStack>
+
+        <VStack gap={1}>
+          <Title1>Macronutrient Goals (grams)</Title1>
+          <TextCaption>Set daily macro targets in grams.</TextCaption>
+        </VStack>
+
+        <HStack gap={1}>
+          <FormInput
+            control={control}
+            name="protein"
+            label="Protein"
+            placeholder="0"
+            keyboardType="number-pad"
+            unit="g"
+            inputStyle={styles.input}
+          />
 
           <FormInput
             control={control}
-            name="calories"
-            label="Calories"
-            placeholder="2000"
+            name="carbs"
+            label="Carbs"
+            placeholder="0"
             keyboardType="number-pad"
-            unit="kcal"
-            onBlur={onCaloriesBlur}
+            unit="g"
+            inputStyle={styles.input}
           />
 
-          <VStack alignItems="center" gap={1}>
-            <DonutChart
-              strokeWidth={18}
-              total={caloriesNumber}
-              donutData={donut}
-              width={"75%"}
-            />
+          <FormInput
+            control={control}
+            name="fat"
+            label="Fat"
+            placeholder="0"
+            keyboardType="number-pad"
+            unit="g"
+            inputStyle={styles.input}
+          />
+        </HStack>
 
-            <TextCaption color={invalidCalories ? "destructive" : "fg"}>
-              Macros: {macroCalories.total} kcal{" "}
-              {caloriesNumber > 0 ? `(target ${caloriesNumber} kcal)` : ""}
-            </TextCaption>
-          </VStack>
-
-          <VStack gap={1}>
-            <Title1>Macronutrient Goals (grams)</Title1>
-            <TextCaption>Set daily macro targets in grams.</TextCaption>
-          </VStack>
-
-          <HStack gap={1}>
-            <FormInput
-              control={control}
-              name="protein"
-              label="Protein"
-              placeholder="0"
-              keyboardType="number-pad"
-              unit="g"
-              inputStyle={styles.input}
-            />
-
-            <FormInput
-              control={control}
-              name="carbs"
-              label="Carbs"
-              placeholder="0"
-              keyboardType="number-pad"
-              unit="g"
-              inputStyle={styles.input}
-            />
-
-            <FormInput
-              control={control}
-              name="fat"
-              label="Fat"
-              placeholder="0"
-              keyboardType="number-pad"
-              unit="g"
-              inputStyle={styles.input}
-            />
-          </HStack>
-
-          <Box paddingTop={1}>
-            <Button
-              onPress={handleSubmit(onSave)}
-              disabled={invalidCalories || isSubmitting}
-            >
-              Save goals
-            </Button>
-          </Box>
-        </VStack>
-      </SafeVStack>
-    </KeyboardView>
+        <Box paddingTop={1}>
+          <Button
+            onPress={handleSubmit(onSave)}
+            disabled={invalidCalories || isSubmitting}
+          >
+            Save goals
+          </Button>
+        </Box>
+      </VStack>
+    </SafeVStack>
   );
 }

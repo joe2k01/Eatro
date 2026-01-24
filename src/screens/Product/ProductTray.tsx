@@ -11,7 +11,7 @@ import { VStack } from "@components/layout/VStack";
 import { HStack } from "@components/layout/HStack";
 import { Headline, TextBody, TextCaption } from "@components/typography/Text";
 import { Button } from "@components/buttons/Button";
-import { FormInput } from "@components/forms";
+import { FormInput, Picker } from "@components/forms";
 import type { GetProductDetails } from "@api/validators/getProductDetails";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,9 +19,10 @@ import { StyleSheet } from "react-native";
 import { nonNegativeNumber } from "@constants/storage/validators/numberParsers";
 import { safeParseOrDefault } from "@constants/storage/validators/safeParseOrDefault";
 import { FoodSource, MealType } from "@db/schemas";
-import { LogToMealControls } from "./components/LogToMealControls";
-import { utcStartOfTodaySeconds } from "@db/utils/utc";
+import { utcStartOfTodaySeconds, addUtcDaysSeconds } from "@db/utils/utc";
 import { useRepositories } from "@db/context/DatabaseProvider";
+import { IconButton } from "@components/buttons/IconButton";
+import { PopupButtonOption } from "../../../modules/popup-button";
 
 type NutrimentsUnit = keyof GetProductDetails["nutriments"];
 
@@ -55,6 +56,7 @@ export type ProductTrayProps = {
   selectedUnit?: NutrimentsUnit;
   servingSize?: number;
   servingsUnit?: string;
+  hideLogControls?: boolean;
 };
 
 const productTrayFormSchema = z.object({
@@ -92,6 +94,14 @@ function computePerServingFromNutriments(
   };
 }
 
+const mealOptions: PopupButtonOption<MealType>[] = [
+  { label: "Breakfast", value: MealType.Breakfast },
+  { label: "Lunch", value: MealType.Lunch },
+  { label: "Dinner", value: MealType.Dinner },
+  { label: "Snack", value: MealType.Snack },
+  { label: "Custom", value: MealType.Custom },
+];
+
 export function ProductTray({
   trayRef,
   barcode,
@@ -101,17 +111,22 @@ export function ProductTray({
   selectedUnit,
   servingSize,
   servingsUnit,
+  hideLogControls = false,
 }: ProductTrayProps) {
   const [saving, setSaving] = useState(false);
-  const [showLogControls, setShowLogControls] = useState(false);
 
   const [dayUtcSeconds, setDayUtcSeconds] = useState(() =>
     utcStartOfTodaySeconds(),
   );
-  const [mealType, setMealType] = useState<MealType>(MealType.Snack);
+  const [mealType, setMealType] = useState<
+    (typeof mealOptions)[number] | undefined
+  >(undefined);
 
-  const { food: foodRepo, meal: mealRepo, mealFood: mealFoodRepo } =
-    useRepositories();
+  const {
+    food: foodRepo,
+    meal: mealRepo,
+    mealFood: mealFoodRepo,
+  } = useRepositories();
 
   const defaultServingSize = useMemo(() => {
     if (selectedUnit === "per100g") return 100;
@@ -204,23 +219,22 @@ export function ProductTray({
 
   const canConfirm = servingsValue > 0 && servingSizeValue > 0 && !saving;
 
-  const onOpenLogControls = useCallback(() => {
-    if (saving) return;
-    setShowLogControls(true);
-  }, [saving]);
-
-  const onCancelLog = useCallback(() => {
-    if (saving) return;
-    setShowLogControls(false);
-  }, [saving]);
-
   const customMealType = watch("customMealType") ?? "";
+
+  const dayLabel = useMemo(() => {
+    return new Intl.DateTimeFormat(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      timeZone: "UTC",
+    }).format(new Date(dayUtcSeconds * 1000));
+  }, [dayUtcSeconds]);
 
   const onConfirmLog = useCallback(async () => {
     if (!canConfirm) return;
     if (saving) return;
 
-    if (mealType === MealType.Custom && !customMealType?.trim()) {
+    if (mealType?.value === MealType.Custom && !customMealType?.trim()) {
       // Keep it simple: we just block until they provide a name.
       // (Could also show inline error via RHF if desired.)
       return;
@@ -258,7 +272,7 @@ export function ProductTray({
 
       // 2) Upsert meal + insert meal_foods + increment totals (single tx).
       const normalizedCustomType =
-        mealType === MealType.Custom ? customMealType.trim() : null;
+        mealType?.value === MealType.Custom ? customMealType.trim() : null;
 
       const delta = {
         energy: perServing.energy * servingsValue,
@@ -270,7 +284,7 @@ export function ProductTray({
       const mealId = await mealRepo.upsertMealAndLogFoodTx(
         {
           dayUtcSeconds,
-          type: mealType,
+          type: mealType?.value ?? MealType.Snack,
           customType: normalizedCustomType,
           foodId,
           quantityServings: servingsValue,
@@ -369,30 +383,66 @@ export function ProductTray({
           />
         </HStack>
 
-        {showLogControls ? (
-          <LogToMealControls
-            dayUtcSeconds={dayUtcSeconds}
-            setDayUtcSeconds={setDayUtcSeconds}
-            mealType={mealType}
-            setMealType={setMealType}
-            saving={saving}
-            canConfirm={
-              canConfirm &&
-              (mealType !== MealType.Custom || !!customMealType.trim())
-            }
-            control={control}
-            onCancel={onCancelLog}
-            onConfirm={onConfirmLog}
-          />
-        ) : (
-          <Button
-            variant="primary"
-            onPress={onOpenLogControls}
-            disabled={saving}
-          >
-            Add to meal
-          </Button>
-        )}
+        {!hideLogControls ? (
+          <VStack gap={2} backgroundColor="transparent">
+            <HStack
+              backgroundColor="transparent"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <TextBody>Day</TextBody>
+              <HStack backgroundColor="transparent" alignItems="center" gap={1}>
+                <IconButton
+                  name="chevron-left"
+                  variant="muted"
+                  onPress={() =>
+                    setDayUtcSeconds((d) => addUtcDaysSeconds(d, -1))
+                  }
+                  disabled={saving}
+                />
+                <TextBody>{dayLabel}</TextBody>
+                <IconButton
+                  name="chevron-right"
+                  variant="muted"
+                  onPress={() =>
+                    setDayUtcSeconds((d) => addUtcDaysSeconds(d, 1))
+                  }
+                  disabled={saving}
+                />
+              </HStack>
+            </HStack>
+
+            <HStack
+              backgroundColor="transparent"
+              gap={3}
+              alignItems="center"
+              justifyContent="space-between"
+            >
+              <TextBody>Meal</TextBody>
+              <Picker options={mealOptions} onOptionSelect={setMealType} />
+            </HStack>
+
+            {mealType?.value === MealType.Custom ? (
+              <FormInput
+                control={control}
+                name={"customMealType" as any}
+                placeholder="e.g. Post-workout"
+                inTray
+              />
+            ) : null}
+
+            <Button
+              variant="primary"
+              onPress={onConfirmLog}
+              disabled={
+                !canConfirm ||
+                (mealType?.value === MealType.Custom && !customMealType.trim())
+              }
+            >
+              Confirm
+            </Button>
+          </VStack>
+        ) : null}
       </VStack>
     </Tray>
   );
