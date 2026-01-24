@@ -1,58 +1,112 @@
-import { StyledViewProps } from "@constants/theme";
+import { Typography } from "@constants/theme";
 import { useTheme } from "@contexts/ThemeProvider";
-import { useComposedStyle } from "@hooks/useComposedStyle";
 import { useMemo } from "react";
 import {
   Text as NativeText,
   StyleSheet,
   TextStyle,
-  type TextProps as NativeTextProps,
+  TextProps as NativeTextProps,
+  StyleProp,
 } from "react-native";
 
-type TextProps = StyledViewProps<NativeTextProps & TextStyle>;
+// TextStyle property keys for separation
+const TEXT_STYLE_KEYS = new Set([
+  "color",
+  "fontFamily",
+  "fontSize",
+  "fontStyle",
+  "fontWeight",
+  "letterSpacing",
+  "lineHeight",
+  "textAlign",
+  "textDecorationLine",
+  "textDecorationStyle",
+  "textDecorationColor",
+  "textShadowColor",
+  "textShadowOffset",
+  "textShadowRadius",
+  "textTransform",
+  "fontVariant",
+  "writingDirection",
+  "includeFontPadding",
+  "textAlignVertical",
+]);
 
-function Text({ children, ...props }: TextProps) {
-  const { fg } = useTheme();
+export type TextProps = NativeTextProps &
+  TextStyle & {
+    style?: StyleProp<TextStyle>;
+  };
 
-  const colourStyle = useMemo(
-    () => StyleSheet.create({ colour: { color: fg } }),
-    [fg],
-  );
+type TypographyVariant = keyof typeof Typography;
 
-  const composedStyle = useComposedStyle<TextStyle>({
-    base: colourStyle.colour,
-    props,
-  });
+/**
+ * Base Text component with theme-aware default color.
+ * Accepts all standard TextProps plus inline TextStyle props.
+ */
+export function Text({ children, style, ...props }: TextProps) {
+  const theme = useTheme();
+
+  const composedStyle = useMemo(() => {
+    // Extract TextStyle props from props
+    const styleFromProps: TextStyle = {};
+    const textProps: NativeTextProps = {};
+
+    Object.entries(props).forEach(([key, value]) => {
+      if (TEXT_STYLE_KEYS.has(key)) {
+        (styleFromProps as Record<string, unknown>)[key] = value;
+      } else {
+        (textProps as Record<string, unknown>)[key] = value;
+      }
+    });
+
+    return {
+      textProps,
+      style: StyleSheet.flatten([
+        { color: theme.text.primary },
+        styleFromProps,
+        style,
+      ]),
+    };
+  }, [props, style, theme.text.primary]);
 
   return (
-    <NativeText {...props} style={composedStyle}>
+    <NativeText {...composedStyle.textProps} style={composedStyle.style}>
       {children}
     </NativeText>
   );
 }
 
-const textVariants = [
-  { label: "Massive", textProps: { fontSize: 32, fontWeight: "bold" } },
-  { label: "Headline", textProps: { fontSize: 26, fontWeight: "bold" } },
-  {
-    label: "Title1",
-    textProps: { fontSize: 22 },
-  },
-  { label: "TextBody", textProps: { fontSize: 16 } },
-  { label: "TextCaption", textProps: { fontSize: 12 } },
-] as const;
+/**
+ * Creates a typography variant component with preset styles.
+ */
+function createVariant(variant: TypographyVariant) {
+  const variantStyle = Typography[variant];
 
-export const { Massive, TextBody, Headline, Title1, TextCaption } =
-  textVariants.reduce(
-    (acc, { label, textProps }) => {
-      acc[label] = function ({ children, ...props }: TextProps) {
-        return (
-          <Text {...props} {...textProps}>
-            {children}
-          </Text>
-        );
-      };
-      return acc;
-    },
-    {} as Record<(typeof textVariants)[number]["label"], typeof Text>,
-  );
+  return function TypographyComponent({ children, style, ...props }: TextProps) {
+    const mergedStyle = useMemo(
+      () => StyleSheet.flatten([variantStyle, style]),
+      [style],
+    );
+
+    return (
+      <Text {...props} style={mergedStyle}>
+        {children}
+      </Text>
+    );
+  };
+}
+
+// Typography variant components
+export const Display = createVariant("display");
+export const Heading = createVariant("heading");
+export const Title = createVariant("title");
+export const Body = createVariant("body");
+export const Caption = createVariant("caption");
+export const Label = createVariant("label");
+
+// Legacy aliases for backward compatibility
+export const Massive = Display;
+export const Headline = Heading;
+export const Title1 = Title;
+export const TextBody = Body;
+export const TextCaption = Caption;
