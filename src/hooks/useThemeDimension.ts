@@ -1,10 +1,29 @@
-import { Dimension, DimensionSize } from "@constants/theme";
+import { Spacing, SpacingKey, Dimension, DimensionSize } from "@constants/theme";
 import { useMemo } from "react";
 
-export function intoThemeDimension(input: Dimension) {
-  return input * DimensionSize;
+/**
+ * Simplified dimension system
+ * Maps spacing keys to pixel values
+ */
+export function intoThemeDimension(key: SpacingKey | Dimension): number {
+  if (typeof key === "number") {
+    // Legacy Dimension support
+    return key * DimensionSize;
+  }
+  // New SpacingKey support
+  return Spacing[key];
 }
 
-export function useThemeDimension(input: Dimension) {
-  return useMemo(() => input * DimensionSize, [input]);
+/**
+ * Hook version for reactive spacing values
+ */
+export function useThemeDimension(key: SpacingKey | Dimension): number {
+  return useMemo(() => {
+    if (typeof key === "number") {
+      // Legacy Dimension support
+      return key * DimensionSize;
+    }
+    // New SpacingKey support
+    return Spacing[key];
+  }, [key]);
 }
