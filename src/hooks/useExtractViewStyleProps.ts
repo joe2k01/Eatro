@@ -1,12 +1,12 @@
 import type { StyleProp } from "react-native";
-import { useEffect, useRef, useState } from "react";
-import * as Sentry from "@sentry/react-native";
+import { ViewStyle, TextStyle, ImageStyle } from "react-native";
 import { Style } from "@constants/theme";
+import { useMemo } from "react";
 
-// A runtime list of valid `ViewStyle` keys (RN 0.81.x), used to prevent
-// style-like props from being forwarded to native components as unknown props.
-//
-// Source: `react-native/Libraries/StyleSheet/StyleSheetTypes.d.ts`
+type StyleType = ViewStyle | TextStyle | ImageStyle;
+
+// Runtime list of valid ViewStyle keys to prevent style-like props
+// from being forwarded to native components as unknown props
 const VIEW_STYLE_KEYS = new Set<string>([
   // FlexStyle
   "alignContent",
@@ -85,13 +85,11 @@ const VIEW_STYLE_KEYS = new Set<string>([
   "paddingInline",
   "paddingInlineEnd",
   "paddingInlineStart",
-
   // ShadowStyleIOS
   "shadowColor",
   "shadowOffset",
   "shadowOpacity",
   "shadowRadius",
-
   // TransformsStyle
   "transform",
   "transformOrigin",
@@ -101,7 +99,6 @@ const VIEW_STYLE_KEYS = new Set<string>([
   "scaleY",
   "translateX",
   "translateY",
-
   // ViewStyle
   "backfaceVisibility",
   "backgroundColor",
@@ -143,111 +140,36 @@ const VIEW_STYLE_KEYS = new Set<string>([
   "filter",
   "mixBlendMode",
   "experimental_backgroundImage",
-
-  // `StyledViewProps` also allows `color` tokens for Text/Image usage; ensure those
-  // never get forwarded to native as unknown props.
+  // Text/Image color
   "color",
 ]);
 
-function computeProps<T extends Record<string, unknown>>(
-  current: T,
-  discovered: Partial<T>,
-  missingKeys: Set<string>,
-): T {
-  // We only mutate the objects if values differ or keys have been removed
-  if (!missingKeys.size && !Object.keys(discovered).length) {
-    return current;
-  }
-
-  return Object.fromEntries(
-    Object.entries({
-      ...current,
-      ...discovered,
-    }).filter(([key]) => !missingKeys.has(key)),
-  ) as T;
-}
-
+/**
+ * Simplified prop extraction hook
+ * Separates style props from passthrough props
+ * Memoized for performance
+ */
 export function useExtractViewStyleProps<T extends Record<string, unknown>>(
   props: T,
 ): {
   passthroughProps: Omit<T, "style">;
   styleProps: Style & { style?: StyleProp<Style> };
 } {
-  const [styleProps, setStyleProps] = useState<Record<string, unknown>>({});
-  const [passthroughProps, setPassthroughProps] = useState<Omit<T, "style">>(
-    {} as Omit<T, "style">,
-  );
-
-  const styleRef = useRef<Record<string, unknown>>(styleProps);
-  const passthroughRef = useRef<Omit<T, "style">>(passthroughProps);
-
-  useEffect(() => {
-    const start = Date.now();
-
-    const newStyleProps: Record<string, unknown> = {};
-    const newPassthroughProps: Partial<Omit<T, "style">> = {};
-
-    const missingStyleKeys = new Set<string>(Object.keys(styleRef.current));
-    const missingPassthroughKeys = new Set<string>(
-      Object.keys(passthroughRef.current),
-    );
+  return useMemo(() => {
+    const styleProps: Record<string, unknown> = {};
+    const passthroughProps: Partial<Omit<T, "style">> = {};
 
     Object.entries(props).forEach(([key, value]) => {
-      const isStyle = VIEW_STYLE_KEYS.has(key) || key === "style";
-      const reference = isStyle ? styleRef.current : passthroughRef.current;
-      const referenceTracker = isStyle
-        ? missingStyleKeys
-        : missingPassthroughKeys;
-
-      const target = isStyle ? newStyleProps : newPassthroughProps;
-
-      let shouldInsert = !(key in reference);
-
-      if (key in reference) {
-        const isObject = typeof reference[key] === "object";
-        const isSameObject = isObject && Object.is(reference[key], value);
-
-        shouldInsert = !isSameObject && reference[key] !== value;
+      if (key === "style" || VIEW_STYLE_KEYS.has(key)) {
+        styleProps[key] = value;
+      } else {
+        passthroughProps[key] = value;
       }
-
-      if (shouldInsert) {
-        target[key] = value;
-      }
-
-      referenceTracker.delete(key);
     });
 
-    const prevStyle = styleRef.current;
-    styleRef.current = computeProps(
-      styleRef.current,
-      newStyleProps,
-      missingStyleKeys,
-    );
-
-    const prevPassthrough = passthroughRef.current;
-    passthroughRef.current = computeProps(
-      passthroughRef.current,
-      newPassthroughProps,
-      missingPassthroughKeys,
-    );
-
-    const end = Date.now();
-
-    setStyleProps(styleRef.current);
-    setPassthroughProps(passthroughRef.current);
-
-    if (end - start > 100) {
-      Sentry.captureMessage("useExtractViewStyleProps: Slow render", {
-        extra: {
-          props,
-          previousStyle: prevStyle,
-          previousPassthrough: prevPassthrough,
-          newStyle: newStyleProps,
-          newPassthrough: newPassthroughProps,
-        },
-      });
-    }
+    return {
+      passthroughProps: passthroughProps as Omit<T, "style">,
+      styleProps: styleProps as Style & { style?: StyleProp<Style> },
+    };
   }, [props]);
-
-  return { styleProps, passthroughProps };
 }

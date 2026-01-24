@@ -1,80 +1,41 @@
-import {
-  DimensionGapProps,
-  DimensionPaddingProps,
-  ColourPropsConcrete,
-  GapPropsConcrete,
-  PaddingPropsConcrete,
-  Style,
-  ThemeColourProps,
-  ThemeVariant,
-  ViewGapStyle,
-  ViewPaddingStyle,
-} from "@constants/theme";
-import { useMemo } from "react";
-import { StyleProp, StyleSheet } from "react-native";
-import { intoThemeDimension } from "./useThemeDimension";
 import { useTheme } from "@contexts/ThemeProvider";
+import { mapLegacyColor, type LegacyColorName, type Style } from "@constants/theme";
+import { useMemo } from "react";
+import { StyleProp, StyleSheet, TextStyle, ViewStyle, ImageStyle } from "react-native";
 
 type UseComposedStyleProps<S extends Style> = {
   base?: S;
   props: S & { style?: StyleProp<S> };
 };
 
-function handlePadding<S extends Style>(props: S): S {
-  const toReplace = PaddingPropsConcrete.filter((p) => p in props);
+// Color props that can accept theme tokens
+const COLOR_PROPS = ["color", "backgroundColor", "borderColor"] as const;
 
-  let convertedProps: ViewPaddingStyle | undefined;
-  if (toReplace.length) {
-    // This is type safe since toReplace has lenght, so all keys in array exist.
-    const accessibleProps = props as Required<DimensionPaddingProps>;
+// Legacy color names that can be resolved to theme values
+const LEGACY_COLORS = new Set<LegacyColorName>([
+  "bg",
+  "fg",
+  "card",
+  "fgCard",
+  "popover",
+  "fgPopover",
+  "primary",
+  "fgPrimary",
+  "secondary",
+  "fgSecondary",
+  "accent",
+  "fgAccent",
+  "muted",
+  "fgMuted",
+  "destructive",
+  "fgDestructive",
+]);
 
-    convertedProps = toReplace.reduce((acc, p) => {
-      acc[p] = intoThemeDimension(accessibleProps[p]);
-      return acc;
-    }, {} as ViewPaddingStyle);
-  }
-
-  return convertedProps ? { ...props, ...convertedProps } : props;
-}
-
-function handleGap<S extends Style>(props: S): S {
-  const toReplace = GapPropsConcrete.filter((p) => p in props);
-
-  let convertedProps: ViewGapStyle | undefined;
-  if (toReplace.length) {
-    const accessibleProps = props as Required<DimensionGapProps>;
-    convertedProps = toReplace.reduce((acc, p) => {
-      acc[p] = intoThemeDimension(accessibleProps[p]);
-      return acc;
-    }, {} as ViewGapStyle);
-  }
-
-  return convertedProps ? { ...props, ...convertedProps } : props;
-}
-
-function handleColour<S extends Style>(props: S, theme: ThemeVariant): S {
-  const toReplace = ColourPropsConcrete.filter((p) => p in props);
-
-  if (!toReplace.length) {
-    return props;
-  }
-
-  const accessibleProps = props as Required<ThemeColourProps>;
-
-  const converted = toReplace.reduce(
-    (acc, p) => {
-      const v = accessibleProps[p];
-      if (typeof v === "string" && v in theme) {
-        acc[p] = theme[v as keyof ThemeVariant];
-      }
-      return acc;
-    },
-    {} as Record<string, unknown>,
-  );
-
-  return { ...props, ...converted } as S;
-}
-
+/**
+ * Simplified style composition hook
+ * Only handles theme token resolution for color props
+ * Removed complex padding/gap/color type manipulation
+ */
 export function useComposedStyle<S extends Style>({
   base,
   props,
@@ -82,13 +43,41 @@ export function useComposedStyle<S extends Style>({
   const theme = useTheme();
 
   return useMemo(() => {
-    const paddedProps = handlePadding(props);
-    const gapProps = handleGap(paddedProps);
-    const colouredProps = handleColour(gapProps, theme);
+    // Resolve theme color tokens in props
+    const resolvedProps = resolveThemeColors(props, theme);
 
-    const colouredBase = handleColour(base ?? ({} as S), theme);
+    // Resolve theme color tokens in base
+    const resolvedBase = base ? resolveThemeColors(base, theme) : ({} as S);
 
-    const propsStyle = StyleSheet.compose<S, S, S>(colouredBase, colouredProps);
+    // Compose styles
+    const propsStyle = StyleSheet.compose<S, S, S>(resolvedBase, resolvedProps);
     return StyleSheet.flatten(StyleSheet.compose(propsStyle, props.style));
   }, [base, props, theme]) as S;
+}
+
+/**
+ * Resolves theme color tokens in style objects
+ * Supports legacy color names for backward compatibility
+ */
+function resolveThemeColors<S extends Style>(
+  style: S,
+  theme: ReturnType<typeof useTheme>,
+): S {
+  const resolved = { ...style };
+
+  for (const prop of COLOR_PROPS) {
+    if (prop in style && typeof style[prop] === "string") {
+      const value = style[prop] as string;
+      // Check if it's a legacy color name
+      if (LEGACY_COLORS.has(value as LegacyColorName)) {
+        resolved[prop] = mapLegacyColor(
+          theme,
+          value as LegacyColorName,
+        ) as S[keyof S];
+      }
+      // If it's not a theme token, keep the original value (e.g., "#fff", "transparent")
+    }
+  }
+
+  return resolved;
 }
