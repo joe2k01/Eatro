@@ -9,33 +9,132 @@ export const IconSizes = {
 
 export type IconSize = keyof typeof IconSizes;
 
+// Simplified spacing system (8px base unit)
+export const Spacing = {
+  0: 0,
+  0.25: 2,
+  0.5: 4,
+  0.75: 6,
+  1: 8,
+  1.5: 12,
+  2: 16,
+  3: 24,
+  4: 32,
+} as const;
+
+export type SpacingKey = keyof typeof Spacing;
+
+// Border radius tokens
+export const BorderRadius = {
+  sm: 4,
+  md: 8,
+  lg: 12,
+  xl: 16,
+  full: 9999,
+} as const;
+
+export type BorderRadiusKey = keyof typeof BorderRadius;
+
+// Typography scale
+export const Typography = {
+  display: {
+    fontSize: 32,
+    fontWeight: "700" as const,
+    lineHeight: 40,
+  },
+  heading: {
+    fontSize: 26,
+    fontWeight: "700" as const,
+    lineHeight: 32,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "600" as const,
+    lineHeight: 28,
+  },
+  body: {
+    fontSize: 16,
+    fontWeight: "400" as const,
+    lineHeight: 24,
+  },
+  caption: {
+    fontSize: 12,
+    fontWeight: "400" as const,
+    lineHeight: 16,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: "500" as const,
+    lineHeight: 20,
+  },
+} as const;
+
+// Legacy dimension system (kept for backward compatibility during migration)
 export type Dimension = 0 | 0.25 | 0.5 | 0.75 | 1 | 1.5 | 2 | 3 | 4;
 export const DimensionSize = 8;
 
-type ColourTypes =
-  | "primary"
-  | "secondary"
-  | "accent"
-  | "bg"
-  | "fg"
-  | "card"
-  | "popover"
-  | "muted"
-  | "destructive";
-
-export type ThemeVariant = {
-  [K in ColourTypes]: string;
-} & {
-  [FG in Exclude<ColourTypes, "bg" | "fg"> as `fg${Capitalize<FG>}`]: string;
+// Semantic color tokens structure
+export type ColorTokens = {
+  // Surface colors (backgrounds)
+  surface: {
+    primary: string;
+    secondary: string;
+    tertiary: string;
+  };
+  // Text colors
+  text: {
+    primary: string;
+    secondary: string;
+    muted: string;
+    inverse: string;
+  };
+  // Border colors
+  border: {
+    default: string;
+    muted: string;
+  };
+  // Semantic colors (actions, states)
+  semantic: {
+    primary: string;
+    primaryForeground: string;
+    secondary: string;
+    secondaryForeground: string;
+    destructive: string;
+    destructiveForeground: string;
+    success: string;
+    successForeground: string;
+    accent: string;
+    accentForeground: string;
+  };
 };
 
-export type AllColours = keyof ThemeVariant;
+// Legacy ThemeVariant type (kept for backward compatibility)
+// Maps old color names to new semantic structure
+export type ThemeVariant = {
+  bg: string;
+  fg: string;
+  card: string;
+  fgCard: string;
+  popover: string;
+  fgPopover: string;
+  primary: string;
+  fgPrimary: string;
+  secondary: string;
+  fgSecondary: string;
+  accent: string;
+  fgAccent: string;
+  muted: string;
+  fgMuted: string;
+  destructive: string;
+  fgDestructive: string;
+};
 
 export type Theme = {
   light: ThemeVariant;
   dark: ThemeVariant;
 };
 
+// Theme definition with legacy structure (for backward compatibility)
 export const EatroTheme: Theme = {
   light: {
     bg: "#FBF8F2",
@@ -50,7 +149,7 @@ export const EatroTheme: Theme = {
     // Food / warmth (good for CTAs, highlights)
     secondary: "#F2B84B",
     fgSecondary: "#141412",
-    // Individual ownership (badges, chips, “my contributions”)
+    // Individual ownership (badges, chips, "my contributions")
     accent: "#C56A3D",
     fgAccent: "#FFF7F0",
     // `muted` is intended to be a *surface/background* colour.
@@ -60,7 +159,6 @@ export const EatroTheme: Theme = {
     destructive: "#D64545",
     fgDestructive: "#FFFFFF",
   },
-
   dark: {
     bg: "#0F1411",
     fg: "#F6F3ED",
@@ -81,60 +179,36 @@ export const EatroTheme: Theme = {
   },
 };
 
-export type PaddingProps = Extract<keyof ViewStyle, `padding${string}`>;
-export type DimensionPaddingProps = { [K in PaddingProps]?: Dimension };
-export type ViewPaddingStyle = Pick<ViewStyle, PaddingProps>;
-export type PaddedViewProps<P> = P extends ViewPaddingStyle
-  ? Omit<P, PaddingProps> & DimensionPaddingProps
-  : P;
-export const PaddingPropsConcrete: PaddingProps[] = [
-  "padding",
-  "paddingBlock",
-  "paddingBlockEnd",
-  "paddingBlockStart",
-  "paddingBottom",
-  "paddingEnd",
-  "paddingHorizontal",
-  "paddingInline",
-  "paddingInlineEnd",
-  "paddingInlineStart",
-  "paddingLeft",
-  "paddingRight",
-  "paddingStart",
-  "paddingTop",
-  "paddingVertical",
-];
+// Helper function to get spacing value
+export function spacing(key: SpacingKey): number {
+  return Spacing[key];
+}
 
-export type GapProps = Extract<keyof ViewStyle, "gap">;
-export type DimensionGapProps = { [K in GapProps]?: Dimension };
-export type ViewGapStyle = Pick<ViewStyle, GapProps>;
-export type GapViewProps<P> = P extends ViewGapStyle
-  ? Omit<P, GapProps> & DimensionGapProps
-  : P;
-export const GapPropsConcrete: GapProps[] = ["gap"];
+// Helper function to get border radius value
+export function borderRadius(key: BorderRadiusKey): number {
+  return BorderRadius[key];
+}
+
+// Legacy support - map old color names to new structure for gradual migration
+export type LegacyColorName = keyof ThemeVariant;
 
 /**
- * Style props that can be mapped from a theme token (e.g. "popover") to a real colour.
- *
- * Note: we intentionally allow raw strings too (e.g. "transparent", "#fff").
+ * Maps legacy color names to new token structure
+ * This allows gradual migration without breaking existing code
  */
-export type ColourProps = "color" | "backgroundColor" | "borderColor";
-export type ThemeColourProps = { [K in ColourProps]?: AllColours | string };
-export type ViewColourStyle = Pick<
-  TextStyle & ViewStyle & ImageStyle,
-  ColourProps
->;
-export type ColourViewProps<P> = P extends ViewColourStyle
-  ? Omit<P, ColourProps> & ThemeColourProps
-  : P;
-export const ColourPropsConcrete: ColourProps[] = [
-  "color",
-  "backgroundColor",
-  "borderColor",
-];
+export function mapLegacyColor(
+  theme: ThemeVariant,
+  legacyName: LegacyColorName,
+): string {
+  return theme[legacyName];
+}
 
+// Legacy type exports (kept for backward compatibility during migration)
+export type AllColours = LegacyColorName;
+
+// Simplified style type
 export type Style = ViewStyle | TextStyle | ImageStyle;
 
-export type StyledViewProps<P> = PaddedViewProps<
-  GapViewProps<ColourViewProps<P>>
->;
+// Legacy StyledViewProps type - kept for backward compatibility
+// Components will be migrated away from this gradually
+export type StyledViewProps<P> = P;
