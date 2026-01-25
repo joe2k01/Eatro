@@ -1,11 +1,6 @@
 import { spacing, BorderRadius } from "@constants/theme";
 import { useTheme } from "@contexts/ThemeProvider";
-import {
-  LayoutChangeEvent,
-  Pressable,
-  StyleSheet,
-  View,
-} from "react-native";
+import { LayoutChangeEvent, Pressable, StyleSheet, View } from "react-native";
 import { Body } from "@components/typography/Text";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Animated, {

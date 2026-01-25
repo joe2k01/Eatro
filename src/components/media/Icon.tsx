@@ -68,8 +68,14 @@ export function Icon({
   const iconProps = useMemo(
     () =>
       community
-        ? { community: true as const, name: name as MaterialCommunityIconsProps["name"] }
-        : { community: false as const, name: name as MaterialIconsProps["name"] },
+        ? {
+            community: true as const,
+            name: name as MaterialCommunityIconsProps["name"],
+          }
+        : {
+            community: false as const,
+            name: name as MaterialIconsProps["name"],
+          },
     [community, name],
   );
 

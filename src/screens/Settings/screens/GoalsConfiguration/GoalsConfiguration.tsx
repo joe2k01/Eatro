@@ -42,7 +42,7 @@ export function GoalsConfiguration() {
   const showSnackbar = useSnackbar();
   const navigation =
     useNavigation<NativeStackNavigationProp<SettingsStackParamsList>>();
-  const { primary, secondary, accent } = useTheme();
+  const theme = useTheme();
   const { data, update } = useStorage("goals", {
     calories: undefined,
     protein: undefined,
@@ -100,9 +100,9 @@ export function GoalsConfiguration() {
   }, [applyAutoCalories, isCaloriesManual, macroCalories]);
 
   const donut = useDonut([
-    { key: "protein", value: macroCalories.protein, color: primary },
-    { key: "carbs", value: macroCalories.carbs, color: secondary },
-    { key: "fat", value: macroCalories.fat, color: accent },
+    { key: "protein", value: macroCalories.protein, color: theme.semantic.primary },
+    { key: "carbs", value: macroCalories.carbs, color: theme.semantic.secondary },
+    { key: "fat", value: macroCalories.fat, color: theme.semantic.accent },
   ]);
 
   const onSave = useCallback(async () => {

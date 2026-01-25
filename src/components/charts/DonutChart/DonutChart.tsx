@@ -23,7 +23,7 @@ export type DonutChartProps = {
   total?: number;
   donutData: UseDonutResult;
   width?: BoxProps["width"];
-  /** Track/Background ring colour (not animated). Defaults to theme `popover`. */
+  /** Track/Background ring colour (not animated). Defaults to theme `surface.tertiary`. */
   trackColor?: string;
 };
 
@@ -111,8 +111,8 @@ export function DonutChart({
   width = "100%",
   trackColor,
 }: DonutChartProps) {
-  const { popover } = useTheme();
-  const mTrackColor = trackColor ?? popover;
+  const theme = useTheme();
+  const mTrackColor = trackColor ?? theme.surface.tertiary;
 
   const mSegments = useMemo(() => {
     return propSegments.filter((s) => s.value > 0);

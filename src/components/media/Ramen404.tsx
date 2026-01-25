@@ -26,16 +26,16 @@ const AnimatedText = Animated.createAnimatedComponent(Text);
  * Ramen bowl "404" illustration
  */
 export const Ramen404 = memo(function Ramen404() {
-  const { fg, fgMuted, secondary, accent, card, destructive } = useTheme();
+  const theme = useTheme();
 
-  const outline = fg;
-  const steam = fgMuted;
-  const noodlesBase = secondary;
-  const noodlesHighlight = card;
-  const chopsticks = accent;
-  const bowlFill = card;
-  const stripeBase = destructive;
-  const stripeHighlight = card;
+  const outline = theme.text.primary;
+  const steam = theme.text.muted;
+  const noodlesBase = theme.semantic.secondary;
+  const noodlesHighlight = theme.surface.secondary;
+  const chopsticks = theme.semantic.accent;
+  const bowlFill = theme.surface.secondary;
+  const stripeBase = theme.semantic.destructive;
+  const stripeHighlight = theme.surface.secondary;
 
   const smokeProgress = useSharedValue(0);
   const bounceProgress = useSharedValue(0);

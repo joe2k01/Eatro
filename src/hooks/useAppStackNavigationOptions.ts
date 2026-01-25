@@ -17,16 +17,16 @@ import { useTheme } from "@contexts/ThemeProvider";
  *   `useStaticNavigationOptions(...)`.
  */
 export function useAppStackNavigationOptions(): NativeStackNavigationOptions {
-  const { bg } = useTheme();
+  const theme = useTheme();
 
   return useMemo(
     () => ({
       headerShown: true,
       header: Header,
       contentStyle: {
-        backgroundColor: bg,
+        backgroundColor: theme.surface.primary,
       },
     }),
-    [bg],
+    [theme.surface.primary],
   );
 }

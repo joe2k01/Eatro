@@ -73,7 +73,11 @@ export function IconButton(props: IconButtonProps) {
       disabled={disabled}
       style={({ pressed }) => (pressed ? pressedStyle : baseStyle)}
     >
-      <MaterialIcons name={name} size={IconSizes[size]} color={textStyle.color} />
+      <MaterialIcons
+        name={name}
+        size={IconSizes[size]}
+        color={textStyle.color}
+      />
     </Pressable>
   );
 }

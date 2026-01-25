@@ -11,8 +11,11 @@ const props: KeyboardAvoidingViewProps = {
 };
 
 export function KeyboardView({ children }: { children: React.ReactNode }) {
-  const { bg } = useTheme();
-  const style = useMemo(() => ({ backgroundColor: bg }), [bg]);
+  const theme = useTheme();
+  const style = useMemo(
+    () => ({ backgroundColor: theme.surface.primary }),
+    [theme.surface.primary],
+  );
 
   return (
     <KeyboardAvoidingView {...props} style={style}>
