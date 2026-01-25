@@ -1,12 +1,11 @@
 import { useMemo } from "react";
-import { Control } from "react-hook-form";
 import { HStack } from "@components/layout/HStack";
 import { VStack } from "@components/layout/VStack";
-import { TextBody } from "@components/typography/Text";
+import { Body } from "@components/typography/Text";
 import { IconButton } from "@components/buttons/IconButton";
 import { PillButton } from "@components/buttons/PillButton";
 import { Button } from "@components/buttons/Button";
-import { FormInput } from "@components/forms";
+import { TextInput } from "@components/forms";
 import { MealType } from "@db/schemas";
 import { addUtcDaysSeconds } from "@db/utils/utc";
 
@@ -17,10 +16,8 @@ export type LogToMealControlsProps = {
   setMealType: (value: MealType) => void;
   saving: boolean;
   canConfirm: boolean;
-  // Intentionally loose: `zodResolver` allows string inputs for numeric fields,
-  // and strict typing here tends to fight RHF + Zod inference.
-
-  control: Control<any>;
+  customMealType: string;
+  setCustomMealType: (value: string) => void;
   onCancel: () => void;
   onConfirm: () => void;
 };
@@ -32,7 +29,8 @@ export function LogToMealControls({
   setMealType,
   saving,
   canConfirm,
-  control,
+  customMealType,
+  setCustomMealType,
   onCancel,
   onConfirm,
 }: LogToMealControlsProps) {
@@ -62,18 +60,18 @@ export function LogToMealControls({
         justifyContent="space-between"
         alignItems="center"
       >
-        <TextBody>Day</TextBody>
+        <Body>Day</Body>
         <HStack backgroundColor="transparent" alignItems="center" gap={1}>
           <IconButton
             name="chevron-left"
-            variant="muted"
+            variant="tertiary"
             onPress={() => setDayUtcSeconds((d) => addUtcDaysSeconds(d, -1))}
             disabled={saving}
           />
-          <TextBody>{dayLabel}</TextBody>
+          <Body>{dayLabel}</Body>
           <IconButton
             name="chevron-right"
-            variant="muted"
+            variant="tertiary"
             onPress={() => setDayUtcSeconds((d) => addUtcDaysSeconds(d, 1))}
             disabled={saving}
           />
@@ -81,7 +79,7 @@ export function LogToMealControls({
       </HStack>
 
       <VStack backgroundColor="transparent" gap={1}>
-        <TextBody>Meal</TextBody>
+        <Body>Meal</Body>
         <PillButton<MealType>
           options={mealOptions}
           selected={mealType}
@@ -91,17 +89,16 @@ export function LogToMealControls({
       </VStack>
 
       {mealType === MealType.Custom ? (
-        <FormInput
-          control={control}
-          // caller schema provides this field
-          name={"customMealType" as any}
+        <TextInput
+          value={customMealType}
+          onChangeText={setCustomMealType}
           placeholder="e.g. Post-workout"
-          inTray
+          inBottomSheet
         />
       ) : null}
 
       <HStack backgroundColor="transparent" gap={1}>
-        <Button variant="muted" onPress={onCancel} disabled={saving}>
+        <Button variant="tertiary" onPress={onCancel} disabled={saving}>
           Cancel
         </Button>
         <Button variant="primary" onPress={onConfirm} disabled={!canConfirm}>

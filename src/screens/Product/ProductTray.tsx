@@ -5,16 +5,15 @@ import {
   useCallback,
   useEffect,
 } from "react";
-import { useForm } from "react-hook-form";
+import { useForm } from "@hooks/useForm";
 import { Tray, type TrayApi } from "@components/layout/Tray";
 import { VStack } from "@components/layout/VStack";
 import { HStack } from "@components/layout/HStack";
-import { Headline, TextBody, TextCaption } from "@components/typography/Text";
+import { Heading, Body, Caption } from "@components/typography/Text";
 import { Button } from "@components/buttons/Button";
-import { FormInput, Picker } from "@components/forms";
+import { TextInput, Picker } from "@components/forms";
 import type { GetProductDetails } from "@api/validators/getProductDetails";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { StyleSheet } from "react-native";
 import { nonNegativeNumber } from "@constants/storage/validators/numberParsers";
 import { safeParseOrDefault } from "@constants/storage/validators/safeParseOrDefault";
@@ -26,15 +25,12 @@ import { PopupButtonOption } from "../../../modules/popup-button";
 
 type NutrimentsUnit = keyof GetProductDetails["nutriments"];
 
-const inputToNumber = z.coerce.number().nonnegative().optional().default(0);
-const inputQuantity = z
-  .number()
-  .or(z.string().transform((s) => inputToNumber.parse(s)));
-
 function roundTo(n: number, decimals: number): number {
   const p = 10 ** decimals;
   return Math.round(n * p) / p;
 }
+
+import { formatNumber, parseNumber } from "@utils/numberFormat";
 
 function formatNutrientValue(key: string, value: number): string {
   if (key === "energy") return String(Math.round(value));
@@ -60,10 +56,10 @@ export type ProductTrayProps = {
 };
 
 const productTrayFormSchema = z.object({
-  servings: inputQuantity,
-  servingSize: inputQuantity,
+  servings: z.number().nonnegative().optional(),
+  servingSize: z.number().nonnegative().optional(),
   servingUnit: z.string(),
-  customMealType: z.string().optional().default(""),
+  customMealType: z.string().optional(),
 });
 
 type NutrimentsForCalc = {
@@ -131,7 +127,6 @@ export function ProductTray({
   const defaultServingSize = useMemo(() => {
     if (selectedUnit === "per100g") return 100;
     if (servingSize !== undefined) return servingSize;
-
     return 0;
   }, [selectedUnit, servingSize]);
 
@@ -154,51 +149,38 @@ export function ProductTray({
     };
   }, [nutriments.per100g, nutriments.perServing, servingSize]);
 
-  const { control, watch, reset } = useForm({
-    defaultValues: {
+  const { values, setValue, setValues } = useForm({
+    initialValues: {
       servings: 1,
       servingSize: defaultServingSize || 100,
       servingUnit: unit,
       customMealType: "",
     },
-    resolver: zodResolver(productTrayFormSchema),
+    schema: productTrayFormSchema,
   });
 
   useEffect(() => {
     // Keep sensible defaults when switching between per-100g and per-serving views.
-    reset((current) => {
-      const currentServingSize =
-        typeof current.servingSize === "number"
-          ? current.servingSize
-          : undefined;
-      const currentServings =
-        typeof current.servings === "number" ? current.servings : undefined;
-
-      return {
-        ...current,
-        servingUnit: unit,
-        servingSize:
-          currentServingSize !== undefined && currentServingSize > 0
-            ? currentServingSize
-            : defaultServingSize || 100,
-        servings:
-          currentServings !== undefined && currentServings > 0
-            ? currentServings
-            : 1,
-      };
+    setValues({
+      servingUnit: unit,
+      servingSize:
+        values.servingSize !== undefined && values.servingSize > 0
+          ? values.servingSize
+          : defaultServingSize || 100,
+      servings:
+        values.servings !== undefined && values.servings > 0
+          ? values.servings
+          : 1,
     });
-  }, [defaultServingSize, reset, unit]);
-
-  const servingsInput = watch("servings");
-  const servingSizeInput = watch("servingSize");
+  }, [defaultServingSize, setValues, unit, values.servingSize, values.servings]);
 
   const servingsValue = useMemo(() => {
-    return safeParseOrDefault(servingsInput, nonNegativeNumber, 0);
-  }, [servingsInput]);
+    return safeParseOrDefault(values.servings, nonNegativeNumber, 0);
+  }, [values.servings]);
 
   const servingSizeValue = useMemo(() => {
-    return safeParseOrDefault(servingSizeInput, nonNegativeNumber, 0);
-  }, [servingSizeInput]);
+    return safeParseOrDefault(values.servingSize, nonNegativeNumber, 0);
+  }, [values.servingSize]);
 
   const computedNutriments = useMemo(() => {
     const {
@@ -219,7 +201,7 @@ export function ProductTray({
 
   const canConfirm = servingsValue > 0 && servingSizeValue > 0 && !saving;
 
-  const customMealType = watch("customMealType") ?? "";
+  const customMealType = values.customMealType ?? "";
 
   const dayLabel = useMemo(() => {
     return new Intl.DateTimeFormat(undefined, {
@@ -235,8 +217,6 @@ export function ProductTray({
     if (saving) return;
 
     if (mealType?.value === MealType.Custom && !customMealType?.trim()) {
-      // Keep it simple: we just block until they provide a name.
-      // (Could also show inline error via RHF if desired.)
       return;
     }
 
@@ -249,8 +229,6 @@ export function ProductTray({
         servingSizeValue,
       );
 
-      // 1) Upsert the food with the *chosen serving size* so `meal_foods.quantity`
-      // can stay as "number of servings".
       const foodId = await foodRepo.upsertFood({
         name,
         brand: brand?.trim() ? brand.trim() : null,
@@ -270,7 +248,6 @@ export function ProductTray({
         throw new Error("Failed to upsert food");
       }
 
-      // 2) Upsert meal + insert meal_foods + increment totals (single tx).
       const normalizedCustomType =
         mealType?.value === MealType.Custom ? customMealType.trim() : null;
 
@@ -325,8 +302,8 @@ export function ProductTray({
     <Tray ref={trayRef}>
       <VStack gap={2} backgroundColor="transparent">
         <VStack backgroundColor="transparent">
-          <Headline>{name}</Headline>
-          <TextCaption color="fgMuted">{brand}</TextCaption>
+          <Heading>{name}</Heading>
+          <Caption color="fgMuted">{brand}</Caption>
         </VStack>
 
         {computedNutriments && (
@@ -337,12 +314,12 @@ export function ProductTray({
           >
             {Object.entries(computedNutriments).map(([key, value]) => (
               <VStack key={key} backgroundColor="transparent" flex={1}>
-                <TextBody textAlign="center">
+                <Body textAlign="center">
                   {typeof value === "number"
                     ? formatNutrientValue(key, value)
                     : String(value)}
-                </TextBody>
-                <TextCaption textAlign="center">{key}</TextCaption>
+                </Body>
+                <Caption textAlign="center">{key}</Caption>
               </VStack>
             ))}
           </HStack>
@@ -353,15 +330,14 @@ export function ProductTray({
           justifyContent="space-between"
           alignItems="center"
         >
-          <TextBody>Number of servings</TextBody>
-          <FormInput
-            control={control}
-            name="servings"
+          <Body>Number of servings</Body>
+          <TextInput
+            value={formatNumber(values.servings)}
+            onChangeText={(text) => setValue("servings", parseNumber(text))}
             placeholder="1"
             keyboardType="decimal-pad"
-            format={(v) => (v === undefined ? "" : String(v))}
-            inTray
             containerStyle={styles.inputContainer}
+            inBottomSheet
           />
         </HStack>
 
@@ -370,16 +346,15 @@ export function ProductTray({
           justifyContent="space-between"
           alignItems="center"
         >
-          <TextBody>Serving size</TextBody>
-          <FormInput
-            control={control}
-            name="servingSize"
+          <Body>Serving size</Body>
+          <TextInput
+            value={formatNumber(values.servingSize)}
+            onChangeText={(text) => setValue("servingSize", parseNumber(text))}
             placeholder={String(defaultServingSize)}
             keyboardType="decimal-pad"
             unit={unit}
-            format={(v) => (v === undefined ? "" : String(v))}
-            inTray
             containerStyle={styles.inputContainer}
+            inBottomSheet
           />
         </HStack>
 
@@ -390,20 +365,20 @@ export function ProductTray({
               justifyContent="space-between"
               alignItems="center"
             >
-              <TextBody>Day</TextBody>
+              <Body>Day</Body>
               <HStack backgroundColor="transparent" alignItems="center" gap={1}>
                 <IconButton
                   name="chevron-left"
-                  variant="muted"
+                  variant="tertiary"
                   onPress={() =>
                     setDayUtcSeconds((d) => addUtcDaysSeconds(d, -1))
                   }
                   disabled={saving}
                 />
-                <TextBody>{dayLabel}</TextBody>
+                <Body>{dayLabel}</Body>
                 <IconButton
                   name="chevron-right"
-                  variant="muted"
+                  variant="tertiary"
                   onPress={() =>
                     setDayUtcSeconds((d) => addUtcDaysSeconds(d, 1))
                   }
@@ -418,16 +393,16 @@ export function ProductTray({
               alignItems="center"
               justifyContent="space-between"
             >
-              <TextBody>Meal</TextBody>
+              <Body>Meal</Body>
               <Picker options={mealOptions} onOptionSelect={setMealType} />
             </HStack>
 
             {mealType?.value === MealType.Custom ? (
-              <FormInput
-                control={control}
-                name={"customMealType" as any}
+              <TextInput
+                value={values.customMealType ?? ""}
+                onChangeText={(text) => setValue("customMealType", text)}
                 placeholder="e.g. Post-workout"
-                inTray
+                inBottomSheet
               />
             ) : null}
 

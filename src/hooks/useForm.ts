@@ -1,12 +1,12 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import type { ZodSchema, ZodError } from "zod";
+import type { ZodSchema, ZodError, z } from "zod";
 
 type FieldErrors<T> = Partial<Record<keyof T, string>>;
 
-type UseFormOptions<T extends Record<string, unknown>> = {
+type UseFormOptions<T extends Record<string, unknown>, S extends ZodSchema<T>> = {
   initialValues: T;
-  /** Optional Zod schema for validation */
-  schema?: ZodSchema<T>;
+  /** Optional Zod schema for validation - also infers the validated type */
+  schema?: S;
 };
 
 type UseFormReturn<T extends Record<string, unknown>> = {
@@ -26,49 +26,58 @@ type UseFormReturn<T extends Record<string, unknown>> = {
   clearErrors: () => void;
 };
 
-export function useForm<T extends Record<string, unknown>>({
+export function useForm<
+  T extends Record<string, unknown>,
+  S extends ZodSchema<T> = ZodSchema<T>,
+>({
   initialValues,
   schema,
-}: UseFormOptions<T>): UseFormReturn<T> {
-  // Use ref for initialValues to avoid recreating callbacks when it changes
-  const initialValuesRef = useRef(initialValues);
+}: UseFormOptions<T, S>): UseFormReturn<z.infer<S> extends T ? z.infer<S> : T> {
+  type FormValues = z.infer<S> extends T ? z.infer<S> : T;
 
-  const [values, setValuesState] = useState<T>(initialValues);
-  const [errors, setErrors] = useState<FieldErrors<T>>({});
+  const initialValuesRef = useRef(initialValues as FormValues);
+  const schemaRef = useRef(schema);
 
-  const setValue = useCallback(<K extends keyof T>(field: K, value: T[K]) => {
+  const [values, setValuesState] = useState<FormValues>(initialValues as FormValues);
+  const [errors, setErrors] = useState<FieldErrors<FormValues>>({});
+
+  // Use refs for current values to avoid stale closures
+  const valuesRef = useRef(values);
+  valuesRef.current = values;
+
+  // Stable setValue that doesn't change between renders
+  const setValue = useCallback(<K extends keyof FormValues>(field: K, value: FormValues[K]) => {
     setValuesState((prev) => {
-      // Only update if value actually changed
       if (prev[field] === value) return prev;
       return { ...prev, [field]: value };
     });
   }, []);
 
-  const setValues = useCallback((updates: Partial<T>) => {
+  // Stable setValues that doesn't change between renders
+  const setValues = useCallback((updates: Partial<FormValues>) => {
     setValuesState((prev) => ({ ...prev, ...updates }));
   }, []);
 
+  // Stable validate that uses ref for current values
   const validate = useCallback((): boolean => {
-    if (!schema) {
-      // No schema = always valid
+    const currentSchema = schemaRef.current;
+    if (!currentSchema) {
       setErrors({});
       return true;
     }
 
-    const result = schema.safeParse(values);
+    const result = currentSchema.safeParse(valuesRef.current);
 
     if (result.success) {
       setErrors({});
       return true;
     }
 
-    // Extract field-level errors from Zod
     const zodError = result.error as ZodError;
-    const fieldErrors: FieldErrors<T> = {};
+    const fieldErrors: FieldErrors<FormValues> = {};
 
     for (const issue of zodError.issues) {
-      const field = issue.path[0] as keyof T;
-      // Only keep first error per field
+      const field = issue.path[0] as keyof FormValues;
       if (field && !fieldErrors[field]) {
         fieldErrors[field] = issue.message;
       }
@@ -76,17 +85,20 @@ export function useForm<T extends Record<string, unknown>>({
 
     setErrors(fieldErrors);
     return false;
-  }, [schema, values]);
+  }, []);
 
+  // Stable reset
   const reset = useCallback(() => {
     setValuesState(initialValuesRef.current);
     setErrors({});
   }, []);
 
+  // Stable clearErrors
   const clearErrors = useCallback(() => {
     setErrors({});
   }, []);
 
+  // Only values and errors change - functions are stable
   return useMemo(
     () => ({
       values,
