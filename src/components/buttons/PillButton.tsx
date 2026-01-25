@@ -1,14 +1,12 @@
-import { Box } from "@components/layout/Box";
+import { spacing, BorderRadius } from "@constants/theme";
+import { useTheme } from "@contexts/ThemeProvider";
 import {
   LayoutChangeEvent,
   Pressable,
   StyleSheet,
-  ViewStyle,
+  View,
 } from "react-native";
-import { intoThemeDimension } from "@hooks/useThemeDimension";
-import { ButtonVariant, useButtonStyle } from "./hooks/useButtonStyle";
-import { HStack } from "@components/layout/HStack";
-import { TextBody } from "@components/typography/Text";
+import { Body } from "@components/typography/Text";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Animated, {
   Easing,
@@ -16,39 +14,39 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { InvertibleVariant, useButtonStyle } from "./hooks/useButtonStyle";
 
 export type PillButtonProps<T> = {
   options: { label: string; value: T }[];
-  selected: string | T;
+  selected: T;
   onSelect: (value: T) => void;
-  variant?: ButtonVariant;
+  /** Variant for the selected indicator */
+  variant?: InvertibleVariant;
 };
 
-const style = StyleSheet.create({
+const styles = StyleSheet.create({
   outerPill: {
-    padding: intoThemeDimension(0.5),
-    borderRadius: intoThemeDimension(0.5),
-    backgroundColor: "muted",
+    padding: spacing(0.5),
+    borderRadius: BorderRadius.md,
     borderWidth: 1,
   },
   innerRow: {
+    flexDirection: "row",
     position: "relative",
     overflow: "hidden",
-    gap: intoThemeDimension(0.5),
+    gap: spacing(0.5),
   },
   indicator: {
     position: "absolute",
     top: 0,
     left: 0,
-    borderRadius: intoThemeDimension(0.5),
+    borderRadius: BorderRadius.md,
   },
   tab: {
-    paddingVertical: intoThemeDimension(0.75),
-    paddingHorizontal: intoThemeDimension(0.75),
+    paddingVertical: spacing(0.75),
+    paddingHorizontal: spacing(1),
   },
 });
-
-const fakeComposedStyle: ViewStyle = {};
 
 type TabLayout = { x: number; width: number; height: number };
 
@@ -60,10 +58,8 @@ export function PillButton<T>({
   onSelect,
   variant = "primary",
 }: PillButtonProps<T>) {
-  const { outerStyle, innerStyle } = useButtonStyle({
-    variant,
-    composedStyle: fakeComposedStyle,
-  });
+  const theme = useTheme();
+  const { containerStyle, textStyle } = useButtonStyle({ variant });
 
   // Measure tabs so we can animate an indicator behind the selected option.
   const [layouts, setLayouts] = useState<TabLayout[]>([]);
@@ -85,7 +81,6 @@ export function PillButton<T>({
 
   useEffect(() => {
     const layoutIndex = options.findIndex((opt) => opt.value === selected);
-
     const layout = layoutIndex >= 0 ? layouts[layoutIndex] : undefined;
 
     if (!layout) {
@@ -94,7 +89,6 @@ export function PillButton<T>({
         easing: Easing.out(Easing.cubic),
       });
     } else {
-      // Native-driven sliding indicator (typical segmented control / tabs UX).
       indicatorOpacity.value = withTiming(1, {
         duration: 120,
         easing: Easing.out(Easing.cubic),
@@ -112,35 +106,35 @@ export function PillButton<T>({
         easing: Easing.out(Easing.cubic),
       });
     }
-    // We don't need to track ref and shared values
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected, options, layouts]);
 
-  const animatedIndicatorStyle = useAnimatedStyle(() => {
-    return {
-      opacity: indicatorOpacity.value,
-      transform: [{ translateX: indicatorX.value }],
-      width: indicatorWidth.value,
-      height: indicatorHeight.value,
-    };
-  });
+  const animatedIndicatorStyle = useAnimatedStyle(() => ({
+    opacity: indicatorOpacity.value,
+    transform: [{ translateX: indicatorX.value }],
+    width: indicatorWidth.value,
+    height: indicatorHeight.value,
+  }));
 
-  const selectedBackgroundColor = useMemo(() => {
-    const bg = outerStyle.backgroundColor;
-    return typeof bg === "string" ? bg : "transparent";
-  }, [outerStyle.backgroundColor]);
+  const outerStyle = useMemo(
+    () => [
+      styles.outerPill,
+      {
+        backgroundColor: theme.surface.tertiary,
+        borderColor: theme.surface.tertiary,
+      },
+    ],
+    [theme],
+  );
 
   return (
-    <Box
-      style={style.outerPill}
-      borderColor={outerStyle.backgroundColor as string}
-    >
-      <HStack backgroundColor="transparent" style={style.innerRow}>
+    <View style={outerStyle}>
+      <View style={styles.innerRow}>
         <Animated.View
           pointerEvents="none"
           style={[
-            style.indicator,
-            { backgroundColor: selectedBackgroundColor },
+            styles.indicator,
+            { backgroundColor: containerStyle.backgroundColor },
             animatedIndicatorStyle,
           ]}
         />
@@ -151,17 +145,19 @@ export function PillButton<T>({
               key={label}
               onPress={() => onSelect(value)}
               onLayout={(e) => onTabLayout(e, index)}
-              style={style.tab}
+              style={styles.tab}
             >
-              <TextBody
-                color={isSelected ? (innerStyle.color as string) : "fgMuted"}
+              <Body
+                style={{
+                  color: isSelected ? textStyle.color : theme.text.secondary,
+                }}
               >
                 {label}
-              </TextBody>
+              </Body>
             </Pressable>
           );
         })}
-      </HStack>
-    </Box>
+      </View>
+    </View>
   );
 }
