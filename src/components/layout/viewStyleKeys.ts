@@ -1,4 +1,37 @@
 import { ViewStyle } from "react-native";
+import { Spacing, SpacingKey } from "@constants/theme";
+
+// Props that should auto-convert SpacingKey to pixels
+const SPACING_PROPS = new Set([
+  "padding",
+  "paddingTop",
+  "paddingRight",
+  "paddingBottom",
+  "paddingLeft",
+  "paddingHorizontal",
+  "paddingVertical",
+  "paddingStart",
+  "paddingEnd",
+  "paddingBlock",
+  "paddingInline",
+  "margin",
+  "marginTop",
+  "marginRight",
+  "marginBottom",
+  "marginLeft",
+  "marginHorizontal",
+  "marginVertical",
+  "marginStart",
+  "marginEnd",
+  "gap",
+  "rowGap",
+  "columnGap",
+]);
+
+// Check if value is a valid SpacingKey
+function isSpacingKey(value: unknown): value is SpacingKey {
+  return typeof value === "number" && value in Spacing;
+}
 
 // ViewStyle keys that can be passed as direct props
 export const VIEW_STYLE_KEYS = new Set([
@@ -71,7 +104,8 @@ export const VIEW_STYLE_KEYS = new Set([
 ]);
 
 /**
- * Separates ViewStyle props from ViewProps
+ * Separates ViewStyle props from ViewProps.
+ * Automatically converts SpacingKey values to pixels for padding/margin/gap props.
  */
 export function extractStyleProps<P extends Record<string, unknown>>(
   props: P,
@@ -81,7 +115,12 @@ export function extractStyleProps<P extends Record<string, unknown>>(
 
   Object.entries(props).forEach(([key, value]) => {
     if (VIEW_STYLE_KEYS.has(key)) {
-      (styleProps as Record<string, unknown>)[key] = value;
+      // Auto-convert SpacingKey to pixels for spacing props
+      if (SPACING_PROPS.has(key) && isSpacingKey(value)) {
+        (styleProps as Record<string, unknown>)[key] = Spacing[value];
+      } else {
+        (styleProps as Record<string, unknown>)[key] = value;
+      }
     } else {
       viewProps[key] = value;
     }
