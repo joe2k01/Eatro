@@ -2,11 +2,7 @@ import { IconSize, IconSizes, spacing, BorderRadius } from "@constants/theme";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { ComponentProps, useMemo } from "react";
 import { Pressable, PressableProps, StyleSheet, ViewStyle } from "react-native";
-import {
-  InvertibleVariant,
-  LegacyButtonVariant,
-  useButtonStyle,
-} from "./hooks/useButtonStyle";
+import { InvertibleVariant, useButtonStyle } from "./hooks/useButtonStyle";
 
 type MaterialIconsProps = ComponentProps<typeof MaterialIcons>;
 
@@ -17,11 +13,11 @@ type BaseIconButtonProps = Omit<PressableProps, "children" | "style"> &
   };
 
 type GhostIconButtonProps = BaseIconButtonProps & {
-  variant: "ghost" | "transparent";
+  variant: "ghost";
 };
 
 type StandardIconButtonProps = BaseIconButtonProps & {
-  variant?: InvertibleVariant | Exclude<LegacyButtonVariant, "transparent">;
+  variant?: InvertibleVariant;
   inverted?: boolean;
 };
 
@@ -51,9 +47,10 @@ export function IconButton(props: IconButtonProps) {
   const variant = props.variant ?? "tertiary";
   const inverted = "inverted" in props ? props.inverted : false;
 
-  const isGhostVariant = variant === "ghost" || variant === "transparent";
   const { containerStyle, textStyle } = useButtonStyle(
-    isGhostVariant ? { variant, disabled } : { variant, inverted, disabled },
+    variant === "ghost"
+      ? { variant, disabled }
+      : { variant, inverted, disabled },
   );
 
   const baseStyle = useMemo(

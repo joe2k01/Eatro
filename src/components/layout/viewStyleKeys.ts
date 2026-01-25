@@ -1,4 +1,4 @@
-import { ViewStyle, ViewProps } from "react-native";
+import { ViewStyle } from "react-native";
 
 // ViewStyle keys that can be passed as direct props
 export const VIEW_STYLE_KEYS = new Set([

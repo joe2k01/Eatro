@@ -11,30 +11,13 @@ export type ButtonVariant =
 
 export type InvertibleVariant = Exclude<ButtonVariant, "ghost">;
 
-/** @deprecated Use ButtonVariant instead */
-export type LegacyButtonVariant =
-  | "muted"
-  | "transparent"
-  | "primaryTranslucent"
-  | "secondaryTranslucent"
-  | "destructiveTranslucent";
-
-// Legacy variant mapping for backward compatibility
-const LEGACY_VARIANT_MAP: Record<LegacyButtonVariant, ButtonVariant> = {
-  muted: "tertiary",
-  transparent: "ghost",
-  primaryTranslucent: "primary",
-  secondaryTranslucent: "secondary",
-  destructiveTranslucent: "destructive",
-};
-
 type GhostButtonStyleProps = {
-  variant: "ghost" | "transparent";
+  variant: "ghost";
   disabled?: boolean | null;
 };
 
 type StandardButtonStyleProps = {
-  variant?: InvertibleVariant | Exclude<LegacyButtonVariant, "transparent">;
+  variant?: InvertibleVariant;
   /** Inverts the button: transparent background with colored border/text. */
   inverted?: boolean;
   disabled?: boolean | null;
@@ -55,19 +38,14 @@ export function useButtonStyle(props: UseButtonStyleProps): ButtonStyles {
   const disabled = props.disabled;
 
   return useMemo(() => {
-    // Map legacy variants to new ones
-    const resolvedVariant =
-      (LEGACY_VARIANT_MAP as Record<string, ButtonVariant>)[variant] ??
-      (variant as ButtonVariant);
-
     // Ghost cannot be inverted (enforced by types, but double-check at runtime)
-    const isInverted = inverted && resolvedVariant !== "ghost";
+    const isInverted = inverted && variant !== "ghost";
 
     let backgroundColor: string;
     let highlightColor: string;
     let textColor: string;
 
-    switch (resolvedVariant) {
+    switch (variant) {
       case "primary":
         highlightColor = theme.semantic.primary;
         backgroundColor = theme.semantic.primary;
@@ -118,6 +96,3 @@ export function useButtonStyle(props: UseButtonStyleProps): ButtonStyles {
     return { containerStyle, textStyle };
   }, [variant, inverted, disabled, theme]);
 }
-
-// Legacy export for backward compatibility
-export { useButtonStyle as default };

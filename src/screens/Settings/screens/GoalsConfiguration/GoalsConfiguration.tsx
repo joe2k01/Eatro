@@ -100,8 +100,16 @@ export function GoalsConfiguration() {
   }, [applyAutoCalories, isCaloriesManual, macroCalories]);
 
   const donut = useDonut([
-    { key: "protein", value: macroCalories.protein, color: theme.semantic.primary },
-    { key: "carbs", value: macroCalories.carbs, color: theme.semantic.secondary },
+    {
+      key: "protein",
+      value: macroCalories.protein,
+      color: theme.semantic.primary,
+    },
+    {
+      key: "carbs",
+      value: macroCalories.carbs,
+      color: theme.semantic.secondary,
+    },
     { key: "fat", value: macroCalories.fat, color: theme.semantic.accent },
   ]);
 

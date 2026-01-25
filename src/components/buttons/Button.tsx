@@ -6,12 +6,7 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-import {
-  ButtonVariant,
-  InvertibleVariant,
-  LegacyButtonVariant,
-  useButtonStyle,
-} from "./hooks/useButtonStyle";
+import { InvertibleVariant, useButtonStyle } from "./hooks/useButtonStyle";
 import { Body, Caption } from "@components/typography/Text";
 import { ReactNode, useMemo } from "react";
 
@@ -28,11 +23,11 @@ type BaseButtonProps = Omit<PressableProps, "children" | "style"> & {
 };
 
 type GhostButtonProps = BaseButtonProps & {
-  variant: "ghost" | "transparent";
+  variant: "ghost";
 };
 
 type StandardButtonProps = BaseButtonProps & {
-  variant?: InvertibleVariant | Exclude<LegacyButtonVariant, "transparent">;
+  variant?: InvertibleVariant;
   /** Inverts the button: transparent background with colored border/text */
   inverted?: boolean;
 };
@@ -75,9 +70,10 @@ export function Button(props: ButtonProps) {
   const variant = props.variant ?? "primary";
   const inverted = "inverted" in props ? props.inverted : false;
 
-  const isGhostVariant = variant === "ghost" || variant === "transparent";
   const { containerStyle, textStyle } = useButtonStyle(
-    isGhostVariant ? { variant, disabled } : { variant, inverted, disabled },
+    variant === "ghost"
+      ? { variant, disabled }
+      : { variant, inverted, disabled },
   );
 
   const baseStyle = useMemo(
