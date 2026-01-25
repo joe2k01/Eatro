@@ -1,12 +1,13 @@
-import { ComponentProps } from "react";
+import { ComponentProps, useMemo } from "react";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { IconSize, IconSizes, StyledViewProps } from "@constants/theme";
+import { IconSize, IconSizes } from "@constants/theme";
 import { ColorValue, View, ViewProps, ViewStyle } from "react-native";
 import {
-  ButtonVariant,
+  InvertibleVariant,
   useButtonStyle,
 } from "@components/buttons/hooks/useButtonStyle";
+import { useTheme } from "@contexts/ThemeProvider";
 
 type MaterialIconsProps = ComponentProps<typeof MaterialIcons>;
 type MaterialCommunityIconsProps = ComponentProps<
@@ -17,21 +18,22 @@ type IsCommunity =
   | ({ community: true } & Pick<MaterialCommunityIconsProps, "name">)
   | ({ community?: false } & Pick<MaterialIconsProps, "name">);
 
-type IconProps = StyledViewProps<
-  {
+export type IconProps = ViewProps &
+  IsCommunity & {
     size?: IconSize;
-    variant?: ButtonVariant;
-  } & IsCommunity &
-    ViewStyle &
-    ViewProps
->;
+    /** Use variant to get color from button style system */
+    variant?: InvertibleVariant;
+    /** Direct color override */
+    color?: ColorValue;
+    style?: ViewStyle;
+  };
 
 function IconComponent({
   name,
   community,
   size = "m",
   color,
-}: IsCommunity & Pick<IconProps, "size"> & { color: ColorValue }) {
+}: IsCommunity & { size?: IconSize; color: ColorValue }) {
   if (community) {
     return (
       <MaterialCommunityIcons
@@ -45,12 +47,35 @@ function IconComponent({
   return <MaterialIcons name={name} size={IconSizes[size]} color={color} />;
 }
 
-export function Icon({ variant, ...props }: IconProps) {
-  const { innerStyle } = useButtonStyle({ variant, composedStyle: props });
+export function Icon({
+  variant = "tertiary",
+  color: colorProp,
+  size,
+  name,
+  community,
+  ...viewProps
+}: IconProps) {
+  const theme = useTheme();
+  const { textStyle } = useButtonStyle({ variant });
+
+  // Determine color: prop > variant > default
+  const iconColor = useMemo<ColorValue>(
+    () => colorProp ?? textStyle.color ?? theme.fg,
+    [colorProp, textStyle.color, theme.fg],
+  );
+
+  // Type narrowing for community prop
+  const iconProps = useMemo(
+    () =>
+      community
+        ? { community: true as const, name: name as MaterialCommunityIconsProps["name"] }
+        : { community: false as const, name: name as MaterialIconsProps["name"] },
+    [community, name],
+  );
 
   return (
-    <View {...props}>
-      <IconComponent {...props} color={innerStyle.color} />
+    <View {...viewProps}>
+      <IconComponent {...iconProps} size={size} color={iconColor} />
     </View>
   );
 }
