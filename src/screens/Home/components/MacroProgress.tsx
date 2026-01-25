@@ -66,12 +66,8 @@ export function MacroProgress({ label, consumedGrams }: MacroProgressProps) {
     : theme.text.secondary;
 
   return (
-    <VStack style={{ backgroundColor: "transparent" }}>
-      <HStack
-        style={{ backgroundColor: "transparent" }}
-        alignItems="center"
-        gap={0.5}
-      >
+    <VStack backgroundColor="transparent">
+      <HStack backgroundColor="transparent" alignItems="center" gap={0.5}>
         <Icon name="circle" size="xs" color={colour} />
         <Caption color={textColor}>{labelText}</Caption>
       </HStack>

@@ -120,8 +120,8 @@ export function Snackbar({ message, variant, visible }: SnackbarProps) {
           },
         ]}
       >
-        <Caption style={{ color: indicatorColor }}>{variantLabel}</Caption>
-        <Body style={{ color: theme.text.primary }}>{message}</Body>
+        <Caption color={indicatorColor}>{variantLabel}</Caption>
+        <Body color={theme.text.primary}>{message}</Body>
       </View>
     </Animated.View>
   );

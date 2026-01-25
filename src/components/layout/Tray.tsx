@@ -53,6 +53,12 @@ export const Tray = forwardRef<TrayApi, TrayProps>(function Tray(
 
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+
+  const backgroundStyle = useMemo(
+    () => ({ backgroundColor: theme.surface.secondary }),
+    [theme.surface.secondary],
+  );
+
   const viewStyle = useMemo(
     () => ({
       paddingBottom: insets.bottom,
@@ -67,7 +73,7 @@ export const Tray = forwardRef<TrayApi, TrayProps>(function Tray(
 
   return (
     <BottomSheet
-      backgroundStyle={{ backgroundColor: theme.surface.secondary }}
+      backgroundStyle={backgroundStyle}
       ref={sheetRef}
       onClose={onTrayClose}
       enablePanDownToClose

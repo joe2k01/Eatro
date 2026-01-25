@@ -22,6 +22,7 @@ import type {
 } from "@react-navigation/native-stack";
 import type { SettingsStackParamsList } from "../../routes";
 import { useStaticNavigationOptions } from "@hooks/useStaticNavigationOptions";
+import { useMemo } from "react";
 
 export const settingsHomeHeaderOptions = {
   title: "User configuration",
@@ -38,6 +39,18 @@ export function SettingsHome() {
 
   const { name } = useUser();
 
+  const trackColor = useMemo(
+    () => ({
+      true: theme.semantic.accent,
+      false: theme.surface.tertiary,
+    }),
+    [theme.semantic.accent, theme.surface.tertiary],
+  );
+
+  const thumbColor = switchEnabled
+    ? theme.semantic.accentForeground
+    : theme.text.primary;
+
   return (
     <SafeVStack paddingHorizontal={2} scrollable>
       <VStack paddingBlock={2} gap={2}>
@@ -52,11 +65,9 @@ export function SettingsHome() {
           secondaryText="Manage nutrition & fitness goals"
           leftIcon={
             <Box
-              style={{
-                backgroundColor: theme.semantic.secondary,
-                padding: 8,
-                borderRadius: BorderRadius.sm,
-              }}
+              backgroundColor={theme.semantic.secondary}
+              padding={8}
+              borderRadius={BorderRadius.sm}
             >
               <Icon name="outlined-flag" variant="secondary" />
             </Box>
@@ -71,16 +82,9 @@ export function SettingsHome() {
           <Switch
             onChange={toggleTheme}
             value={switchEnabled}
-            trackColor={{
-              true: theme.semantic.accent,
-              false: theme.surface.tertiary,
-            }}
+            trackColor={trackColor}
             ios_backgroundColor={theme.surface.tertiary}
-            thumbColor={
-              switchEnabled
-                ? theme.semantic.accentForeground
-                : theme.text.primary
-            }
+            thumbColor={thumbColor}
           />
         </HStack>
       </VStack>

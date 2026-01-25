@@ -86,7 +86,7 @@ export function TextInput({
   const labelElement = useMemo(() => {
     if (!label) return null;
     if (typeof label === "string") {
-      return <Label style={{ color: theme.text.secondary }}>{label}</Label>;
+      return <Label color={theme.text.secondary}>{label}</Label>;
     }
     return label;
   }, [label, theme.text.secondary]);

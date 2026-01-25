@@ -169,7 +169,9 @@ export function GoalsConfiguration() {
           />
 
           <Caption
-            style={{ color: invalidCalories ? "destructive" : undefined }}
+            color={
+              invalidCalories ? theme.semantic.destructive : theme.text.primary
+            }
           >
             Macros: {macroCalories.total} kcal{" "}
             {caloriesNumber > 0 ? `(target ${caloriesNumber} kcal)` : ""}

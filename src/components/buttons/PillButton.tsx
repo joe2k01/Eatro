@@ -119,7 +119,15 @@ export function PillButton<T>({
         borderColor: theme.surface.tertiary,
       },
     ],
-    [theme],
+    [theme.surface.tertiary],
+  );
+
+  const indicatorStyle = useMemo(
+    () => [
+      styles.indicator,
+      { backgroundColor: containerStyle.backgroundColor },
+    ],
+    [containerStyle.backgroundColor],
   );
 
   return (
@@ -127,11 +135,7 @@ export function PillButton<T>({
       <View style={styles.innerRow}>
         <Animated.View
           pointerEvents="none"
-          style={[
-            styles.indicator,
-            { backgroundColor: containerStyle.backgroundColor },
-            animatedIndicatorStyle,
-          ]}
+          style={[indicatorStyle, animatedIndicatorStyle]}
         />
         {options.map(({ label, value }, index) => {
           const isSelected = value === selected;
@@ -143,9 +147,7 @@ export function PillButton<T>({
               style={styles.tab}
             >
               <Body
-                style={{
-                  color: isSelected ? textStyle.color : theme.text.secondary,
-                }}
+                color={isSelected ? textStyle.color : theme.text.secondary}
               >
                 {label}
               </Body>

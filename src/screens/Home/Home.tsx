@@ -2,6 +2,7 @@ import { SafeVStack } from "@components/SafeVStack";
 import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import { useStaticNavigationOptions } from "@hooks/useStaticNavigationOptions";
 import { format } from "date-fns";
+import { StyleSheet } from "react-native";
 import { AvatarButton } from "./components/AvatarButton";
 import { Display, Caption, Title } from "@components/typography/Text";
 import { useStorage } from "@hooks/useStorage";
@@ -16,6 +17,12 @@ import { Button } from "@components/buttons/Button";
 import { Icon } from "@components/media/Icon";
 import { useNavigation } from "@react-navigation/native";
 import { useGetToday } from "@db/hooks/useGetToday";
+
+const styles = StyleSheet.create({
+  flexButton: {
+    flex: 1,
+  },
+});
 
 export const homeHeaderOptions = {
   headerTitle: () => <Title>Today, {format(new Date(), "MMMM do")}</Title>,
@@ -128,13 +135,13 @@ export function Home() {
       <VStack gap={1.5}>
         <HStack gap={1.5}>
           <Button
-            style={{ flex: 1 }}
+            style={styles.flexButton}
             leftIcon={<Icon name="search" size="xs" variant="primary" />}
           >
             Search
           </Button>
           <Button
-            style={{ flex: 1 }}
+            style={styles.flexButton}
             leftIcon={
               <Icon community name="barcode" size="xs" variant="secondary" />
             }

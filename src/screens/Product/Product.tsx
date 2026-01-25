@@ -4,6 +4,7 @@ import {
 } from "@tanstack/react-query";
 import { useLocales } from "expo-localization";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { StyleSheet } from "react-native";
 import { useApiClient } from "@api/ApiClient";
 import { useParams } from "@hooks/useParams";
 import { GetProductDetails } from "@api/validators/getProductDetails";
@@ -32,6 +33,13 @@ const unitsLabels: Record<NutrimentsUnit, string> = {
   per100g: "100g",
   perServing: "serving",
 };
+
+const styles = StyleSheet.create({
+  productImage: {
+    width: "100%",
+    height: "100%",
+  },
+});
 
 function ProductContent({ barcode }: { barcode: string }) {
   const [locale] = useLocales();
@@ -122,7 +130,7 @@ function ProductContent({ barcode }: { barcode: string }) {
             <Box height="100%" aspectRatio={imageRatio}>
               <RemoteImage
                 source={imageUrl}
-                style={{ width: "100%", height: "100%" }}
+                style={styles.productImage}
                 shape="squircle"
               />
             </Box>
