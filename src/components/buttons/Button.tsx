@@ -1,115 +1,114 @@
-import { StyledViewProps } from "@constants/theme";
-import { useComposedStyle } from "@hooks/useComposedStyle";
-import { Pressable, PressableProps, StyleSheet, View } from "react-native";
-import type { TextStyle, ViewStyle } from "react-native";
-import { ButtonVariant, useButtonStyle } from "./hooks/useButtonStyle";
-import { TextBody, TextCaption } from "@components/typography/Text";
+import { spacing, BorderRadius } from "@constants/theme";
+import {
+  Pressable,
+  PressableProps,
+  StyleSheet,
+  View,
+  ViewStyle,
+} from "react-native";
+import {
+  ButtonVariant,
+  InvertibleVariant,
+  LegacyButtonVariant,
+  useButtonStyle,
+} from "./hooks/useButtonStyle";
+import { Body, Caption } from "@components/typography/Text";
 import { ReactNode, useMemo } from "react";
-import { intoThemeDimension } from "@hooks/useThemeDimension";
-import { useExtractViewStyleProps } from "@hooks/useExtractViewStyleProps";
-import { VStack } from "@components/layout/VStack";
 
-type ButtonTextAlign = Extract<
-  TextStyle["textAlign"],
-  "left" | "center" | "right"
->;
-
-type LocalButtonProps = {
-  variant?: ButtonVariant;
+type BaseButtonProps = Omit<PressableProps, "children" | "style"> & {
   children?: ReactNode;
+  /** Secondary text displayed below main text */
   secondaryText?: string;
+  /** Icon displayed on the left */
   leftIcon?: ReactNode;
+  /** Icon displayed on the right */
   rightIcon?: ReactNode;
-  textAlign?: ButtonTextAlign;
+  /** Additional styles for the button container */
   style?: ViewStyle;
 };
 
-export type ButtonProps = StyledViewProps<
-  Omit<PressableProps, "children" | "style"> & ViewStyle & LocalButtonProps
->;
+type GhostButtonProps = BaseButtonProps & {
+  variant: "ghost" | "transparent";
+};
 
-const style = StyleSheet.create({
+type StandardButtonProps = BaseButtonProps & {
+  variant?: InvertibleVariant | Exclude<LegacyButtonVariant, "transparent">;
+  /** Inverts the button: transparent background with colored border/text */
+  inverted?: boolean;
+};
+
+export type ButtonProps = GhostButtonProps | StandardButtonProps;
+
+const styles = StyleSheet.create({
   button: {
-    padding: intoThemeDimension(2),
-    alignItems: "center",
-    borderRadius: intoThemeDimension(0.5),
-    justifyContent: "center",
-  },
-  row: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "transparent",
-    gap: intoThemeDimension(1),
+    paddingVertical: spacing(1.5),
+    paddingHorizontal: spacing(2),
+    borderRadius: BorderRadius.md,
+    gap: spacing(1),
   },
   pressed: {
-    opacity: 0.9,
+    opacity: 0.8,
   },
-  iconLeft: {
-    // paddingRight: intoThemeDimension(1),
-  },
-  iconRight: {
-    // paddingLeft: intoThemeDimension(1),
+  textContainer: {
+    alignItems: "center",
   },
   secondaryText: {
     opacity: 0.72,
-    marginTop: 2,
+    marginTop: spacing(0.25),
   },
 });
 
 export function Button(props: ButtonProps) {
-  const { passthroughProps, styleProps } = useExtractViewStyleProps(props);
-
   const {
-    variant = "primary",
-    disabled = false,
     children,
     secondaryText,
     leftIcon,
     rightIcon,
-  } = passthroughProps;
+    disabled = false,
+    style,
+    ...pressableProps
+  } = props;
 
-  const composedStyle = useComposedStyle<ViewStyle>({
-    base: style.button,
-    props: styleProps,
-  });
+  const variant = props.variant ?? "primary";
+  const inverted = "inverted" in props ? props.inverted : false;
 
-  const { outerStyle, innerStyle } = useButtonStyle({
-    variant,
-    composedStyle,
-    disabled,
-  });
-
-  const baseOuterStyle = useMemo(
-    () => StyleSheet.compose(style.row, outerStyle),
-    [outerStyle],
+  const isGhostVariant = variant === "ghost" || variant === "transparent";
+  const { containerStyle, textStyle } = useButtonStyle(
+    isGhostVariant ? { variant, disabled } : { variant, inverted, disabled },
   );
-  const pressedOuterStyle = useMemo(
+
+  const baseStyle = useMemo(
+    () => StyleSheet.flatten([styles.button, containerStyle, style]),
+    [containerStyle, style],
+  );
+
+  const pressedStyle = useMemo(
     () =>
-      disabled
-        ? baseOuterStyle
-        : StyleSheet.compose(baseOuterStyle, style.pressed),
-    [baseOuterStyle, disabled],
+      disabled ? baseStyle : StyleSheet.flatten([baseStyle, styles.pressed]),
+    [baseStyle, disabled],
   );
 
   return (
     <Pressable
-      {...passthroughProps}
+      {...pressableProps}
       disabled={disabled}
-      style={({ pressed }) => (pressed ? pressedOuterStyle : baseOuterStyle)}
+      style={({ pressed }) => (pressed ? pressedStyle : baseStyle)}
     >
-      {leftIcon && <View style={style.iconLeft}>{leftIcon}</View>}
+      {leftIcon && <View>{leftIcon}</View>}
 
-      <VStack backgroundColor="transparent" gap={0.5}>
-        <TextBody style={innerStyle}>{children}</TextBody>
+      <View style={styles.textContainer}>
+        <Body style={textStyle}>{children}</Body>
         {secondaryText && (
-          <TextCaption style={[style.secondaryText, innerStyle]}>
+          <Caption style={[styles.secondaryText, textStyle]}>
             {secondaryText}
-          </TextCaption>
+          </Caption>
         )}
-      </VStack>
+      </View>
 
-      {rightIcon && <View style={style.iconRight}>{rightIcon}</View>}
+      {rightIcon && <View>{rightIcon}</View>}
     </Pressable>
   );
 }
