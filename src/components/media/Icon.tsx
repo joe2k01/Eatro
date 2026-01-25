@@ -23,6 +23,8 @@ export type IconProps = ViewProps &
     size?: IconSize;
     /** Use variant to get color from button style system */
     variant?: InvertibleVariant;
+    /** When true, uses the inverted color for the variant */
+    inverted?: boolean;
     /** Direct color override */
     color?: ColorValue;
     style?: ViewStyle;
@@ -49,6 +51,7 @@ function IconComponent({
 
 export function Icon({
   variant = "tertiary",
+  inverted,
   color: colorProp,
   size,
   name,
@@ -56,7 +59,7 @@ export function Icon({
   ...viewProps
 }: IconProps) {
   const theme = useTheme();
-  const { textStyle } = useButtonStyle({ variant });
+  const { textStyle } = useButtonStyle({ variant, inverted });
 
   // Determine color: prop > variant > default
   const iconColor = useMemo<ColorValue>(

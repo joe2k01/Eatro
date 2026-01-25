@@ -52,7 +52,7 @@ export function useButtonStyle(props: UseButtonStyleProps): ButtonStyles {
         textColor = theme.text.inverse;
         break;
       case "secondary":
-        highlightColor = theme.text.primary;
+        highlightColor = theme.semantic.secondary;
         backgroundColor = theme.surface.secondary;
         textColor = theme.text.primary;
         break;

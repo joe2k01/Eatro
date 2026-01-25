@@ -143,7 +143,13 @@ export function Home() {
           <Button
             style={styles.flexButton}
             leftIcon={
-              <Icon community name="barcode" size="xs" variant="secondary" />
+              <Icon
+                community
+                name="barcode"
+                size="xs"
+                variant="secondary"
+                inverted
+              />
             }
             variant="secondary"
             inverted
@@ -156,7 +162,13 @@ export function Home() {
           variant="primary"
           inverted
           leftIcon={
-            <Icon community name="cart-outline" size="xs" variant="primary" />
+            <Icon
+              community
+              name="cart-outline"
+              size="xs"
+              variant="primary"
+              inverted
+            />
           }
         >
           Mealr
@@ -173,7 +185,7 @@ export function Home() {
             }}
             variant="primary"
             inverted
-            leftIcon={<Icon name="add" size="xs" variant="primary" />}
+            leftIcon={<Icon name="add" size="xs" variant="primary" inverted />}
           >
             Add meal
           </Button>
