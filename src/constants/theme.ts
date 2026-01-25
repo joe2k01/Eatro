@@ -180,6 +180,10 @@ export const EatroTheme: Theme = {
 };
 
 // Helper function to get spacing value
+// Helper function to get spacing value with narrowed return types
+export function spacing(key: SpacingKey): number;
+export function spacing(key: undefined): undefined;
+export function spacing(key: SpacingKey | undefined): number | undefined;
 export function spacing(key: SpacingKey | undefined): number | undefined {
   if (key === undefined) return undefined;
   return Spacing[key];
