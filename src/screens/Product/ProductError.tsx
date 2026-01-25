@@ -4,7 +4,7 @@ import { Ramen404 } from "@components/media/Ramen404";
 import { useTheme } from "@contexts/ThemeProvider";
 import { VStack } from "@components/layout/VStack";
 import { Box } from "@components/layout/Box";
-import { Headline, TextBody } from "@components/typography/Text";
+import { Heading, Body } from "@components/typography/Text";
 import { Button } from "@components/buttons/Button";
 
 export function ProductError({
@@ -16,7 +16,7 @@ export function ProductError({
 }) {
   const navigation = useNavigation();
 
-  const { fgMuted } = useTheme();
+  const theme = useTheme();
 
   if (error instanceof ApiError && error.status === 404) {
     return (
@@ -26,10 +26,10 @@ export function ProductError({
         </Box>
 
         <VStack gap={0.5} alignItems="center">
-          <Headline>Product not found</Headline>
-          <TextBody color={fgMuted} textAlign="center">
+          <Heading>Product not found</Heading>
+          <Body color={theme.text.muted} textAlign="center">
             We couldn’t find a product for this barcode.
-          </TextBody>
+          </Body>
         </VStack>
 
         <Box width="100%">
@@ -53,8 +53,8 @@ export function ProductError({
 
   return (
     <VStack padding={2} gap={2} width="100%">
-      <Headline>Could not load product</Headline>
-      <TextBody>Please try again.</TextBody>
+      <Heading>Could not load product</Heading>
+      <Body>Please try again.</Body>
       <Box width="100%">
         <Button onPress={onRetry} variant="destructive">
           Retry

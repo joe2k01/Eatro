@@ -10,12 +10,7 @@ import { GetProductDetails } from "@api/validators/getProductDetails";
 import { VStack } from "@components/layout/VStack";
 import { Box } from "@components/layout/Box";
 import { RemoteImage } from "@components/media/RemoteImage";
-import {
-  Headline,
-  TextBody,
-  TextCaption,
-  Title1,
-} from "@components/typography/Text";
+import { Heading, Body, Caption, Title } from "@components/typography/Text";
 import { ErrorBoundary } from "@components/feedback";
 import { ProductLoader } from "./ProductLoader";
 import { ProductError } from "./ProductError";
@@ -102,7 +97,7 @@ function ProductContent({ barcode }: { barcode: string }) {
     return res;
   }, [nutriments.per100g, nutriments.perServing, servingSize, servingsUnit]);
 
-  const { card } = useTheme();
+  const theme = useTheme();
 
   const tray = useRef<TrayApi>(null);
 
@@ -112,10 +107,10 @@ function ProductContent({ barcode }: { barcode: string }) {
         {/* Scroll area takes remaining space above the fixed bottom button */}
         <VStack scrollable flex={1} gap={2} width="100%">
           <VStack gap={1}>
-            <Headline textAlign="center">{name}</Headline>
-            <TextCaption textAlign="center" color="fgMuted">
+            <Heading textAlign="center">{name}</Heading>
+            <Caption textAlign="center" color={theme.text.muted}>
               {brand}
-            </TextCaption>
+            </Caption>
           </VStack>
 
           <Box
@@ -127,8 +122,7 @@ function ProductContent({ barcode }: { barcode: string }) {
             <Box height="100%" aspectRatio={imageRatio}>
               <RemoteImage
                 source={imageUrl}
-                width="100%"
-                height="100%"
+                style={{ width: "100%", height: "100%" }}
                 shape="squircle"
               />
             </Box>
@@ -139,11 +133,11 @@ function ProductContent({ barcode }: { barcode: string }) {
               <HStack
                 justifyContent="space-between"
                 alignItems="center"
-                borderBottomColor={card}
+                borderBottomColor={theme.surface.secondary}
                 borderBottomWidth={1}
                 paddingVertical={1}
               >
-                <Title1>Nutrition Facts</Title1>
+                <Title>Nutrition Facts</Title>
                 <PillButton
                   options={units}
                   selected={selectedUnit}
@@ -155,12 +149,12 @@ function ProductContent({ barcode }: { barcode: string }) {
                 <HStack
                   key={key}
                   justifyContent="space-between"
-                  borderBottomColor={card}
+                  borderBottomColor={theme.surface.secondary}
                   borderBottomWidth={1}
                   paddingVertical={1}
                 >
-                  <TextBody textAlign="center">{key}</TextBody>
-                  <TextBody textAlign="center">{value}</TextBody>
+                  <Body textAlign="center">{key}</Body>
+                  <Body textAlign="center">{value}</Body>
                 </HStack>
               ))}
             </VStack>

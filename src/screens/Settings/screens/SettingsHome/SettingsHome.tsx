@@ -9,11 +9,11 @@ import {
 } from "@contexts/ThemeProvider";
 import UserSVG from "./components/UserSVG";
 import { useUser } from "@contexts/UserContextProvider";
-import { TextBody, Title1 } from "@components/typography/Text";
+import { Body, Title } from "@components/typography/Text";
 import { HStack } from "@components/layout/HStack";
 import { IconButton } from "@components/buttons/IconButton";
 import { Icon } from "@components/media/Icon";
-import { useThemeDimension } from "@hooks/useThemeDimension";
+import { BorderRadius } from "@constants/theme";
 import { Switch } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type {
@@ -33,10 +33,8 @@ export function SettingsHome() {
     useNavigation<NativeStackNavigationProp<SettingsStackParamsList>>();
   const toggleTheme = useToggleTheme();
   const variant = useThemeVariant();
-  const { secondary, popover, fgPopover, accent, fgAccent } = useTheme();
+  const theme = useTheme();
   const switchEnabled = variant === "dark";
-
-  const iconBorderRadius = useThemeDimension(0.5);
 
   const { name } = useUser();
 
@@ -47,35 +45,42 @@ export function SettingsHome() {
           <UserSVG size={"100%"} />
         </Box>
         <HStack justifyContent="center" alignItems="center" gap={1}>
-          <Title1>{name ?? "User"}</Title1>
+          <Title>{name ?? "User"}</Title>
           <IconButton name="edit" size="s" variant="secondary" />
         </HStack>
         <Button
-          textAlign="left"
           secondaryText="Manage nutrition & fitness goals"
           leftIcon={
             <Box
-              backgroundColor={secondary}
-              padding={1}
-              borderRadius={iconBorderRadius}
+              style={{
+                backgroundColor: theme.semantic.secondary,
+                padding: 8,
+                borderRadius: BorderRadius.sm,
+              }}
             >
               <Icon name="outlined-flag" variant="secondary" />
             </Box>
           }
           rightIcon={<Icon name="chevron-right" variant="primary" />}
-          justifyContent="space-between"
           onPress={() => navigation.navigate("GoalsConfiguration")}
         >
           Goals configuration
         </Button>
         <HStack justifyContent="space-between" alignItems="center">
-          <TextBody>Use dark theme</TextBody>
+          <Body>Use dark theme</Body>
           <Switch
             onChange={toggleTheme}
             value={switchEnabled}
-            trackColor={{ true: accent, false: popover }}
-            ios_backgroundColor={popover}
-            thumbColor={switchEnabled ? fgAccent : fgPopover}
+            trackColor={{
+              true: theme.semantic.accent,
+              false: theme.surface.tertiary,
+            }}
+            ios_backgroundColor={theme.surface.tertiary}
+            thumbColor={
+              switchEnabled
+                ? theme.semantic.accentForeground
+                : theme.text.primary
+            }
           />
         </HStack>
       </VStack>

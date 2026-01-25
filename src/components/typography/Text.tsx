@@ -82,7 +82,11 @@ export function Text({ children, style, ...props }: TextProps) {
 function createVariant(variant: TypographyVariant) {
   const variantStyle = Typography[variant];
 
-  return function TypographyComponent({ children, style, ...props }: TextProps) {
+  return function TypographyComponent({
+    children,
+    style,
+    ...props
+  }: TextProps) {
     const mergedStyle = useMemo(
       () => StyleSheet.flatten([variantStyle, style]),
       [style],
@@ -103,10 +107,3 @@ export const Title = createVariant("title");
 export const Body = createVariant("body");
 export const Caption = createVariant("caption");
 export const Label = createVariant("label");
-
-// Legacy aliases for backward compatibility
-export const Massive = Display;
-export const Headline = Heading;
-export const Title1 = Title;
-export const TextBody = Body;
-export const TextCaption = Caption;

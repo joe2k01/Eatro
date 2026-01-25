@@ -22,7 +22,7 @@ import { SettingsStackParamsList } from "@screens/Settings/routes";
 import { goalsValidator } from "@constants/storage/validators/goals";
 import { safeParseOrDefault } from "@constants/storage/validators/safeParseOrDefault";
 import { nonNegativeNumber } from "@constants/storage/validators/numberParsers";
-import { formatNumber, parseNumber } from "@utils/numberFormat";
+import { formatNumber, parseNumber } from "../../../../utils/numberFormat";
 
 const styles = StyleSheet.create({
   input: {

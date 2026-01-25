@@ -1,4 +1,4 @@
-import { EatroTheme, ThemeVariant } from "@constants/theme";
+import { EatroTheme, ThemeColors } from "@constants/theme";
 import { useStorage } from "@hooks/useStorage";
 import {
   createContext,
@@ -12,7 +12,7 @@ import { Appearance } from "react-native";
 const defaultThemeVariant = "dark";
 
 const ThemeContext = createContext<{
-  theme: ThemeVariant;
+  theme: ThemeColors;
   toggleTheme: () => void;
   variant: "light" | "dark";
 }>({
@@ -47,8 +47,6 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   return <ThemeContext.Provider value={ctx}>{children}</ThemeContext.Provider>;
 }
 
-// This whole thing should probably use the reducer pattern
-
 function useThemeProvider() {
   const ctx = useContext(ThemeContext);
 
@@ -59,20 +57,17 @@ function useThemeProvider() {
   return ctx;
 }
 
-export function useTheme() {
+export function useTheme(): ThemeColors {
   const { theme } = useThemeProvider();
-
   return theme;
 }
 
 export function useToggleTheme() {
   const { toggleTheme } = useThemeProvider();
-
   return toggleTheme;
 }
 
 export function useThemeVariant() {
   const { variant } = useThemeProvider();
-
   return variant;
 }

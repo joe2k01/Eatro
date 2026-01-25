@@ -3,7 +3,7 @@ import type { NativeStackNavigationOptions } from "@react-navigation/native-stac
 import { useStaticNavigationOptions } from "@hooks/useStaticNavigationOptions";
 import { format } from "date-fns";
 import { AvatarButton } from "./components/AvatarButton";
-import { Massive, TextCaption, Title1 } from "@components/typography/Text";
+import { Display, Caption, Title } from "@components/typography/Text";
 import { useStorage } from "@hooks/useStorage";
 import { Goals } from "@constants/storage/validators";
 import { useTheme } from "@contexts/ThemeProvider";
@@ -18,7 +18,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useGetToday } from "@db/hooks/useGetToday";
 
 export const homeHeaderOptions = {
-  headerTitle: () => <Title1>Today, {format(new Date(), "MMMM do")}</Title1>,
+  headerTitle: () => <Title>Today, {format(new Date(), "MMMM do")}</Title>,
   headerLeft: () => <AvatarButton />,
 } satisfies NativeStackNavigationOptions;
 
@@ -54,13 +54,22 @@ export function Home() {
 
   const { data: goals } = useStorage("goals", defaultGoals);
 
-  const { card, accent } = useTheme();
+  const theme = useTheme();
 
-  const donutData = useDonut([{ key: "calories", value: cals, color: accent }]);
+  const donutData = useDonut([
+    { key: "calories", value: cals, color: theme.semantic.accent },
+  ]);
 
   const overCalories = useMemo(() => {
     return cals > (goals?.calories ?? 0);
   }, [cals, goals?.calories]);
+
+  const caloriesTextColor = overCalories
+    ? theme.semantic.destructive
+    : theme.text.primary;
+  const captionTextColor = overCalories
+    ? theme.semantic.destructive
+    : theme.text.secondary;
 
   return (
     <SafeVStack
@@ -71,19 +80,22 @@ export function Home() {
       scrollable
     >
       {/* Header */}
-      <VStack borderRadius={10} backgroundColor={card} padding={2} gap={2}>
+      <VStack
+        borderRadius={10}
+        backgroundColor={theme.surface.secondary}
+        padding={2}
+        gap={2}
+      >
         <HStack
           backgroundColor="transparent"
           alignItems="center"
           justifyContent="space-between"
         >
           <VStack backgroundColor={"transparent"}>
-            <Massive color={overCalories ? "destructive" : "fg"}>
+            <Display color={caloriesTextColor}>
               {cals} / {goals?.calories}
-            </Massive>
-            <TextCaption color={overCalories ? "destructive" : "fgCard"}>
-              kcal remaining
-            </TextCaption>
+            </Display>
+            <Caption color={captionTextColor}>kcal remaining</Caption>
           </VStack>
           <DonutChart
             donutData={donutData}
@@ -116,36 +128,28 @@ export function Home() {
       <VStack gap={1.5}>
         <HStack gap={1.5}>
           <Button
-            flex={1}
+            style={{ flex: 1 }}
             leftIcon={<Icon name="search" size="xs" variant="primary" />}
           >
             Search
           </Button>
           <Button
-            flex={1}
+            style={{ flex: 1 }}
             leftIcon={
-              <Icon
-                community
-                name="barcode"
-                size="xs"
-                variant="secondaryTranslucent"
-              />
+              <Icon community name="barcode" size="xs" variant="secondary" />
             }
-            variant="secondaryTranslucent"
+            variant="secondary"
+            inverted
             onPress={() => navigation.navigate("Scanner")}
           >
             Scan
           </Button>
         </HStack>
         <Button
-          variant="primaryTranslucent"
+          variant="primary"
+          inverted
           leftIcon={
-            <Icon
-              community
-              name="cart-outline"
-              size="xs"
-              variant="primaryTranslucent"
-            />
+            <Icon community name="cart-outline" size="xs" variant="primary" />
           }
         >
           Mealr
@@ -155,15 +159,14 @@ export function Home() {
       {/* Log */}
       <VStack>
         <HStack justifyContent="space-between" alignItems="center">
-          <Title1>Recent meals</Title1>
+          <Title>Recent meals</Title>
           <Button
             onPress={() => {
               console.log("add meal");
             }}
-            variant="primaryTranslucent"
-            leftIcon={
-              <Icon name="add" size="xs" variant="primaryTranslucent" />
-            }
+            variant="primary"
+            inverted
+            leftIcon={<Icon name="add" size="xs" variant="primary" />}
           >
             Add meal
           </Button>

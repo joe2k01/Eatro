@@ -9,7 +9,7 @@ import {
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useTheme } from "@contexts/ThemeProvider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { intoThemeDimension } from "@hooks/useThemeDimension";
+import { spacing } from "@constants/theme";
 
 type TrayProps = {
   children: React.ReactNode;
@@ -51,12 +51,12 @@ export const Tray = forwardRef<TrayApi, TrayProps>(function Tray(
     [closeTray],
   );
 
-  const { card } = useTheme();
+  const theme = useTheme();
   const insets = useSafeAreaInsets();
   const viewStyle = useMemo(
     () => ({
       paddingBottom: insets.bottom,
-      paddingHorizontal: intoThemeDimension(2),
+      paddingHorizontal: spacing(2),
     }),
     [insets.bottom],
   );
@@ -67,7 +67,7 @@ export const Tray = forwardRef<TrayApi, TrayProps>(function Tray(
 
   return (
     <BottomSheet
-      backgroundStyle={{ backgroundColor: card }}
+      backgroundStyle={{ backgroundColor: theme.surface.secondary }}
       ref={sheetRef}
       onClose={onTrayClose}
       enablePanDownToClose

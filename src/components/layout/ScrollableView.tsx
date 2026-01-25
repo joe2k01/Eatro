@@ -9,9 +9,8 @@ import {
 } from "react-native";
 import { useTheme } from "@contexts/ThemeProvider";
 import { forwardRef, RefObject, useMemo } from "react";
-import { useComposedStyle } from "@hooks/useComposedStyle";
 import { splitScrollableStyles } from "./splitScrollableStyles";
-import { useExtractViewStyleProps } from "@hooks/useExtractViewStyleProps";
+import { extractStyleProps } from "./viewStyleKeys";
 
 type ScrollableViewExtraProps = Pick<
   ScrollViewProps,
@@ -19,6 +18,7 @@ type ScrollableViewExtraProps = Pick<
 >;
 
 export type ScrollableViewProps = ViewProps &
+  ViewStyle &
   ScrollableViewExtraProps & {
     style?: StyleProp<ViewStyle>;
     scrollable?: boolean;
@@ -27,39 +27,41 @@ export type ScrollableViewProps = ViewProps &
 export const ScrollableView = forwardRef<
   View | ScrollView,
   ScrollableViewProps
->(function ScrollableView(props: ScrollableViewProps, ref) {
+>(function ScrollableView(
+  { scrollable, style, contentContainerStyle, children, ...props },
+  ref,
+) {
   const theme = useTheme();
 
-  // Keep the base background stable while still reacting to theme changes.
-  const baseBackground = useMemo(
-    () => ({ backgroundColor: theme.bg }),
-    [theme.bg],
+  const { styleProps, viewProps } = useMemo(
+    () => extractStyleProps(props),
+    [props],
   );
 
-  const { passthroughProps, styleProps } = useExtractViewStyleProps(props);
-
-  const themedStyle = useComposedStyle<ViewStyle>({
-    base: baseBackground,
-    props: styleProps,
-  });
+  const themedStyle = useMemo(
+    () =>
+      StyleSheet.flatten([
+        { backgroundColor: theme.surface.primary },
+        styleProps,
+        style,
+      ]),
+    [theme.surface.primary, styleProps, style],
+  );
 
   const { scrollStyle, contentStyle } = useMemo(
     () => splitScrollableStyles(themedStyle),
     [themedStyle],
   );
+
   const mergedContentContainerStyle = useMemo(
-    () =>
-      StyleSheet.flatten([
-        contentStyle,
-        passthroughProps.contentContainerStyle,
-      ]),
-    [contentStyle, passthroughProps.contentContainerStyle],
+    () => StyleSheet.flatten([contentStyle, contentContainerStyle]),
+    [contentStyle, contentContainerStyle],
   );
 
-  if (passthroughProps.scrollable) {
+  if (scrollable) {
     return (
       <ScrollView
-        {...passthroughProps}
+        {...viewProps}
         style={scrollStyle}
         contentContainerStyle={mergedContentContainerStyle}
         alwaysBounceVertical={false}
@@ -67,18 +69,14 @@ export const ScrollableView = forwardRef<
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
       >
-        {passthroughProps.children}
+        {children}
       </ScrollView>
     );
   }
 
   return (
-    <View
-      {...passthroughProps}
-      style={themedStyle}
-      ref={ref as RefObject<View>}
-    >
-      {passthroughProps.children}
+    <View {...viewProps} style={themedStyle} ref={ref as RefObject<View>}>
+      {children}
     </View>
   );
 });

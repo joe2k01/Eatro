@@ -1,42 +1,20 @@
-import { useComposedStyle } from "@hooks/useComposedStyle";
 import { Image, ImageProps, ImageStyle } from "expo-image";
 import { useMemo } from "react";
 import { StyleSheet } from "react-native";
-import { useExtractViewStyleProps } from "@hooks/useExtractViewStyleProps";
-import { StyledViewProps } from "@constants/theme";
+import { BorderRadius } from "@constants/theme";
 
-export type RemoteImageProps = StyledViewProps<
-  ImageProps &
-    ImageStyle & {
-      shape?: "squircle";
-    }
->;
+export type RemoteImageProps = ImageProps & {
+  shape?: "squircle";
+  style?: ImageStyle;
+};
 
-export function RemoteImage(props: RemoteImageProps) {
-  const { passthroughProps, styleProps } =
-    useExtractViewStyleProps<RemoteImageProps>(props);
+export function RemoteImage({ shape, style, ...imageProps }: RemoteImageProps) {
+  const composedStyle = useMemo(() => {
+    const baseStyle: ImageStyle =
+      shape === "squircle" ? { borderRadius: BorderRadius.lg } : {};
 
-  const { shape } = passthroughProps;
+    return StyleSheet.flatten([baseStyle, style]);
+  }, [shape, style]);
 
-  const { baseStyle } = useMemo(() => {
-    let baseStyle: ImageStyle = {};
-    switch (shape) {
-      case "squircle":
-        baseStyle = {
-          borderRadius: 10,
-        };
-        break;
-      default:
-        break;
-    }
-
-    return StyleSheet.create({ baseStyle });
-  }, [shape]);
-
-  const composedStyle = useComposedStyle({
-    props: styleProps,
-    base: baseStyle,
-  }) as ImageStyle;
-
-  return <Image {...passthroughProps} style={composedStyle} />;
+  return <Image {...imageProps} style={composedStyle} />;
 }

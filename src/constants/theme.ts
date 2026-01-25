@@ -9,7 +9,7 @@ export const IconSizes = {
 
 export type IconSize = keyof typeof IconSizes;
 
-// Simplified spacing system (8px base unit)
+// Spacing system (8px base unit)
 export const Spacing = {
   0: 0,
   0.25: 2,
@@ -69,118 +69,95 @@ export const Typography = {
   },
 } as const;
 
-// Legacy dimension system (kept for backward compatibility during migration)
-export type Dimension = 0 | 0.25 | 0.5 | 0.75 | 1 | 1.5 | 2 | 3 | 4;
-export const DimensionSize = 8;
-
-// Semantic color tokens structure
-export type ColorTokens = {
+// Semantic color token structure
+export type ThemeColors = {
   // Surface colors (backgrounds)
   surface: {
-    primary: string;
-    secondary: string;
-    tertiary: string;
+    primary: string; // Main background (was: bg)
+    secondary: string; // Cards, elevated surfaces (was: card)
+    tertiary: string; // Subtle backgrounds (was: muted)
   };
   // Text colors
   text: {
-    primary: string;
-    secondary: string;
-    muted: string;
-    inverse: string;
+    primary: string; // Primary text (was: fg)
+    secondary: string; // Secondary text (was: fgCard)
+    muted: string; // Muted/disabled text (was: fgMuted)
+    inverse: string; // Text on colored backgrounds (was: fgPrimary)
   };
-  // Border colors
-  border: {
-    default: string;
-    muted: string;
-  };
-  // Semantic colors (actions, states)
+  // Semantic action colors
   semantic: {
-    primary: string;
-    primaryForeground: string;
-    secondary: string;
-    secondaryForeground: string;
-    destructive: string;
-    destructiveForeground: string;
-    success: string;
+    primary: string; // Primary action (was: primary)
+    primaryForeground: string; // Text on primary (was: fgPrimary)
+    secondary: string; // Secondary action (was: secondary)
+    secondaryForeground: string; // Text on secondary (was: fgSecondary)
+    destructive: string; // Destructive action (was: destructive)
+    destructiveForeground: string; // Text on destructive (was: fgDestructive)
+    success: string; // Success state
     successForeground: string;
-    accent: string;
-    accentForeground: string;
+    accent: string; // Accent highlights (was: accent)
+    accentForeground: string; // Text on accent (was: fgAccent)
   };
-};
-
-// Legacy ThemeVariant type (kept for backward compatibility)
-// Maps old color names to new semantic structure
-export type ThemeVariant = {
-  bg: string;
-  fg: string;
-  card: string;
-  fgCard: string;
-  popover: string;
-  fgPopover: string;
-  primary: string;
-  fgPrimary: string;
-  secondary: string;
-  fgSecondary: string;
-  accent: string;
-  fgAccent: string;
-  muted: string;
-  fgMuted: string;
-  destructive: string;
-  fgDestructive: string;
 };
 
 export type Theme = {
-  light: ThemeVariant;
-  dark: ThemeVariant;
+  light: ThemeColors;
+  dark: ThemeColors;
 };
 
-// Theme definition with legacy structure (for backward compatibility)
 export const EatroTheme: Theme = {
   light: {
-    bg: "#FBF8F2",
-    fg: "#141412",
-    card: "#EFE8DD",
-    fgCard: "#141412",
-    popover: "#F4EEE4",
-    fgPopover: "#141412",
-    // Community / trust
-    primary: "#1F6F4A",
-    fgPrimary: "#FFFFFF",
-    // Food / warmth (good for CTAs, highlights)
-    secondary: "#F2B84B",
-    fgSecondary: "#141412",
-    // Individual ownership (badges, chips, "my contributions")
-    accent: "#C56A3D",
-    fgAccent: "#FFF7F0",
-    // `muted` is intended to be a *surface/background* colour.
-    // `fgMuted` is the readable text/icon colour on top of `muted`.
-    muted: "#EFE8DD",
-    fgMuted: "#6A655D",
-    destructive: "#D64545",
-    fgDestructive: "#FFFFFF",
+    surface: {
+      primary: "#FBF8F2",
+      secondary: "#EFE8DD",
+      tertiary: "#F4EEE4",
+    },
+    text: {
+      primary: "#141412",
+      secondary: "#141412",
+      muted: "#6A655D",
+      inverse: "#FFFFFF",
+    },
+    semantic: {
+      primary: "#1F6F4A",
+      primaryForeground: "#FFFFFF",
+      secondary: "#F2B84B",
+      secondaryForeground: "#141412",
+      destructive: "#D64545",
+      destructiveForeground: "#FFFFFF",
+      success: "#1F6F4A",
+      successForeground: "#FFFFFF",
+      accent: "#C56A3D",
+      accentForeground: "#FFF7F0",
+    },
   },
   dark: {
-    bg: "#0F1411",
-    fg: "#F6F3ED",
-    card: "#18201B",
-    fgCard: "#F6F3ED",
-    popover: "#121A15",
-    fgPopover: "#F6F3ED",
-    primary: "#3ABF84",
-    fgPrimary: "#08100C",
-    secondary: "#F3C56B",
-    fgSecondary: "#0B0F0C",
-    accent: "#D08B5B",
-    fgAccent: "#101312",
-    muted: "#2A332E",
-    fgMuted: "#9AA79F",
-    destructive: "#FF6B6B",
-    fgDestructive: "#101312",
+    surface: {
+      primary: "#0F1411",
+      secondary: "#18201B",
+      tertiary: "#121A15",
+    },
+    text: {
+      primary: "#F6F3ED",
+      secondary: "#F6F3ED",
+      muted: "#9AA79F",
+      inverse: "#08100C",
+    },
+    semantic: {
+      primary: "#3ABF84",
+      primaryForeground: "#08100C",
+      secondary: "#F3C56B",
+      secondaryForeground: "#0B0F0C",
+      destructive: "#FF6B6B",
+      destructiveForeground: "#101312",
+      success: "#3ABF84",
+      successForeground: "#08100C",
+      accent: "#D08B5B",
+      accentForeground: "#101312",
+    },
   },
 };
 
-// Helper function to get spacing value
-// Helper function to get spacing value with narrowed return types
+// Helper to get spacing value with proper type inference
 export function spacing(key: SpacingKey): number;
 export function spacing(key: undefined): undefined;
 export function spacing(key: SpacingKey | undefined): number | undefined;
@@ -189,31 +166,5 @@ export function spacing(key: SpacingKey | undefined): number | undefined {
   return Spacing[key];
 }
 
-// Helper function to get border radius value
-export function borderRadius(key: BorderRadiusKey): number {
-  return BorderRadius[key];
-}
-
-// Legacy support - map old color names to new structure for gradual migration
-export type LegacyColorName = keyof ThemeVariant;
-
-/**
- * Maps legacy color names to new token structure
- * This allows gradual migration without breaking existing code
- */
-export function mapLegacyColor(
-  theme: ThemeVariant,
-  legacyName: LegacyColorName,
-): string {
-  return theme[legacyName];
-}
-
-// Legacy type exports (kept for backward compatibility during migration)
-export type AllColours = LegacyColorName;
-
 // Simplified style type
 export type Style = ViewStyle | TextStyle | ImageStyle;
-
-// Legacy StyledViewProps type - kept for backward compatibility
-// Components will be migrated away from this gradually
-export type StyledViewProps<P> = P;

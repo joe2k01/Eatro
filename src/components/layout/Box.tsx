@@ -1,13 +1,11 @@
 import { forwardRef } from "react";
-import { View, ViewProps, ViewStyle, StyleProp } from "react-native";
-import { ScrollableView } from "./ScrollableView";
+import { View } from "react-native";
+import { ScrollableView, ScrollableViewProps } from "./ScrollableView";
 
-export type BoxProps = ViewProps & {
-  style?: StyleProp<ViewStyle>;
-};
+export type BoxProps = ScrollableViewProps;
 
 export const Box = forwardRef<View, BoxProps>(function Box(
-  { children, ...props }: BoxProps,
+  { children, ...props },
   ref,
 ) {
   return (

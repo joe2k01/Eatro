@@ -60,8 +60,8 @@ export function Icon({
 
   // Determine color: prop > variant > default
   const iconColor = useMemo<ColorValue>(
-    () => colorProp ?? textStyle.color ?? theme.fg,
-    [colorProp, textStyle.color, theme.fg],
+    () => colorProp ?? textStyle.color ?? theme.text.primary,
+    [colorProp, textStyle.color, theme.text.primary],
   );
 
   // Type narrowing for community prop

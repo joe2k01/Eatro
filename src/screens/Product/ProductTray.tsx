@@ -10,6 +10,7 @@ import { Tray, type TrayApi } from "@components/layout/Tray";
 import { VStack } from "@components/layout/VStack";
 import { HStack } from "@components/layout/HStack";
 import { Heading, Body, Caption } from "@components/typography/Text";
+import { useTheme } from "@contexts/ThemeProvider";
 import { Button } from "@components/buttons/Button";
 import { TextInput, Picker } from "@components/forms";
 import type { GetProductDetails } from "@api/validators/getProductDetails";
@@ -22,6 +23,7 @@ import { utcStartOfTodaySeconds, addUtcDaysSeconds } from "@db/utils/utc";
 import { useRepositories } from "@db/context/DatabaseProvider";
 import { IconButton } from "@components/buttons/IconButton";
 import { PopupButtonOption } from "../../../modules/popup-button";
+import { formatNumber, parseNumber } from "../../utils/numberFormat";
 
 type NutrimentsUnit = keyof GetProductDetails["nutriments"];
 
@@ -29,8 +31,6 @@ function roundTo(n: number, decimals: number): number {
   const p = 10 ** decimals;
   return Math.round(n * p) / p;
 }
-
-import { formatNumber, parseNumber } from "@utils/numberFormat";
 
 function formatNutrientValue(key: string, value: number): string {
   if (key === "energy") return String(Math.round(value));
@@ -56,10 +56,10 @@ export type ProductTrayProps = {
 };
 
 const productTrayFormSchema = z.object({
-  servings: z.number().nonnegative().optional(),
-  servingSize: z.number().nonnegative().optional(),
-  servingUnit: z.string(),
-  customMealType: z.string().optional(),
+  servings: z.number().nonnegative().default(1),
+  servingSize: z.number().nonnegative().default(100),
+  servingUnit: z.string().default("g"),
+  customMealType: z.string().default(""),
 });
 
 type NutrimentsForCalc = {
@@ -109,6 +109,7 @@ export function ProductTray({
   servingsUnit,
   hideLogControls = false,
 }: ProductTrayProps) {
+  const theme = useTheme();
   const [saving, setSaving] = useState(false);
 
   const [dayUtcSeconds, setDayUtcSeconds] = useState(() =>
@@ -172,7 +173,13 @@ export function ProductTray({
           ? values.servings
           : 1,
     });
-  }, [defaultServingSize, setValues, unit, values.servingSize, values.servings]);
+  }, [
+    defaultServingSize,
+    setValues,
+    unit,
+    values.servingSize,
+    values.servings,
+  ]);
 
   const servingsValue = useMemo(() => {
     return safeParseOrDefault(values.servings, nonNegativeNumber, 0);
@@ -303,7 +310,7 @@ export function ProductTray({
       <VStack gap={2} backgroundColor="transparent">
         <VStack backgroundColor="transparent">
           <Heading>{name}</Heading>
-          <Caption color="fgMuted">{brand}</Caption>
+          <Caption color={theme.text.muted}>{brand}</Caption>
         </VStack>
 
         {computedNutriments && (
@@ -333,7 +340,9 @@ export function ProductTray({
           <Body>Number of servings</Body>
           <TextInput
             value={formatNumber(values.servings)}
-            onChangeText={(text) => setValue("servings", parseNumber(text))}
+            onChangeText={(text) =>
+              setValue("servings", parseNumber(text) ?? 0)
+            }
             placeholder="1"
             keyboardType="decimal-pad"
             containerStyle={styles.inputContainer}
@@ -349,7 +358,9 @@ export function ProductTray({
           <Body>Serving size</Body>
           <TextInput
             value={formatNumber(values.servingSize)}
-            onChangeText={(text) => setValue("servingSize", parseNumber(text))}
+            onChangeText={(text) =>
+              setValue("servingSize", parseNumber(text) ?? 0)
+            }
             placeholder={String(defaultServingSize)}
             keyboardType="decimal-pad"
             unit={unit}

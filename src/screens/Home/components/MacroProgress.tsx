@@ -1,11 +1,10 @@
 import { VStack } from "@components/layout/VStack";
 import { Goals } from "@constants/storage/validators";
 import { useStorage } from "@hooks/useStorage";
-import { TextBody, TextCaption } from "@components/typography/Text";
+import { Body, Caption } from "@components/typography/Text";
 import { useMemo } from "react";
 import { Icon } from "@components/media/Icon";
 import { HStack } from "@components/layout/HStack";
-import { AllColours } from "@constants/theme";
 import { useTheme } from "@contexts/ThemeProvider";
 
 type MacroLabel = Exclude<keyof Goals, "calories">;
@@ -15,10 +14,10 @@ type MacroProgressProps = {
   consumedGrams: number;
 };
 
-const labels: Record<MacroLabel, [string, AllColours]> = {
-  protein: ["Protein", "primary"],
-  carbs: ["Carbs", "secondary"],
-  fat: ["Fat", "accent"],
+const labels: Record<MacroLabel, string> = {
+  protein: "Protein",
+  carbs: "Carbs",
+  fat: "Fat",
 };
 
 const defaultGoals: Goals = {
@@ -29,9 +28,24 @@ const defaultGoals: Goals = {
 };
 
 export function MacroProgress({ label, consumedGrams }: MacroProgressProps) {
-  const [labelText, labelVariant] = labels[label];
+  const labelText = labels[label];
+  const theme = useTheme();
 
-  const colour = useTheme()[labelVariant];
+  const colour = useMemo(() => {
+    switch (label) {
+      case "protein":
+        return theme.semantic.primary;
+      case "carbs":
+        return theme.semantic.secondary;
+      case "fat":
+        return theme.semantic.accent;
+    }
+  }, [
+    label,
+    theme.semantic.accent,
+    theme.semantic.primary,
+    theme.semantic.secondary,
+  ]);
 
   const { data: goals } = useStorage("goals", defaultGoals);
 
@@ -47,17 +61,23 @@ export function MacroProgress({ label, consumedGrams }: MacroProgressProps) {
     return progress > roundGoal;
   }, [progress, roundGoal]);
 
+  const textColor = overGoal
+    ? theme.semantic.destructive
+    : theme.text.secondary;
+
   return (
-    <VStack backgroundColor="transparent">
-      <HStack backgroundColor="transparent" alignItems="center" gap={0.5}>
+    <VStack style={{ backgroundColor: "transparent" }}>
+      <HStack
+        style={{ backgroundColor: "transparent" }}
+        alignItems="center"
+        gap={0.5}
+      >
         <Icon name="circle" size="xs" color={colour} />
-        <TextCaption color={overGoal ? "destructive" : "fgCard"}>
-          {labelText}
-        </TextCaption>
+        <Caption color={textColor}>{labelText}</Caption>
       </HStack>
-      <TextBody color={overGoal ? "destructive" : "fgCard"}>
+      <Body color={textColor}>
         {progress} / {roundGoal} g
-      </TextBody>
+      </Body>
     </VStack>
   );
 }

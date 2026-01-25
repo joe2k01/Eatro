@@ -80,9 +80,9 @@ export function Snackbar({ message, variant, visible }: SnackbarProps) {
   const indicatorColor = useMemo(
     () =>
       match(variant)
-        .with(SnackbarVariant.Success, () => theme.primary)
-        .with(SnackbarVariant.Error, () => theme.destructive)
-        .otherwise(() => theme.secondary),
+        .with(SnackbarVariant.Success, () => theme.semantic.success)
+        .with(SnackbarVariant.Error, () => theme.semantic.destructive)
+        .otherwise(() => theme.semantic.secondary),
     [theme, variant],
   );
 
@@ -115,13 +115,13 @@ export function Snackbar({ message, variant, visible }: SnackbarProps) {
         style={[
           styles.card,
           {
-            backgroundColor: theme.popover,
+            backgroundColor: theme.surface.secondary,
             borderLeftColor: indicatorColor,
           },
         ]}
       >
         <Caption style={{ color: indicatorColor }}>{variantLabel}</Caption>
-        <Body style={{ color: theme.fgPopover }}>{message}</Body>
+        <Body style={{ color: theme.text.primary }}>{message}</Body>
       </View>
     </Animated.View>
   );

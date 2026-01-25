@@ -1,7 +1,4 @@
-import { StyledViewProps } from "@constants/theme";
 import { useTheme } from "@contexts/ThemeProvider";
-import { useComposedStyle } from "@hooks/useComposedStyle";
-import { useExtractViewStyleProps } from "@hooks/useExtractViewStyleProps";
 import { useEffect, useMemo, useState } from "react";
 import {
   LayoutChangeEvent,
@@ -25,54 +22,44 @@ import Animated, {
   withRepeat,
   withTiming,
 } from "react-native-reanimated";
+import { BorderRadius } from "@constants/theme";
 
 export type FallbackShape = "rect" | "squircle" | "circle";
 
-export type FallbackProps = StyledViewProps<
-  ViewProps &
-    ViewStyle & {
-      shape?: FallbackShape;
-      /** Override the default corner radius (in px). */
-      borderRadius?: number;
-      /** Disable shimmer animation (renders static placeholder). */
-      animate?: boolean;
-      /** Shimmer duration (ms). */
-      durationMs?: number;
-      /** Override base skeleton color. */
-      baseColor?: string;
-      /** Override highlight skeleton color. */
-      highlightColor?: string;
-    }
->;
+export type FallbackProps = ViewProps & {
+  shape?: FallbackShape;
+  /** Override the default corner radius (in px). */
+  borderRadius?: number;
+  /** Disable shimmer animation (renders static placeholder). */
+  animate?: boolean;
+  /** Shimmer duration (ms). */
+  durationMs?: number;
+  /** Override base skeleton color. */
+  baseColor?: string;
+  /** Override highlight skeleton color. */
+  highlightColor?: string;
+  style?: ViewStyle;
+};
 
 const AnimatedRect = Animated.createAnimatedComponent(Rect);
 
 /**
  * Animated skeleton placeholder with a shimmer gradient (Netflix/LinkedIn style).
- *
- * - Uses SVG for the gradient, Reanimated for smooth native-driven animation.
- * - Respects your existing `StyledViewProps` system (dimensions + theme colors).
  */
-export function Fallback(props: FallbackProps) {
+export function Fallback({
+  shape = "rect",
+  borderRadius: borderRadiusOverride,
+  animate = true,
+  durationMs = 1200,
+  baseColor,
+  highlightColor,
+  style,
+  ...viewProps
+}: FallbackProps) {
   const theme = useTheme();
-  const { passthroughProps, styleProps } = useExtractViewStyleProps(props);
 
-  const {
-    shape = "rect",
-    borderRadius: borderRadiusOverride,
-    animate = true,
-    durationMs = 1200,
-    baseColor,
-    highlightColor,
-  } = passthroughProps;
-
-  const composedStyle = useComposedStyle<ViewStyle>({
-    base: styles.base,
-    props: styleProps,
-  });
-
-  const background = baseColor ?? theme.card;
-  const highlight = highlightColor ?? theme.popover;
+  const background = baseColor ?? theme.surface.secondary;
+  const highlight = highlightColor ?? theme.surface.tertiary;
 
   const [size, setSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
 
@@ -88,7 +75,6 @@ export function Fallback(props: FallbackProps) {
   const shimmerX = useSharedValue(0);
 
   const shimmerWidth = useMemo(() => {
-    // Wider on large surfaces, still reasonable on small text fallbacks.
     return Math.max(24, Math.round(size.w * 0.35));
   }, [size.w]);
 
@@ -118,21 +104,24 @@ export function Fallback(props: FallbackProps) {
   const radius = useMemo(() => {
     if (typeof borderRadiusOverride === "number") return borderRadiusOverride;
     if (shape === "circle") return Math.min(size.w, size.h) / 2;
-    if (shape === "squircle") return 12;
-    return 8;
+    if (shape === "squircle") return BorderRadius.lg;
+    return BorderRadius.md;
   }, [borderRadiusOverride, shape, size.h, size.w]);
+
+  const composedStyle = useMemo(
+    () =>
+      StyleSheet.flatten([
+        styles.base,
+        { backgroundColor: background, borderRadius: radius },
+        style,
+      ]),
+    [background, radius, style],
+  );
 
   const showSvg = size.w > 0 && size.h > 0;
 
   return (
-    <View
-      {...passthroughProps}
-      onLayout={onLayout}
-      style={[
-        composedStyle,
-        { backgroundColor: background, borderRadius: radius },
-      ]}
-    >
+    <View {...viewProps} onLayout={onLayout} style={composedStyle}>
       {showSvg && (
         <Svg width={size.w} height={size.h}>
           <Defs>
