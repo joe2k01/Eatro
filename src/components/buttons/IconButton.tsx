@@ -1,71 +1,79 @@
-import { IconSize, IconSizes, StyledViewProps } from "@constants/theme";
+import { IconSize, IconSizes, spacing, BorderRadius } from "@constants/theme";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useComposedStyle } from "@hooks/useComposedStyle";
-import { intoThemeDimension } from "@hooks/useThemeDimension";
 import { ComponentProps, useMemo } from "react";
 import { Pressable, PressableProps, StyleSheet, ViewStyle } from "react-native";
-import { ButtonVariant, useButtonStyle } from "./hooks/useButtonStyle";
-import { useExtractViewStyleProps } from "@hooks/useExtractViewStyleProps";
+import {
+  InvertibleVariant,
+  LegacyButtonVariant,
+  useButtonStyle,
+} from "./hooks/useButtonStyle";
 
 type MaterialIconsProps = ComponentProps<typeof MaterialIcons>;
 
-export type IconButtonProps = StyledViewProps<
-  {
+type BaseIconButtonProps = Omit<PressableProps, "children" | "style"> &
+  Pick<MaterialIconsProps, "name"> & {
     size?: IconSize;
-    variant?: ButtonVariant;
-  } & Pick<MaterialIconsProps, "name"> &
-    ViewStyle &
-    PressableProps
->;
+    style?: ViewStyle;
+  };
 
-const style = StyleSheet.create({
+type GhostIconButtonProps = BaseIconButtonProps & {
+  variant: "ghost" | "transparent";
+};
+
+type StandardIconButtonProps = BaseIconButtonProps & {
+  variant?: InvertibleVariant | Exclude<LegacyButtonVariant, "transparent">;
+  inverted?: boolean;
+};
+
+export type IconButtonProps = GhostIconButtonProps | StandardIconButtonProps;
+
+const styles = StyleSheet.create({
   iconButton: {
-    borderRadius: 999,
-    padding: intoThemeDimension(1),
+    borderRadius: BorderRadius.full,
+    padding: spacing(1),
+    alignItems: "center",
+    justifyContent: "center",
   },
   pressed: {
-    opacity: 0.9,
+    opacity: 0.8,
   },
 });
 
 export function IconButton(props: IconButtonProps) {
-  const { passthroughProps, styleProps } = useExtractViewStyleProps(props);
-
   const {
     size = "m",
     name,
-    variant = "muted",
     disabled = false,
-  } = passthroughProps;
+    style,
+    ...pressableProps
+  } = props;
 
-  const composedStyle = useComposedStyle<ViewStyle>({
-    base: style.iconButton,
-    props: styleProps,
-  });
+  const variant = props.variant ?? "tertiary";
+  const inverted = "inverted" in props ? props.inverted : false;
 
-  const { outerStyle, innerStyle } = useButtonStyle({
-    variant,
-    composedStyle,
-    disabled,
-  });
+  const isGhostVariant = variant === "ghost" || variant === "transparent";
+  const { containerStyle, textStyle } = useButtonStyle(
+    isGhostVariant ? { variant, disabled } : { variant, inverted, disabled },
+  );
 
-  const pressedOuterStyle = useMemo(
+  const baseStyle = useMemo(
+    () => StyleSheet.flatten([styles.iconButton, containerStyle, style]),
+    [containerStyle, style],
+  );
+
+  const pressedStyle = useMemo(
     () =>
-      disabled ? outerStyle : StyleSheet.compose(outerStyle, style.pressed),
-    [disabled, outerStyle],
+      disabled ? baseStyle : StyleSheet.flatten([baseStyle, styles.pressed]),
+    [baseStyle, disabled],
   );
 
   return (
     <Pressable
-      {...passthroughProps}
+      {...pressableProps}
       disabled={disabled}
-      style={({ pressed }) => (pressed ? pressedOuterStyle : outerStyle)}
+      style={({ pressed }) => (pressed ? pressedStyle : baseStyle)}
     >
-      <MaterialIcons
-        name={name}
-        size={IconSizes[size]}
-        color={innerStyle.color}
-      />
+      <MaterialIcons name={name} size={IconSizes[size]} color={textStyle.color} />
     </Pressable>
   );
 }
