@@ -1667,17 +1667,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@hookform/resolvers@npm:^5.2.2":
-  version: 5.2.2
-  resolution: "@hookform/resolvers@npm:5.2.2"
-  dependencies:
-    "@standard-schema/utils": "npm:^0.3.0"
-  peerDependencies:
-    react-hook-form: ^7.55.0
-  checksum: 10c0/0692cd61dcc2a70cbb27b88a37f733c39e97f555c036ba04a81bd42b0467461cfb6bafacb46c16f173672f9c8a216bd7928a2330d4e49c700d130622bf1defaf
-  languageName: node
-  linkType: hard
-
 "@humanfs/core@npm:^0.19.1":
   version: 0.19.1
   resolution: "@humanfs/core@npm:0.19.1"
@@ -2479,13 +2468,6 @@ __metadata:
   dependencies:
     "@sinonjs/commons": "npm:^3.0.0"
   checksum: 10c0/2e2fb6cc57f227912814085b7b01fede050cd4746ea8d49a1e44d5a0e56a804663b0340ae2f11af7559ea9bf4d087a11f2f646197a660ea3cb04e19efc04aa63
-  languageName: node
-  linkType: hard
-
-"@standard-schema/utils@npm:^0.3.0":
-  version: 0.3.0
-  resolution: "@standard-schema/utils@npm:0.3.0"
-  checksum: 10c0/6eb74cd13e52d5fc74054df51e37d947ef53f3ab9e02c085665dcca3c38c60ece8d735cebbdf18fbb13c775fbcb9becb3f53109b0e092a63f0f7389ce0993fd0
   languageName: node
   linkType: hard
 
@@ -4274,7 +4256,6 @@ __metadata:
   resolution: "eatro@workspace:."
   dependencies:
     "@gorhom/bottom-sheet": "npm:^5"
-    "@hookform/resolvers": "npm:^5.2.2"
     "@react-native-async-storage/async-storage": "npm:2.2.0"
     "@react-native-community/datetimepicker": "npm:8.4.4"
     "@react-navigation/native": "npm:^7.1.20"
@@ -4300,7 +4281,6 @@ __metadata:
     expo-status-bar: "npm:~3.0.9"
     prettier: "npm:^3.7.3"
     react: "npm:19.1.0"
-    react-hook-form: "npm:^7.69.0"
     react-native: "npm:0.81.5"
     react-native-gesture-handler: "npm:~2.28.0"
     react-native-reanimated: "npm:~4.1.1"
@@ -7863,15 +7843,6 @@ __metadata:
   peerDependencies:
     react: ">=17.0.0"
   checksum: 10c0/8f51257c261bfefff86f618e958683536248f708019632d309ee5ebdd52f25d3c130660d06fb6f0f4fdef79f00f8ec7177233a872c2321f7d46b7e77ccc522a1
-  languageName: node
-  linkType: hard
-
-"react-hook-form@npm:^7.69.0":
-  version: 7.69.0
-  resolution: "react-hook-form@npm:7.69.0"
-  peerDependencies:
-    react: ^16.8.0 || ^17 || ^18 || ^19
-  checksum: 10c0/99440aac1edbbda1f1704e31bea72dd75130d09593f5fce037596d381fb3dbf5a9864b28f49ecd52bd6dfabceb437905578fe2efc20c69411500fbdbc8647df6
   languageName: node
   linkType: hard
 
