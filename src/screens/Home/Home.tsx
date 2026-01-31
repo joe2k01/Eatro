@@ -136,21 +136,13 @@ export function Home() {
         <HStack gap={1.5}>
           <Button
             style={styles.flexButton}
-            leftIcon={<Icon name="search" size="xs" variant="primary" />}
+            leftIcon={<Icon name="search" size="xs" />}
           >
             Search
           </Button>
           <Button
             style={styles.flexButton}
-            leftIcon={
-              <Icon
-                community
-                name="barcode"
-                size="xs"
-                variant="secondary"
-                inverted
-              />
-            }
+            leftIcon={<Icon community name="barcode" size="xs" />}
             variant="secondary"
             inverted
             onPress={() => navigation.navigate("Scanner")}
@@ -161,15 +153,7 @@ export function Home() {
         <Button
           variant="primary"
           inverted
-          leftIcon={
-            <Icon
-              community
-              name="cart-outline"
-              size="xs"
-              variant="primary"
-              inverted
-            />
-          }
+          leftIcon={<Icon community name="cart-outline" size="xs" />}
         >
           Mealr
         </Button>
@@ -185,7 +169,7 @@ export function Home() {
             }}
             variant="primary"
             inverted
-            leftIcon={<Icon name="add" size="xs" variant="primary" inverted />}
+            leftIcon={<Icon name="add" size="xs" />}
           >
             Add meal
           </Button>

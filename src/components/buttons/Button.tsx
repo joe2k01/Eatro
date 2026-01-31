@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { InvertibleVariant, useButtonStyle } from "./hooks/useButtonStyle";
 import { Body, Caption } from "@components/typography/Text";
-import { ReactNode, useMemo } from "react";
+import { cloneElement, isValidElement, ReactNode, useMemo } from "react";
 
 type BaseButtonProps = Omit<PressableProps, "children" | "style"> & {
   children?: ReactNode;
@@ -87,13 +87,28 @@ export function Button(props: ButtonProps) {
     [baseStyle, disabled],
   );
 
+  // Inject color into icons if they don't already have one
+  const coloredLeftIcon = useMemo(() => {
+    if (!leftIcon || !isValidElement(leftIcon)) return leftIcon;
+    // Only inject color if not already provided
+    if (leftIcon.props.color) return leftIcon;
+    return cloneElement(leftIcon, { color: textStyle.color });
+  }, [leftIcon, textStyle.color]);
+
+  const coloredRightIcon = useMemo(() => {
+    if (!rightIcon || !isValidElement(rightIcon)) return rightIcon;
+    // Only inject color if not already provided
+    if (rightIcon.props.color) return rightIcon;
+    return cloneElement(rightIcon, { color: textStyle.color });
+  }, [rightIcon, textStyle.color]);
+
   return (
     <Pressable
       {...pressableProps}
       disabled={disabled}
       style={({ pressed }) => (pressed ? pressedStyle : baseStyle)}
     >
-      {leftIcon && <View>{leftIcon}</View>}
+      {coloredLeftIcon && <View>{coloredLeftIcon}</View>}
 
       <View style={styles.textContainer}>
         <Body style={textStyle}>{children}</Body>
@@ -104,7 +119,7 @@ export function Button(props: ButtonProps) {
         )}
       </View>
 
-      {rightIcon && <View>{rightIcon}</View>}
+      {coloredRightIcon && <View>{coloredRightIcon}</View>}
     </Pressable>
   );
 }

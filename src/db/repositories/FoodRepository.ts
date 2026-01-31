@@ -74,18 +74,15 @@ export class FoodRepository extends BaseRepository {
     const result = await this.executeStatement(statement, foodUpsertFormat);
     if (!result) return null;
 
-    // If no changes, we need to get the food that previously existed
-    if (!result.changes) {
-      const identifier = food.barcode
-        ? { barcode: food.barcode }
-        : { name: food.name };
-
-      const existingFood = await this.getFoodByIdentifier(identifier);
-      if (!existingFood) return null;
-
-      return existingFood.id;
+    const rows = await result.getAllAsync();
+    if (!rows || rows.length < 1) {
+      return null;
     }
 
-    return result.lastInsertRowId;
+    const [row] = rows;
+
+    const { id } = FoodSchema.pick({ id: true }).parse(row);
+    console.log("row", id);
+    return id;
   }
 }

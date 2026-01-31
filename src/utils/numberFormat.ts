@@ -11,6 +11,7 @@ export function formatNumber(value: number | undefined): string {
  * Empty string or invalid number becomes undefined.
  */
 export function parseNumber(text: string): number | undefined {
+  if (text === "") return undefined;
   const num = Number(text);
-  return isNaN(num) || text === "" ? undefined : num;
+  return isNaN(num) ? undefined : num;
 }

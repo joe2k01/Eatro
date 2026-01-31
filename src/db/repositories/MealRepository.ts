@@ -90,10 +90,13 @@ export class MealRepository extends BaseRepository {
 
       // We rely on `RETURNING id` here. If the driver/build ever stops returning a row,
       // we prefer to fail loudly (and rollback) rather than guessing via a follow-up SELECT.
-      const upsertRow = await this.getFirstRow(upsertResult);
-      if (!upsertRow) throw new Error("Meal upsert returned no row");
+      // Use getAllAsync to fully consume the result set before proceeding
+      const upsertRows = await upsertResult.getAllAsync();
+      if (!upsertRows || upsertRows.length === 0) {
+        throw new Error("Meal upsert returned no row");
+      }
 
-      const { id: mealId } = await SqliteIdRowSchema.parseAsync(upsertRow);
+      const { id: mealId } = await SqliteIdRowSchema.parseAsync(upsertRows[0]);
 
       // 2) Record the food entry (quantity = servings).
       const mealFoodInserted = await mealFoodRepo.insertMealFood(

@@ -53,7 +53,7 @@ function ProductContent({ barcode }: { barcode: string }) {
       }),
   });
 
-  useUpsertFood(data, barcode);
+  const foodId = useUpsertFood(data, barcode);
 
   const {
     brand,
@@ -176,7 +176,7 @@ function ProductContent({ barcode }: { barcode: string }) {
       </SafeVStack>
       <ProductTray
         trayRef={tray}
-        barcode={barcode}
+        foodId={foodId}
         name={name}
         brand={brand}
         nutriments={nutriments}

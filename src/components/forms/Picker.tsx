@@ -47,9 +47,7 @@ export function Picker<T extends string | number>({
       <Button
         variant={variant}
         inverted={inverted}
-        rightIcon={
-          <Icon name="chevron-down" size="xs" variant={variant} community />
-        }
+        rightIcon={<Icon community name="chevron-down" size="xs" />}
       >
         {selected?.label ?? placeholder}
       </Button>

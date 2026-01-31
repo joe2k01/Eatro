@@ -25,6 +25,8 @@ export type TextInputProps = Omit<RNTextInputProps, "style"> & {
   inputStyle?: TextStyle;
   /** Use BottomSheetTextInput for inputs inside bottom sheets */
   inBottomSheet?: boolean;
+  /** Style for the input row (input and unit) */
+  inputRowStyle?: ViewStyle;
 };
 
 const styles = StyleSheet.create({
@@ -60,6 +62,7 @@ export function TextInput({
   containerStyle,
   inputStyle,
   inBottomSheet = false,
+  inputRowStyle: inputRowStyleProp,
   ...inputProps
 }: TextInputProps) {
   const theme = useTheme();
@@ -74,8 +77,9 @@ export function TextInput({
         borderWidth: error ? 1 : 0,
         borderColor: error ? theme.semantic.destructive : undefined,
       },
+      inputRowStyleProp,
     ],
-    [theme, error],
+    [theme, error, inputRowStyleProp],
   );
 
   const inputComputedStyle = useMemo(

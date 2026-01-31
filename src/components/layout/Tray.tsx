@@ -17,7 +17,7 @@ type TrayProps = {
 
 export type TrayApi = {
   openTray: () => void;
-  closeTray: () => void;
+  closeTray: () => Promise<void>;
 };
 
 export const Tray = forwardRef<TrayApi, TrayProps>(function Tray(
@@ -26,20 +26,34 @@ export const Tray = forwardRef<TrayApi, TrayProps>(function Tray(
 ) {
   const [visible, setVisible] = useState(false);
   const sheetRef = useRef<BottomSheet>(null);
+  const closePromiseRef = useRef<{
+    resolve: () => void;
+    reject: (error: Error) => void;
+  } | null>(null);
 
-  const closeTray = useCallback(() => {
-    const sheet = sheetRef.current;
+  const closeTray = useCallback((): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const sheet = sheetRef.current;
 
-    if (!sheet) {
-      setVisible(false);
-      return;
-    }
+      if (!sheet) {
+        setVisible(false);
+        resolve();
+        return;
+      }
 
-    sheet.close();
+      // Store the promise resolvers to call when onClose fires
+      closePromiseRef.current = { resolve, reject };
+      sheet.close();
+    });
   }, []);
 
   const onTrayClose = useCallback(() => {
     setVisible(false);
+    // Resolve the promise when the tray is actually closed
+    if (closePromiseRef.current) {
+      closePromiseRef.current.resolve();
+      closePromiseRef.current = null;
+    }
   }, []);
 
   useImperativeHandle(

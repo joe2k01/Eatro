@@ -1,10 +1,4 @@
-import {
-  useMemo,
-  useState,
-  type RefObject,
-  useCallback,
-  useEffect,
-} from "react";
+import { useMemo, useState, type RefObject, useCallback } from "react";
 import { useForm } from "@hooks/useForm";
 import { Tray, type TrayApi } from "@components/layout/Tray";
 import { VStack } from "@components/layout/VStack";
@@ -16,14 +10,14 @@ import { TextInput, Picker } from "@components/forms";
 import type { GetProductDetails } from "@api/validators/getProductDetails";
 import { z } from "zod";
 import { StyleSheet } from "react-native";
-import { nonNegativeNumber } from "@constants/storage/validators/numberParsers";
-import { safeParseOrDefault } from "@constants/storage/validators/safeParseOrDefault";
-import { FoodSource, MealType } from "@db/schemas";
+import { MealType } from "@db/schemas";
 import { utcStartOfTodaySeconds, addUtcDaysSeconds } from "@db/utils/utc";
 import { useRepositories } from "@db/context/DatabaseProvider";
 import { IconButton } from "@components/buttons/IconButton";
 import { PopupButtonOption } from "../../../modules/popup-button";
-import { formatNumber, parseNumber } from "../../utils/numberFormat";
+import { parseNumber } from "../../utils/numberFormat";
+import { useTextInput } from "@components/forms/hooks/useTextInput";
+import { SnackbarVariant, useSnackbar } from "@components/feedback";
 
 type NutrimentsUnit = keyof GetProductDetails["nutriments"];
 
@@ -39,13 +33,13 @@ function formatNutrientValue(key: string, value: number): string {
 
 const styles = StyleSheet.create({
   inputContainer: {
-    maxWidth: "33%",
+    width: "33%",
   },
 });
 
 export type ProductTrayProps = {
   trayRef: RefObject<TrayApi | null>;
-  barcode: string;
+  foodId: number | null;
   name: string;
   brand: string;
   nutriments: GetProductDetails["nutriments"];
@@ -56,11 +50,13 @@ export type ProductTrayProps = {
 };
 
 const productTrayFormSchema = z.object({
-  servings: z.number().nonnegative().default(1),
-  servingSize: z.number().nonnegative().default(100),
-  servingUnit: z.string().default("g"),
-  customMealType: z.string().default(""),
+  servings: z.number().nonnegative().optional(),
+  servingSize: z.number().nonnegative().optional(),
+  servingUnit: z.string(),
+  customMealType: z.string(),
 });
+
+type ProductTrayFormValues = z.infer<typeof productTrayFormSchema>;
 
 type NutrimentsForCalc = {
   base: number;
@@ -100,7 +96,7 @@ const mealOptions: PopupButtonOption<MealType>[] = [
 
 export function ProductTray({
   trayRef,
-  barcode,
+  foodId,
   name,
   brand,
   nutriments,
@@ -110,6 +106,7 @@ export function ProductTray({
   hideLogControls = false,
 }: ProductTrayProps) {
   const theme = useTheme();
+  const showSnackbar = useSnackbar();
   const [saving, setSaving] = useState(false);
 
   const [dayUtcSeconds, setDayUtcSeconds] = useState(() =>
@@ -119,11 +116,7 @@ export function ProductTray({
     (typeof mealOptions)[number] | undefined
   >(undefined);
 
-  const {
-    food: foodRepo,
-    meal: mealRepo,
-    mealFood: mealFoodRepo,
-  } = useRepositories();
+  const { meal: mealRepo, mealFood: mealFoodRepo } = useRepositories();
 
   const defaultServingSize = useMemo(() => {
     if (selectedUnit === "per100g") return 100;
@@ -150,7 +143,10 @@ export function ProductTray({
     };
   }, [nutriments.per100g, nutriments.perServing, servingSize]);
 
-  const { values, setValue, setValues } = useForm({
+  const { values, setValue } = useForm<
+    ProductTrayFormValues,
+    typeof productTrayFormSchema
+  >({
     initialValues: {
       servings: 1,
       servingSize: defaultServingSize || 100,
@@ -160,34 +156,32 @@ export function ProductTray({
     schema: productTrayFormSchema,
   });
 
-  useEffect(() => {
-    // Keep sensible defaults when switching between per-100g and per-serving views.
-    setValues({
-      servingUnit: unit,
-      servingSize:
-        values.servingSize !== undefined && values.servingSize > 0
-          ? values.servingSize
-          : defaultServingSize || 100,
-      servings:
-        values.servings !== undefined && values.servings > 0
-          ? values.servings
-          : 1,
+  const [servingsValue, setServingsValue] = useState(1);
+  const [servingSizeValue, setServingSizeValue] = useState(
+    defaultServingSize ?? 100,
+  );
+
+  const updateServingsValue = useCallback((text: string) => {
+    const num = parseNumber(text);
+    setServingsValue(num ?? 0);
+  }, []);
+
+  const updateServingSizeValue = useCallback((text: string) => {
+    const num = parseNumber(text);
+    setServingSizeValue(num ?? 0);
+  }, []);
+
+  const { value: servingsValueText, onChange: setServingsValueText } =
+    useTextInput({
+      defaultValue: "1",
+      onChange: updateServingsValue,
     });
-  }, [
-    defaultServingSize,
-    setValues,
-    unit,
-    values.servingSize,
-    values.servings,
-  ]);
 
-  const servingsValue = useMemo(() => {
-    return safeParseOrDefault(values.servings, nonNegativeNumber, 0);
-  }, [values.servings]);
-
-  const servingSizeValue = useMemo(() => {
-    return safeParseOrDefault(values.servingSize, nonNegativeNumber, 0);
-  }, [values.servingSize]);
+  const { value: servingSizeValueText, onChange: setServingSizeValueText } =
+    useTextInput({
+      defaultValue: String(defaultServingSize ?? 100),
+      onChange: updateServingSizeValue,
+    });
 
   const computedNutriments = useMemo(() => {
     const {
@@ -220,40 +214,15 @@ export function ProductTray({
   }, [dayUtcSeconds]);
 
   const onConfirmLog = useCallback(async () => {
-    if (!canConfirm) return;
-    if (saving) return;
-
-    if (mealType?.value === MealType.Custom && !customMealType?.trim()) {
-      return;
-    }
+    if (!canConfirm || saving || foodId === null) return;
 
     setSaving(true);
 
     try {
-      const nowMs = Date.now();
       const perServing = computePerServingFromNutriments(
         nutrimentsForCalc,
         servingSizeValue,
       );
-
-      const foodId = await foodRepo.upsertFood({
-        name,
-        brand: brand?.trim() ? brand.trim() : null,
-        unit,
-        serving_size: servingSizeValue,
-        energy_per_serving: perServing.energy,
-        proteins_per_serving: perServing.proteins,
-        carbohydrates_per_serving: perServing.carbohydrates,
-        fat_per_serving: perServing.fat,
-        barcode,
-        source: FoodSource.Api,
-        created_at: nowMs,
-        updated_at: nowMs,
-      });
-
-      if (!foodId) {
-        throw new Error("Failed to upsert food");
-      }
 
       const normalizedCustomType =
         mealType?.value === MealType.Custom ? customMealType.trim() : null;
@@ -265,6 +234,7 @@ export function ProductTray({
         fat: perServing.fat * servingsValue,
       };
 
+      const nowMs = Date.now();
       const mealId = await mealRepo.upsertMealAndLogFoodTx(
         {
           dayUtcSeconds,
@@ -278,32 +248,47 @@ export function ProductTray({
         mealFoodRepo,
       );
 
-      if (!mealId) {
-        throw new Error("Failed to upsert meal");
+      if (mealId === null) {
+        throw new Error("Failed to log meal, please try again");
       }
 
-      trayRef.current?.closeTray();
+      await trayRef.current?.closeTray();
+
+      showSnackbar({
+        message: "Meal logged successfully",
+        variant: SnackbarVariant.Success,
+      });
+    } catch (error) {
+      showSnackbar({
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to log meal, please try again",
+        variant: SnackbarVariant.Error,
+      });
     } finally {
       setSaving(false);
     }
   }, [
-    barcode,
-    brand,
     canConfirm,
     customMealType,
     dayUtcSeconds,
-    foodRepo,
+    foodId,
     mealFoodRepo,
     mealRepo,
     mealType,
-    name,
     nutrimentsForCalc,
     saving,
     servingSizeValue,
     servingsValue,
+    showSnackbar,
     trayRef,
-    unit,
   ]);
+
+  const inputRowStyle = useMemo(
+    () => ({ backgroundColor: theme.surface.tertiary }),
+    [theme.surface.tertiary],
+  );
 
   return (
     <Tray ref={trayRef}>
@@ -339,13 +324,12 @@ export function ProductTray({
         >
           <Body>Number of servings</Body>
           <TextInput
-            value={formatNumber(values.servings)}
-            onChangeText={(text) =>
-              setValue("servings", parseNumber(text) ?? 0)
-            }
+            value={servingsValueText}
+            onChangeText={setServingsValueText}
             placeholder="1"
             keyboardType="decimal-pad"
             containerStyle={styles.inputContainer}
+            inputRowStyle={inputRowStyle}
             inBottomSheet
           />
         </HStack>
@@ -357,14 +341,13 @@ export function ProductTray({
         >
           <Body>Serving size</Body>
           <TextInput
-            value={formatNumber(values.servingSize)}
-            onChangeText={(text) =>
-              setValue("servingSize", parseNumber(text) ?? 0)
-            }
+            value={servingSizeValueText}
+            onChangeText={setServingSizeValueText}
             placeholder={String(defaultServingSize)}
             keyboardType="decimal-pad"
             unit={unit}
             containerStyle={styles.inputContainer}
+            inputRowStyle={inputRowStyle}
             inBottomSheet
           />
         </HStack>
@@ -405,7 +388,12 @@ export function ProductTray({
               justifyContent="space-between"
             >
               <Body>Meal</Body>
-              <Picker options={mealOptions} onOptionSelect={setMealType} />
+              <Picker
+                options={mealOptions}
+                onOptionSelect={setMealType}
+                variant="primary"
+                inverted
+              />
             </HStack>
 
             {mealType?.value === MealType.Custom ? (
