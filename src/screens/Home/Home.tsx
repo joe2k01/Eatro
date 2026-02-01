@@ -17,6 +17,7 @@ import { Button } from "@components/buttons/Button";
 import { Icon } from "@components/media/Icon";
 import { useNavigation } from "@react-navigation/native";
 import { useGetToday } from "@db/hooks/useGetToday";
+import { MealItem } from "./components/MealItem";
 
 const styles = StyleSheet.create({
   flexButton: {
@@ -46,7 +47,7 @@ export function Home() {
   useStaticNavigationOptions(homeHeaderOptions);
 
   const navigation = useNavigation();
-  const { macros, meals: _meals } = useGetToday();
+  const { macros, meals } = useGetToday();
 
   const day = {
     total_calories: macros?.energy ?? 0,
@@ -160,7 +161,7 @@ export function Home() {
       </VStack>
 
       {/* Log */}
-      <VStack>
+      <VStack gap={1.5}>
         <HStack justifyContent="space-between" alignItems="center">
           <Title>Recent meals</Title>
           <Button
@@ -174,6 +175,24 @@ export function Home() {
             Add meal
           </Button>
         </HStack>
+        {meals && meals.length > 0 ? (
+          <VStack gap={1.5}>
+            {meals.map((meal) => (
+              <MealItem key={meal.id} meal={meal} />
+            ))}
+          </VStack>
+        ) : (
+          <VStack
+            borderRadius={8}
+            backgroundColor={theme.surface.secondary}
+            padding={2}
+            alignItems="center"
+          >
+            <Caption color={theme.text.muted}>
+              No meals logged today. Add your first meal!
+            </Caption>
+          </VStack>
+        )}
       </VStack>
     </SafeVStack>
   );

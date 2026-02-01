@@ -1,0 +1,153 @@
+import { useCallback, useMemo } from "react";
+import { VStack } from "@components/layout/VStack";
+import { HStack } from "@components/layout/HStack";
+import { Body, Caption } from "@components/typography/Text";
+import { useTheme } from "@contexts/ThemeProvider";
+import type { MealFoodWithFood } from "@db/repositories/MealFoodRepository";
+import { LayoutChangeEvent, Pressable, View, StyleSheet } from "react-native";
+import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import { spacing } from "@constants/theme";
+import Animated, {
+  SharedValue,
+  useAnimatedStyle,
+  useSharedValue,
+} from "react-native-reanimated";
+import { Icon } from "@components/media/Icon";
+import { semiTransparent } from "@utils/colorUtils";
+import { MealType } from "@db/schemas";
+
+type MealFoodItemsProps = {
+  foods: MealFoodWithFood[];
+  onLayout?: (event: LayoutChangeEvent) => void;
+  meal: MealType;
+};
+
+const styles = StyleSheet.create({
+  container: {
+    position: "relative",
+  },
+  measurableView: {
+    position: "absolute",
+    width: "100%",
+    flexDirection: "column",
+    gap: spacing(1.5),
+    paddingBottom: spacing(1),
+  },
+  swipeableItemStyle: {
+    paddingHorizontal: spacing(2),
+  },
+  actionStyle: {
+    paddingHorizontal: spacing(2),
+    justifyContent: "center",
+  },
+});
+
+function ItemActions(prog: SharedValue<number>, drag: SharedValue<number>) {
+  const iconSize = useSharedValue(0);
+  const offsetStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: drag.value + 2 * iconSize.value }],
+    flexDirection: "row",
+    opacity: Number.isFinite(prog.value) ? prog.value : 1,
+  }));
+
+  const onLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      iconSize.set(event.nativeEvent.layout.width);
+    },
+    [iconSize],
+  );
+
+  const theme = useTheme();
+  const positiveStyle = useMemo(
+    () => ({ backgroundColor: semiTransparent(theme.semantic.secondary, 0.2) }),
+    [theme.semantic.secondary],
+  );
+  const negativeStyle = useMemo(
+    () => ({
+      backgroundColor: semiTransparent(theme.semantic.destructive, 0.2),
+    }),
+    [theme.semantic.destructive],
+  );
+
+  return (
+    <Animated.View style={offsetStyle}>
+      <Pressable
+        onLayout={onLayout}
+        style={[styles.actionStyle, positiveStyle]}
+      >
+        <Icon name="edit" size="m" variant="secondary" inverted />
+      </Pressable>
+      <Pressable style={[styles.actionStyle, negativeStyle]}>
+        <Icon name="delete" size="m" variant="destructive" inverted />
+      </Pressable>
+    </Animated.View>
+  );
+}
+
+export function MealFoodItems({ foods, onLayout, meal }: MealFoodItemsProps) {
+  const theme = useTheme();
+
+  const foodData = useMemo(
+    () =>
+      foods.map((mealFood) => {
+        const servingsText =
+          mealFood.quantity === 1
+            ? "1 serving"
+            : `${mealFood.quantity} servings`;
+        const foodCalories = Math.round(
+          mealFood.quantity * mealFood.food.energy_per_serving,
+        );
+        const foodName = mealFood.food.name;
+        const brandText = mealFood.food.brand
+          ? ` • ${mealFood.food.brand}`
+          : "";
+
+        return {
+          id: mealFood.id,
+          servingsText,
+          foodCalories,
+          foodName,
+          brandText,
+        };
+      }),
+    [foods],
+  );
+
+  // We have this position relative / absolute set up to force children to render and be measured properly for the animation.
+  return (
+    <View style={styles.container}>
+      <View style={styles.measurableView} onLayout={onLayout}>
+        {foodData.map((data, i) => (
+          <Swipeable
+            key={`${meal}_${data.id}_${i}`}
+            renderRightActions={ItemActions}
+            childrenContainerStyle={styles.swipeableItemStyle}
+          >
+            <VStack backgroundColor="transparent" paddingVertical={1} gap={0.5}>
+              <HStack
+                justifyContent="space-between"
+                alignItems="flex-start"
+                backgroundColor="transparent"
+              >
+                <VStack flex={1} backgroundColor="transparent">
+                  <Body>{data.foodName}</Body>
+                  {data.brandText && (
+                    <Caption color={theme.text.muted}>
+                      {data.brandText.replace(" • ", "")}
+                    </Caption>
+                  )}
+                </VStack>
+                <VStack alignItems="flex-end" backgroundColor="transparent">
+                  <Body>{data.foodCalories} kcal</Body>
+                  <Caption color={theme.text.muted}>
+                    {data.servingsText}
+                  </Caption>
+                </VStack>
+              </HStack>
+            </VStack>
+          </Swipeable>
+        ))}
+      </View>
+    </View>
+  );
+}

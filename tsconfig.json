@@ -9,7 +9,8 @@
       "@contexts/*": ["./src/contexts/*"],
       "@api/*": ["./src/api/*"],
       "@constants/*": ["./src/constants/*"],
-      "@db/*": ["./src/db/*"]
+      "@db/*": ["./src/db/*"],
+      "@utils/*": ["./src/utils/*"]
     }
   }
 }
