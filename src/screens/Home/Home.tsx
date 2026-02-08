@@ -16,7 +16,8 @@ import { useMemo } from "react";
 import { Button } from "@components/buttons/Button";
 import { Icon } from "@components/media/Icon";
 import { useNavigation } from "@react-navigation/native";
-import { useGetToday } from "@db/hooks/useGetToday";
+import { useGetDay } from "@db/hooks/useGetDay";
+import { utcStartOfTodaySeconds } from "@db/utils/utc";
 import { MealItem } from "./components/MealItem";
 
 const styles = StyleSheet.create({
@@ -47,7 +48,7 @@ export function Home() {
   useStaticNavigationOptions(homeHeaderOptions);
 
   const navigation = useNavigation();
-  const { macros, meals } = useGetToday();
+  const { macros, meals } = useGetDay(utcStartOfTodaySeconds());
 
   const day = {
     total_calories: macros?.energy ?? 0,
@@ -188,9 +189,7 @@ export function Home() {
             padding={2}
             alignItems="center"
           >
-            <Caption color={theme.text.muted}>
-              No meals logged today. Add your first meal!
-            </Caption>
+            <Caption color={theme.text.muted}>No meals logged today</Caption>
           </VStack>
         )}
       </VStack>

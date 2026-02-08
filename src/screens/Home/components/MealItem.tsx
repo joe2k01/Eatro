@@ -5,7 +5,7 @@ import { Body, Caption } from "@components/typography/Text";
 import { useTheme } from "@contexts/ThemeProvider";
 import { MealType } from "@db/schemas";
 import { format } from "date-fns";
-import type { MealWithFoods } from "@db/hooks/useGetToday";
+import type { MealWithFoods } from "@db/hooks/useGetDay";
 import { Icon } from "@components/media/Icon";
 import Animated, {
   useAnimatedStyle,
