@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import type { DayTotals, Meal } from "@db/schemas";
 import { useRepositories } from "@db/context/DatabaseProvider";
 import type { MealFoodWithFood } from "@db/repositories/MealFoodRepository";
+import { useFocusEffect } from "@react-navigation/native";
 
 export type MealWithFoods = Meal & {
   foods: MealFoodWithFood[];
@@ -21,8 +22,8 @@ export function useGetDay(dayUtcSeconds: number): UseGetDayResult {
   const [macros, setMacros] = useState<DayTotals | null>(null);
   const [meals, setMeals] = useState<MealWithFoods[] | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
+  const reload = useCallback(() => {
+    let active = true;
 
     async function load() {
       const [totalsResult, mealsResult] = await Promise.all([
@@ -30,12 +31,7 @@ export function useGetDay(dayUtcSeconds: number): UseGetDayResult {
         mealRepo.getMealsByDay(dayUtcSeconds),
       ]);
 
-      if (cancelled) return;
-
-      setMacros(totalsResult ?? null);
-
-      if (!mealsResult || mealsResult.length === 0) {
-        setMeals([]);
+      if (!mealsResult) {
         return;
       }
 
@@ -49,16 +45,20 @@ export function useGetDay(dayUtcSeconds: number): UseGetDayResult {
         }),
       );
 
-      if (!cancelled) {
-        setMeals(mealsWithFoods);
-      }
+      if (!active) return;
+
+      setMacros(totalsResult ?? null);
+      setMeals(mealsWithFoods);
     }
 
     load();
+
     return () => {
-      cancelled = true;
+      active = false;
     };
   }, [dayUtcSeconds, mealRepo, mealFoodRepo]);
+
+  useFocusEffect(reload);
 
   return { macros, meals };
 }

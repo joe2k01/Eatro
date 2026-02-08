@@ -9,6 +9,7 @@ import { AppRoutes } from "./AppRoutes";
 import { ThemeProvider } from "@contexts/ThemeProvider";
 import { SnackbarProvider } from "@components/feedback";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { DatabaseProvider } from "@db/context/DatabaseProvider";
 
 Sentry.init({
@@ -37,20 +38,22 @@ export default Sentry.wrap(function App() {
     <DatabaseProvider>
       <SafeAreaProvider>
         <GestureHandlerRootView>
-          <UserContextProvider>
-            <NavigationContainer>
-              <QueryClientProvider client={queryClient}>
-                <ApiClientProvier>
-                  <ThemeProvider>
-                    <SnackbarProvider>
-                      <AppRoutes />
-                      <StatusBar />
-                    </SnackbarProvider>
-                  </ThemeProvider>
-                </ApiClientProvier>
-              </QueryClientProvider>
-            </NavigationContainer>
-          </UserContextProvider>
+          <BottomSheetModalProvider>
+            <UserContextProvider>
+              <NavigationContainer>
+                <QueryClientProvider client={queryClient}>
+                  <ApiClientProvier>
+                    <ThemeProvider>
+                      <SnackbarProvider>
+                        <AppRoutes />
+                        <StatusBar />
+                      </SnackbarProvider>
+                    </ThemeProvider>
+                  </ApiClientProvier>
+                </QueryClientProvider>
+              </NavigationContainer>
+            </UserContextProvider>
+          </BottomSheetModalProvider>
         </GestureHandlerRootView>
       </SafeAreaProvider>
     </DatabaseProvider>

@@ -1,9 +1,9 @@
 import { z } from "zod";
 
+/** Accepts number, null, or undefined (e.g. SQLite SUM() with no rows) and coerces to a non‑negative number. */
 const coerceNumber = z
-  .number()
-  .nonnegative()
-  .transform((val) => val ?? 0);
+  .union([z.number(), z.null(), z.undefined()])
+  .transform((val) => Math.max(0, val ?? 0));
 
 /**
  * Schema for aggregated day totals from meals.

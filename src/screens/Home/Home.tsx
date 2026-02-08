@@ -1,6 +1,5 @@
 import { SafeVStack } from "@components/SafeVStack";
 import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
-import { useStaticNavigationOptions } from "@hooks/useStaticNavigationOptions";
 import { format } from "date-fns";
 import { StyleSheet } from "react-native";
 import { AvatarButton } from "./components/AvatarButton";
@@ -12,13 +11,15 @@ import { VStack } from "@components/layout/VStack";
 import { HStack } from "@components/layout/HStack";
 import { DonutChart, useDonut } from "@components/charts";
 import { MacroProgress } from "./components/MacroProgress";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@components/buttons/Button";
 import { Icon } from "@components/media/Icon";
 import { useNavigation } from "@react-navigation/native";
 import { useGetDay } from "@db/hooks/useGetDay";
 import { utcStartOfTodaySeconds } from "@db/utils/utc";
 import { MealItem } from "./components/MealItem";
+import { useDynamicNavigationOptions } from "@hooks/useDynamicNavigationOptions";
+import { HeaderDatePicker } from "./components/HeaderDatePicker";
 
 const styles = StyleSheet.create({
   flexButton: {
@@ -45,17 +46,33 @@ const macroKeys: Exclude<keyof Goals, "calories">[] = [
 ];
 
 export function Home() {
-  useStaticNavigationOptions(homeHeaderOptions);
+  const [dayUtcSeconds, setDayUtcSeconds] = useState(utcStartOfTodaySeconds());
+  const headerOptions = useMemo(() => {
+    return {
+      ...homeHeaderOptions,
+      headerTitle: () => (
+        <HeaderDatePicker
+          dayUtcSeconds={dayUtcSeconds}
+          setDayUtcSeconds={setDayUtcSeconds}
+        />
+      ),
+    };
+  }, [dayUtcSeconds]);
+  useDynamicNavigationOptions(headerOptions);
 
   const navigation = useNavigation();
-  const { macros, meals } = useGetDay(utcStartOfTodaySeconds());
 
-  const day = {
-    total_calories: macros?.energy ?? 0,
-    total_protein: macros?.proteins ?? 0,
-    total_carbs: macros?.carbohydrates ?? 0,
-    total_fat: macros?.fat ?? 0,
-  };
+  const { macros, meals } = useGetDay(dayUtcSeconds);
+
+  const day = useMemo(
+    () => ({
+      total_calories: macros?.energy ?? 0,
+      total_protein: macros?.proteins ?? 0,
+      total_carbs: macros?.carbohydrates ?? 0,
+      total_fat: macros?.fat ?? 0,
+    }),
+    [macros],
+  );
 
   const cals = useMemo(() => {
     return Math.round(day.total_calories);

@@ -4,9 +4,8 @@ import {
   useImperativeHandle,
   useMemo,
   useRef,
-  useState,
 } from "react";
-import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
+import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { useTheme } from "@contexts/ThemeProvider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { spacing } from "@constants/theme";
@@ -24,8 +23,7 @@ export const Tray = forwardRef<TrayApi, TrayProps>(function Tray(
   { children },
   ref,
 ) {
-  const [visible, setVisible] = useState(false);
-  const sheetRef = useRef<BottomSheet>(null);
+  const sheetRef = useRef<BottomSheetModal>(null);
   const closePromiseRef = useRef<{
     resolve: () => void;
     reject: (error: Error) => void;
@@ -36,31 +34,28 @@ export const Tray = forwardRef<TrayApi, TrayProps>(function Tray(
       const sheet = sheetRef.current;
 
       if (!sheet) {
-        setVisible(false);
         resolve();
         return;
       }
 
-      // Store the promise resolvers to call when onClose fires
       closePromiseRef.current = { resolve, reject };
-      sheet.close();
+      sheet.dismiss();
     });
   }, []);
 
-  const onTrayClose = useCallback(() => {
-    setVisible(false);
-    // Resolve the promise when the tray is actually closed
+  const onDismiss = useCallback(() => {
     if (closePromiseRef.current) {
       closePromiseRef.current.resolve();
       closePromiseRef.current = null;
     }
+    sheetRef.current?.dismiss();
   }, []);
 
   useImperativeHandle(
     ref,
     () => ({
-      openTray: () => setVisible(true),
-      closeTray: closeTray,
+      openTray: () => sheetRef.current?.present(),
+      closeTray,
     }),
     [closeTray],
   );
@@ -81,18 +76,15 @@ export const Tray = forwardRef<TrayApi, TrayProps>(function Tray(
     [insets.bottom],
   );
 
-  if (!visible) {
-    return null;
-  }
-
   return (
-    <BottomSheet
-      backgroundStyle={backgroundStyle}
+    <BottomSheetModal
       ref={sheetRef}
-      onClose={onTrayClose}
+      onDismiss={onDismiss}
+      backgroundStyle={backgroundStyle}
       enablePanDownToClose
+      enableDynamicSizing
     >
       <BottomSheetView style={viewStyle}>{children}</BottomSheetView>
-    </BottomSheet>
+    </BottomSheetModal>
   );
 });

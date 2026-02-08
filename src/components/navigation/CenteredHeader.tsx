@@ -17,9 +17,7 @@ export function CenteredHeader({ left, center, right }: CenteredHeaderProps) {
   return (
     <View style={styles.row}>
       <View style={styles.sideLeft}>{left}</View>
-      <View style={styles.center} pointerEvents="none">
-        {center}
-      </View>
+      <View style={styles.center}>{center}</View>
       <View style={styles.sideRight}>{right}</View>
     </View>
   );
