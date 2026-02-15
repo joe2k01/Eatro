@@ -1,4 +1,3 @@
-import { SafeVStack } from "@components/SafeVStack";
 import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import { format } from "date-fns";
 import { StyleSheet } from "react-native";
@@ -12,18 +11,23 @@ import { HStack } from "@components/layout/HStack";
 import { DonutChart, useDonut } from "@components/charts";
 import { MacroProgress } from "./components/MacroProgress";
 import { useMemo, useState } from "react";
-import { Button } from "@components/buttons/Button";
-import { Icon } from "@components/media/Icon";
-import { useNavigation } from "@react-navigation/native";
 import { useGetDay } from "@db/hooks/useGetDay";
 import { utcStartOfTodaySeconds } from "@db/utils/utc";
 import { MealItem } from "./components/MealItem";
 import { useDynamicNavigationOptions } from "@hooks/useDynamicNavigationOptions";
 import { HeaderDatePicker } from "./components/HeaderDatePicker";
+import { LogFoodFAB } from "./components/LogFoodFAB";
+import { spacing } from "@constants/theme";
+import Animated, {
+  useSharedValue,
+  useAnimatedScrollHandler,
+} from "react-native-reanimated";
 
 const styles = StyleSheet.create({
-  flexButton: {
-    flex: 1,
+  scrollContent: {
+    paddingHorizontal: spacing(2),
+    paddingTop: spacing(1),
+    gap: spacing(4),
   },
 });
 
@@ -60,8 +64,6 @@ export function Home() {
   }, [dayUtcSeconds]);
   useDynamicNavigationOptions(headerOptions);
 
-  const navigation = useNavigation();
-
   const { macros, meals } = useGetDay(dayUtcSeconds);
 
   const day = useMemo(
@@ -97,120 +99,100 @@ export function Home() {
     ? theme.semantic.destructive
     : theme.text.secondary;
 
-  return (
-    <SafeVStack
-      guard="bottom"
-      paddingHorizontal={2}
-      paddingTop={1}
-      gap={4}
-      scrollable
-    >
-      {/* Header */}
-      <VStack
-        borderRadius={10}
-        backgroundColor={theme.surface.secondary}
-        padding={2}
-        gap={2}
-      >
-        <HStack
-          backgroundColor="transparent"
-          alignItems="center"
-          justifyContent="space-between"
-        >
-          <VStack backgroundColor={"transparent"}>
-            <Display color={caloriesTextColor}>
-              {cals} / {goals?.calories}
-            </Display>
-            <Caption color={captionTextColor}>kcal remaining</Caption>
-          </VStack>
-          <DonutChart
-            donutData={donutData}
-            width={"30%"}
-            total={goals?.calories}
-          />
-        </HStack>
-        <HStack
-          justifyContent="space-between"
-          alignItems="center"
-          backgroundColor="transparent"
-        >
-          {/* TODO: Day totals are now derived from meals (days table removed). */}
-          {macroKeys.map((macro) => (
-            <MacroProgress
-              key={macro}
-              label={macro}
-              consumedGrams={
-                macro === "protein"
-                  ? (day?.total_protein ?? 0)
-                  : macro === "carbs"
-                    ? (day?.total_carbs ?? 0)
-                    : (day?.total_fat ?? 0)
-              }
-            />
-          ))}
-        </HStack>
-      </VStack>
-      {/* Actions */}
-      <VStack gap={1.5}>
-        <HStack gap={1.5}>
-          <Button
-            style={styles.flexButton}
-            leftIcon={<Icon name="search" size="xs" />}
-          >
-            Search
-          </Button>
-          <Button
-            style={styles.flexButton}
-            leftIcon={<Icon community name="barcode" size="xs" />}
-            variant="secondary"
-            inverted
-            onPress={() => navigation.navigate("Scanner")}
-          >
-            Scan
-          </Button>
-        </HStack>
-        <Button
-          variant="primary"
-          inverted
-          leftIcon={<Icon community name="cart-outline" size="xs" />}
-        >
-          Mealr
-        </Button>
-      </VStack>
+  // FAB scroll-direction tracking
+  const fabVisible = useSharedValue(1);
+  const lastOffset = useSharedValue(0);
 
-      {/* Log */}
-      <VStack gap={1.5}>
-        <HStack justifyContent="space-between" alignItems="center">
-          <Title>Recent meals</Title>
-          <Button
-            onPress={() => {
-              console.log("add meal");
-            }}
-            variant="primary"
-            inverted
-            leftIcon={<Icon name="add" size="xs" />}
-          >
-            Add meal
-          </Button>
-        </HStack>
-        {meals && meals.length > 0 ? (
-          <VStack gap={1.5}>
-            {meals.map((meal) => (
-              <MealItem key={meal.id} meal={meal} />
-            ))}
-          </VStack>
-        ) : (
-          <VStack
-            borderRadius={8}
-            backgroundColor={theme.surface.secondary}
-            padding={2}
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      const currentOffset = event.contentOffset.y;
+      if (currentOffset > lastOffset.get() && currentOffset > 0) {
+        fabVisible.set(0);
+      } else {
+        fabVisible.set(1);
+      }
+      lastOffset.set(currentOffset);
+    },
+  });
+
+  return (
+    <VStack flex={1}>
+      <Animated.ScrollView
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Calorie card */}
+        <VStack
+          borderRadius={10}
+          backgroundColor={theme.surface.secondary}
+          padding={2}
+          gap={2}
+        >
+          <HStack
+            backgroundColor="transparent"
             alignItems="center"
+            justifyContent="space-between"
           >
-            <Caption color={theme.text.muted}>No meals logged today</Caption>
-          </VStack>
-        )}
-      </VStack>
-    </SafeVStack>
+            <VStack backgroundColor={"transparent"}>
+              <Display color={caloriesTextColor}>
+                {cals} / {goals?.calories}
+              </Display>
+              <Caption color={captionTextColor}>kcal remaining</Caption>
+            </VStack>
+            <DonutChart
+              donutData={donutData}
+              width={"30%"}
+              total={goals?.calories}
+            />
+          </HStack>
+          <HStack
+            justifyContent="space-between"
+            alignItems="center"
+            backgroundColor="transparent"
+          >
+            {/* TODO: Day totals are now derived from meals (days table removed). */}
+            {macroKeys.map((macro) => (
+              <MacroProgress
+                key={macro}
+                label={macro}
+                consumedGrams={
+                  macro === "protein"
+                    ? (day?.total_protein ?? 0)
+                    : macro === "carbs"
+                      ? (day?.total_carbs ?? 0)
+                      : (day?.total_fat ?? 0)
+                }
+              />
+            ))}
+          </HStack>
+        </VStack>
+
+        {/* Recent meals */}
+        <VStack gap={1.5}>
+          <Title>Recent meals</Title>
+          {meals && meals.length > 0 ? (
+            <VStack gap={1.5}>
+              {meals.map((meal) => (
+                <MealItem key={meal.id} meal={meal} />
+              ))}
+            </VStack>
+          ) : (
+            <VStack
+              borderRadius={8}
+              backgroundColor={theme.surface.secondary}
+              padding={2}
+              alignItems="center"
+            >
+              <Caption color={theme.text.muted}>No meals logged today</Caption>
+            </VStack>
+          )}
+        </VStack>
+      </Animated.ScrollView>
+
+      <LogFoodFAB visible={fabVisible} />
+    </VStack>
   );
 }
 
