@@ -5,7 +5,7 @@ import type { HomeStackParamsList } from "../../../AppTabs";
 import { Button } from "@components/buttons/Button";
 import { Icon } from "@components/media/Icon";
 import { spacing } from "@constants/theme";
-import { StyleSheet } from "react-native";
+import { StyleSheet, type LayoutChangeEvent } from "react-native";
 import Animated, {
   useAnimatedStyle,
   withTiming,
@@ -26,9 +26,10 @@ const styles = StyleSheet.create({
 type LogFoodFABProps = {
   /** 1 = visible, 0 = hidden (drives slide animation). */
   visible: SharedValue<number>;
+  onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-export function LogFoodFAB({ visible }: LogFoodFABProps) {
+export function LogFoodFAB({ visible, onLayout }: LogFoodFABProps) {
   const navigation =
     useNavigation<NativeStackNavigationProp<HomeStackParamsList>>();
 
@@ -47,7 +48,10 @@ export function LogFoodFAB({ visible }: LogFoodFABProps) {
   }));
 
   return (
-    <Animated.View style={[styles.container, animatedStyle]}>
+    <Animated.View
+      style={[styles.container, animatedStyle]}
+      onLayout={onLayout}
+    >
       <Button
         variant="primary"
         leftIcon={<Icon community name="receipt-text-edit-outline" size="xs" />}

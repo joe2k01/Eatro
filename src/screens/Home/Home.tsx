@@ -10,7 +10,8 @@ import { VStack } from "@components/layout/VStack";
 import { HStack } from "@components/layout/HStack";
 import { DonutChart, useDonut } from "@components/charts";
 import { MacroProgress } from "./components/MacroProgress";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import type { LayoutChangeEvent } from "react-native";
 import { useGetDay } from "@db/hooks/useGetDay";
 import { utcStartOfTodaySeconds } from "@db/utils/utc";
 import { MealItem } from "./components/MealItem";
@@ -99,7 +100,14 @@ export function Home() {
     ? theme.semantic.destructive
     : theme.text.secondary;
 
-  // FAB scroll-direction tracking
+  // FAB measurement + scroll-direction tracking
+  const [fabHeight, setFabHeight] = useState(0);
+
+  const handleFabLayout = useCallback((e: LayoutChangeEvent) => {
+    const h = e.nativeEvent.layout.height + spacing(3);
+    setFabHeight((prev) => (prev === h ? prev : h));
+  }, []);
+
   const fabVisible = useSharedValue(1);
   const lastOffset = useSharedValue(0);
 
@@ -170,7 +178,7 @@ export function Home() {
         </VStack>
 
         {/* Recent meals */}
-        <VStack gap={1.5}>
+        <VStack gap={1.5} paddingBottom={fabHeight}>
           <Title>Recent meals</Title>
           {meals && meals.length > 0 ? (
             <VStack gap={1.5}>
@@ -191,7 +199,7 @@ export function Home() {
         </VStack>
       </Animated.ScrollView>
 
-      <LogFoodFAB visible={fabVisible} />
+      <LogFoodFAB visible={fabVisible} onLayout={handleFabLayout} />
     </VStack>
   );
 }
