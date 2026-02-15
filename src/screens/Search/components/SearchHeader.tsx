@@ -1,12 +1,11 @@
-import { useCallback, useMemo, useRef } from "react";
-import { StyleSheet, TextInput } from "react-native";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { Pressable, StyleSheet, TextInput } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackHeaderProps } from "@react-navigation/native-stack";
 import { HStack } from "@components/layout/HStack";
 import { Box } from "@components/layout/Box";
 import { Icon } from "@components/media/Icon";
-import { IconButton } from "@components/buttons/IconButton";
 import { BackArrow } from "@components/navigation/BackArrow";
 import { useTheme } from "@contexts/ThemeProvider";
 import { BorderRadius, spacing } from "@constants/theme";
@@ -22,14 +21,23 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    paddingLeft: spacing(1.5),
+    paddingHorizontal: spacing(1.5),
     overflow: "hidden",
   },
   input: {
     flex: 1,
     fontSize: 16,
-    paddingVertical: spacing(1),
-    paddingHorizontal: spacing(2),
+    paddingVertical: spacing(1.5),
+    paddingHorizontal: spacing(1.5),
+  },
+  scanButton: {
+    borderRadius: BorderRadius.full,
+    padding: spacing(1),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  scanButtonPressed: {
+    opacity: 0.8,
   },
 });
 
@@ -49,25 +57,37 @@ export function SearchHeader({
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const inputRef = useRef<TextInput>(null);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [hasText, setHasText] = useState(false);
 
   const handleChangeText = useCallback(
     (value: string) => {
+      setHasText(value.length > 0);
+
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current);
       }
 
       debounceTimer.current = setTimeout(() => {
-        // Use headerNavigation (bound to the current screen) for setParams
-        // so the route params update correctly.
         headerNavigation.setParams({ query: value.trim() });
       }, DEBOUNCE_MS);
     },
     [headerNavigation],
   );
 
+  const handleClear = useCallback(() => {
+    inputRef.current?.clear();
+    setHasText(false);
+
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    headerNavigation.setParams({ query: "" });
+  }, [headerNavigation]);
+
   const handleScanPress = useCallback(() => {
-    // Use global navigation for cross-navigator routes like Scanner.
     navigation.navigate("Scanner");
   }, [navigation]);
 
@@ -87,14 +107,30 @@ export function SearchHeader({
     [theme.surface.secondary],
   );
 
+  const inputStyle = useMemo(
+    () => [styles.input, { color: theme.text.primary }],
+    [theme.text.primary],
+  );
+
+  const scanButtonStyle = useMemo(
+    () => [styles.scanButton, { backgroundColor: theme.semantic.primary }],
+    [theme.semantic.primary],
+  );
+
+  const scanButtonPressedStyle = useMemo(
+    () => [scanButtonStyle, styles.scanButtonPressed],
+    [scanButtonStyle],
+  );
+
   return (
     <Box style={containerStyle}>
-      <HStack style={styles.row} gap={1} alignItems="center">
+      <HStack style={styles.row} gap={1.5} alignItems="center">
         <BackArrow canGoBack={!!back} />
-        <HStack style={inputContainerStyle}>
+        <HStack style={inputContainerStyle} gap={0.5}>
           <Icon name="search" size="xs" color={theme.text.muted} />
           <TextInput
-            style={[styles.input, { color: theme.text.primary }]}
+            ref={inputRef}
+            style={inputStyle}
             placeholder="Search food..."
             placeholderTextColor={theme.text.muted}
             onChangeText={handleChangeText}
@@ -102,13 +138,20 @@ export function SearchHeader({
             returnKeyType="search"
             autoCorrect={false}
           />
+          {hasText && (
+            <Pressable onPress={handleClear}>
+              <Icon name="close" size="xs" color={theme.text.muted} />
+            </Pressable>
+          )}
         </HStack>
-        <IconButton
-          name="qr-code-scanner"
-          size="s"
-          variant="ghost"
+        <Pressable
+          style={({ pressed }) =>
+            pressed ? scanButtonPressedStyle : scanButtonStyle
+          }
           onPress={handleScanPress}
-        />
+        >
+          <Icon community name="barcode-scan" color={theme.text.inverse} />
+        </Pressable>
       </HStack>
     </Box>
   );
