@@ -5,13 +5,9 @@ import type { NavigatorScreenParams } from "@react-navigation/native";
 import { Home, HomeParams } from "@screens/Home";
 import { MyFoods, MyFoodsParams } from "@screens/MyFoods";
 import { MealR, MealRParams } from "@screens/MealR";
-import {
-  SettingsNavigator,
-  SettingsNavigatorParams,
-} from "@screens/Settings";
+import { SettingsNavigator, SettingsNavigatorParams } from "@screens/Settings";
 import { nestedStackSharedOptions } from "@constants/navigation";
 import { useAppStackNavigationOptions } from "@hooks/useAppStackNavigationOptions";
-import { Header } from "@components/navigation/Header";
 import { useTheme } from "@contexts/ThemeProvider";
 import { useMemo } from "react";
 import { Icon } from "@components/media/Icon";
@@ -43,12 +39,54 @@ function HomeStack() {
   );
 }
 
+// ── My Foods stack ──────────────────────────────────────────────────
+
+export type MyFoodsStackParamsList = {
+  MyFoods: MyFoodsParams;
+};
+
+const MyFoodsStackNav = createNativeStackNavigator<MyFoodsStackParamsList>();
+
+function MyFoodsStack() {
+  const stackOptions = useAppStackNavigationOptions();
+
+  return (
+    <MyFoodsStackNav.Navigator
+      initialRouteName="MyFoods"
+      screenOptions={stackOptions}
+    >
+      <MyFoodsStackNav.Screen name="MyFoods" component={MyFoods} />
+    </MyFoodsStackNav.Navigator>
+  );
+}
+
+// ── MealR stack ─────────────────────────────────────────────────────
+
+export type MealRStackParamsList = {
+  MealR: MealRParams;
+};
+
+const MealRStackNav = createNativeStackNavigator<MealRStackParamsList>();
+
+function MealRStack() {
+  const stackOptions = useAppStackNavigationOptions();
+
+  return (
+    <MealRStackNav.Navigator
+      initialRouteName="MealR"
+      screenOptions={stackOptions}
+    >
+      <MealRStackNav.Screen name="MealR" component={MealR} />
+    </MealRStackNav.Navigator>
+  );
+}
+
 // ── Tab navigator ───────────────────────────────────────────────────
 
 export type TabParamsList = {
   HomeTab: NavigatorScreenParams<HomeStackParamsList>;
-  MyFoods: MyFoodsParams;
-  MealR: MealRParams;
+  MyFoodsTab: NavigatorScreenParams<MyFoodsStackParamsList>;
+  MealRTab: NavigatorScreenParams<MealRStackParamsList>;
 };
 
 const Tab = createBottomTabNavigator<TabParamsList>();
@@ -58,8 +96,7 @@ export function AppTabs() {
 
   const screenOptions = useMemo<BottomTabNavigationOptions>(
     () => ({
-      headerShown: true,
-      header: Header,
+      headerShown: false,
       tabBarActiveTintColor: theme.semantic.primary,
       tabBarInactiveTintColor: theme.text.muted,
       tabBarStyle: {
@@ -79,7 +116,6 @@ export function AppTabs() {
         name="HomeTab"
         component={HomeStack}
         options={{
-          headerShown: false,
           tabBarLabel: "Home",
           tabBarIcon: ({ color }) => (
             <Icon name="home" size="s" color={color} />
@@ -87,8 +123,8 @@ export function AppTabs() {
         }}
       />
       <Tab.Screen
-        name="MyFoods"
-        component={MyFoods}
+        name="MyFoodsTab"
+        component={MyFoodsStack}
         options={{
           tabBarLabel: "My Foods",
           tabBarIcon: ({ color }) => (
@@ -97,8 +133,8 @@ export function AppTabs() {
         }}
       />
       <Tab.Screen
-        name="MealR"
-        component={MealR}
+        name="MealRTab"
+        component={MealRStack}
         options={{
           tabBarIcon: ({ color }) => (
             <Icon community name="cart-outline" size="s" color={color} />

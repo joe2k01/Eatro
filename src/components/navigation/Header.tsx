@@ -46,7 +46,9 @@ function HeaderContent(props: HeaderProps) {
       return options.headerLeft({ canGoBack: !!back });
     }
 
-    return <BackArrow canGoBack={!!back} />;
+    if (!back) return null;
+
+    return <BackArrow canGoBack />;
   }, [back, options]);
 
   const right = useMemo(() => {
