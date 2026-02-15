@@ -30,7 +30,7 @@ export function LogFoodFAB({ visible }: LogFoodFABProps) {
   const navigation = useNavigation();
 
   const handlePress = useCallback(() => {
-    navigation.navigate("Scanner");
+    navigation.navigate("Search");
   }, [navigation]);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -47,7 +47,9 @@ export function LogFoodFAB({ visible }: LogFoodFABProps) {
     <Animated.View style={[styles.container, animatedStyle]}>
       <Button
         variant="primary"
-        leftIcon={<Icon community name="barcode" size="xs" />}
+        leftIcon={
+          <Icon community name="receipt-text-edit-outline" size="xs" />
+        }
         onPress={handlePress}
       >
         Log food
