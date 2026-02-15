@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { NativeStackHeaderProps } from "@react-navigation/native-stack";
+import type { NativeStackHeaderProps } from "@react-navigation/native-stack";
+import type { BottomTabHeaderProps } from "@react-navigation/bottom-tabs";
 import { Box } from "@components/layout/Box";
 import { spacing } from "@constants/theme";
 import { type ViewStyle, StyleSheet } from "react-native";
@@ -8,16 +9,24 @@ import { CenteredHeader } from "./CenteredHeader";
 import { Title } from "@components/typography/Text";
 import { BackArrow } from "./BackArrow";
 
+export type HeaderProps = NativeStackHeaderProps | BottomTabHeaderProps;
+
 function getHeaderTitle({
   options,
   route,
-}: Pick<NativeStackHeaderProps, "options" | "route">): string {
+}: Pick<HeaderProps, "options" | "route">): string {
   if (typeof options.headerTitle === "string") return options.headerTitle;
   if (typeof options.title === "string") return options.title;
   return route.name;
 }
 
-function HeaderContent({ options, back, route }: NativeStackHeaderProps) {
+function HeaderContent(props: HeaderProps) {
+  const { options, route } = props;
+  const back = useMemo(
+    () => ("back" in props ? props.back : undefined),
+    [props],
+  );
+
   const title = useMemo(() => {
     if (typeof options.headerTitle === "function") {
       const node = options.headerTitle({ children: route.name });
@@ -48,11 +57,13 @@ function HeaderContent({ options, back, route }: NativeStackHeaderProps) {
   return <CenteredHeader left={left} center={title} right={right} />;
 }
 
-export function Header(props: NativeStackHeaderProps) {
+export function Header(props: HeaderProps) {
   const insets = useSafeAreaInsets();
 
-  const style = useMemo<ViewStyle>(() => {
-    const headerStyle = StyleSheet.flatten(props.options.headerStyle ?? {});
+  const style = useMemo(() => {
+    const headerStyle = StyleSheet.flatten(
+      (props.options.headerStyle as ViewStyle) ?? {},
+    );
     return StyleSheet.flatten([
       {
         paddingTop: insets.top,

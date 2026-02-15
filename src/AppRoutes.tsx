@@ -1,15 +1,15 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Home, HomeParams } from "@screens/Home";
 import { Product, ProductParams } from "@screens/Product";
 import { Scanner, ScannerParams } from "@screens/Scanner";
 import { SettingsNavigator, SettingsNavigatorParams } from "@screens/Settings";
 import { nestedStackSharedOptions } from "@constants/navigation";
 import { useAppStackNavigationOptions } from "@hooks/useAppStackNavigationOptions";
+import { MainTabs } from "./MainTabs";
 import { useSQLiteContext } from "expo-sqlite";
 import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
 
 export type RootStackParamsList = {
-  Home: HomeParams;
+  MainTabs: undefined;
   Settings: SettingsNavigatorParams;
   Scanner: ScannerParams;
   Product: ProductParams;
@@ -33,8 +33,12 @@ export function AppRoutes() {
   useDrizzleStudio(db);
 
   return (
-    <Stack.Navigator initialRouteName="Home" screenOptions={stackOptions}>
-      <Stack.Screen name="Home" component={Home} />
+    <Stack.Navigator initialRouteName="MainTabs" screenOptions={stackOptions}>
+      <Stack.Screen
+        name="MainTabs"
+        component={MainTabs}
+        options={nestedStackSharedOptions}
+      />
       <Stack.Screen
         name="Settings"
         component={SettingsNavigator}
