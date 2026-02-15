@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import { zGetProductDetails } from "./validators/getProductDetails";
+import { zSearchProducts } from "./validators/searchProducts";
 import { ApiError } from "./ApiError";
 
 export class ApiClient {
@@ -38,5 +39,16 @@ export class ApiClient {
       `/product/${encodeURIComponent(barcode)}?${mParams}`,
       zGetProductDetails,
     );
+  }
+
+  public searchProducts(query: string, params: { page?: number } = {}) {
+    const mParams = new URLSearchParams({
+      search_terms: query,
+      fields: "code,lang,product_name,brands,selected_images",
+      page_size: "24",
+      ...(params.page !== undefined && { page: String(params.page) }),
+    });
+
+    return this.get(`/search?${mParams}`, zSearchProducts);
   }
 }
