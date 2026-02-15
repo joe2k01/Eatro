@@ -5,6 +5,7 @@ import type { NavigatorScreenParams } from "@react-navigation/native";
 import { Home, HomeParams } from "@screens/Home";
 import { MyFoods, MyFoodsParams } from "@screens/MyFoods";
 import { MealR, MealRParams } from "@screens/MealR";
+import { Search, SearchHeader, SearchParams } from "@screens/Search";
 import { SettingsNavigator, SettingsNavigatorParams } from "@screens/Settings";
 import { nestedStackSharedOptions } from "@constants/navigation";
 import { useAppStackNavigationOptions } from "@hooks/useAppStackNavigationOptions";
@@ -16,6 +17,7 @@ import { Icon } from "@components/media/Icon";
 
 export type HomeStackParamsList = {
   Home: HomeParams;
+  Search: SearchParams;
   Settings: SettingsNavigatorParams;
 };
 
@@ -31,6 +33,11 @@ function HomeStack() {
     >
       <HomeStackNav.Screen name="Home" component={Home} />
       <HomeStackNav.Screen
+        name="Search"
+        component={Search}
+        options={{ header: SearchHeader }}
+      />
+      <HomeStackNav.Screen
         name="Settings"
         component={SettingsNavigator}
         options={nestedStackSharedOptions}
@@ -43,6 +50,7 @@ function HomeStack() {
 
 export type MyFoodsStackParamsList = {
   MyFoods: MyFoodsParams;
+  Search: SearchParams;
 };
 
 const MyFoodsStackNav = createNativeStackNavigator<MyFoodsStackParamsList>();
@@ -56,6 +64,11 @@ function MyFoodsStack() {
       screenOptions={stackOptions}
     >
       <MyFoodsStackNav.Screen name="MyFoods" component={MyFoods} />
+      <MyFoodsStackNav.Screen
+        name="Search"
+        component={Search}
+        options={{ header: SearchHeader }}
+      />
     </MyFoodsStackNav.Navigator>
   );
 }

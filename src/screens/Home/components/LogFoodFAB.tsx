@@ -1,5 +1,7 @@
 import { useCallback } from "react";
 import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { HomeStackParamsList } from "../../../AppTabs";
 import { Button } from "@components/buttons/Button";
 import { Icon } from "@components/media/Icon";
 import { spacing } from "@constants/theme";
@@ -27,7 +29,8 @@ type LogFoodFABProps = {
 };
 
 export function LogFoodFAB({ visible }: LogFoodFABProps) {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<HomeStackParamsList>>();
 
   const handlePress = useCallback(() => {
     navigation.navigate("Search");
