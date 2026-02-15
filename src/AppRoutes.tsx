@@ -1,16 +1,15 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import type { NavigatorScreenParams } from "@react-navigation/native";
 import { Product, ProductParams } from "@screens/Product";
 import { Scanner, ScannerParams } from "@screens/Scanner";
-import { SettingsNavigator, SettingsNavigatorParams } from "@screens/Settings";
 import { nestedStackSharedOptions } from "@constants/navigation";
 import { useAppStackNavigationOptions } from "@hooks/useAppStackNavigationOptions";
-import { MainTabs } from "./MainTabs";
+import { AppTabs, TabParamsList } from "./AppTabs";
 import { useSQLiteContext } from "expo-sqlite";
 import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
 
 export type RootStackParamsList = {
-  MainTabs: undefined;
-  Settings: SettingsNavigatorParams;
+  AppTabs: NavigatorScreenParams<TabParamsList>;
   Scanner: ScannerParams;
   Product: ProductParams;
 };
@@ -33,15 +32,10 @@ export function AppRoutes() {
   useDrizzleStudio(db);
 
   return (
-    <Stack.Navigator initialRouteName="MainTabs" screenOptions={stackOptions}>
+    <Stack.Navigator initialRouteName="AppTabs" screenOptions={stackOptions}>
       <Stack.Screen
-        name="MainTabs"
-        component={MainTabs}
-        options={nestedStackSharedOptions}
-      />
-      <Stack.Screen
-        name="Settings"
-        component={SettingsNavigator}
+        name="AppTabs"
+        component={AppTabs}
         options={nestedStackSharedOptions}
       />
       <Stack.Screen name="Scanner" component={Scanner} />
