@@ -1,7 +1,6 @@
 import { BaseRepository, type QueryResult } from "./BaseRepository";
 import { MealFoodSchema, type MealFood } from "@db/schemas/MealFood";
 import { FoodSchema, type Food } from "@db/schemas/Food";
-import { z } from "zod";
 
 export type MealFoodWithFood = MealFood & {
   food: Food;

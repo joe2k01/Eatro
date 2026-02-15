@@ -61,21 +61,16 @@ export function Search() {
 
   const queryEnabled = query.length > 0;
 
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetching,
-    isFetchingNextPage,
-  } = useInfiniteQuery({
-    queryKey: ["search", query],
-    queryFn: ({ pageParam }) =>
-      client.searchProducts(query, { page: pageParam }),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage) =>
-      lastPage.page < lastPage.pageCount ? lastPage.page + 1 : undefined,
-    enabled: queryEnabled,
-  });
+  const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage } =
+    useInfiniteQuery({
+      queryKey: ["search", query],
+      queryFn: ({ pageParam }) =>
+        client.searchProducts(query, { page: pageParam }),
+      initialPageParam: 1,
+      getNextPageParam: (lastPage) =>
+        lastPage.page < lastPage.pageCount ? lastPage.page + 1 : undefined,
+      enabled: queryEnabled,
+    });
 
   const products = useMemo(
     () => data?.pages.flatMap((page) => page.products) ?? [],
@@ -95,10 +90,7 @@ export function Search() {
     [],
   );
 
-  const keyExtractor = useCallback(
-    (item: SearchProductItem) => item.code,
-    [],
-  );
+  const keyExtractor = useCallback((item: SearchProductItem) => item.code, []);
 
   const listFooter = useMemo(
     () => (isFetchingNextPage ? <SearchResultLoader /> : null),
@@ -140,6 +132,8 @@ export function Search() {
   );
 }
 
-export type SearchParams = {
-  query?: string;
-} | undefined;
+export type SearchParams =
+  | {
+      query?: string;
+    }
+  | undefined;

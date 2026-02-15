@@ -146,9 +146,7 @@ export function PillButton<T>({
               onLayout={(e) => onTabLayout(e, index)}
               style={styles.tab}
             >
-              <Body
-                color={isSelected ? textStyle.color : theme.text.secondary}
-              >
+              <Body color={isSelected ? textStyle.color : theme.text.secondary}>
                 {label}
               </Body>
             </Pressable>

@@ -20,9 +20,7 @@ const searchProductItemSchema = z
     // Match the product details approach: use the product's own `lang`
     // field to pick the correct locale-specific image URL.
     const imageUrl =
-      imageUrls && lang && lang in imageUrls
-        ? imageUrls[lang]
-        : undefined;
+      imageUrls && lang && lang in imageUrls ? imageUrls[lang] : undefined;
 
     return {
       code,
