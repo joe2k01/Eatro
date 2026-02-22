@@ -1,8 +1,7 @@
 import { useCallback, useMemo } from "react";
 import {
-  FlatList,
+  SectionList,
   StyleSheet,
-  ListRenderItemInfo,
   useWindowDimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -10,16 +9,21 @@ import { useRoute, type RouteProp } from "@react-navigation/native";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useApiClient } from "@api/ApiClient";
 import { VStack } from "@components/layout/VStack";
-import { Caption } from "@components/typography/Text";
+import { Caption, Title } from "@components/typography/Text";
 import { useTheme } from "@contexts/ThemeProvider";
+import { spacing } from "@constants/theme";
 import type { SearchProductItem } from "@api/validators/searchProducts";
-import { SearchResultItem } from "./components/SearchResultItem";
+import type { Food } from "@db/schemas";
+import {
+  SearchResultItem,
+  type SearchResultItemProps,
+} from "./components/SearchResultItem";
 import {
   SearchResultLoader,
   ROW_HEIGHT,
 } from "./components/SearchResultLoader";
+import { useSearchManualFoods } from "./hooks/useSearchManualFoods";
 
-/** Approximate height of the header (back arrow + search pill + padding + safe area). */
 const HEADER_HEIGHT_ESTIMATE = 56;
 
 const styles = StyleSheet.create({
@@ -34,7 +38,14 @@ const styles = StyleSheet.create({
   list: {
     flex: 1,
   },
+  sectionHeader: {
+    paddingHorizontal: spacing(2),
+    paddingTop: spacing(2),
+    paddingBottom: spacing(0.5),
+  },
 });
+
+type SearchSectionItem = SearchResultItemProps;
 
 function InitialLoaders({ count }: { count: number }) {
   const keys = useMemo(
@@ -61,6 +72,8 @@ export function Search() {
 
   const queryEnabled = query.length > 0;
 
+  const manualFoods = useSearchManualFoods(query);
+
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage } =
     useInfiniteQuery({
       queryKey: ["search", query],
@@ -77,6 +90,30 @@ export function Search() {
     [data],
   );
 
+  const sections = useMemo(() => {
+    const result: { title: string; data: SearchSectionItem[] }[] = [];
+
+    if (manualFoods.length > 0) {
+      result.push({
+        title: "My Foods",
+        data: manualFoods.map(
+          (f) => ({ item: f, source: "local" as const }),
+        ),
+      });
+    }
+
+    if (products.length > 0) {
+      result.push({
+        title: "Online Results",
+        data: products.map(
+          (p) => ({ item: p, source: "api" as const }),
+        ),
+      });
+    }
+
+    return result;
+  }, [manualFoods, products]);
+
   const handleEndReached = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
@@ -84,13 +121,28 @@ export function Search() {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const renderItem = useCallback(
-    ({ item }: ListRenderItemInfo<SearchProductItem>) => (
-      <SearchResultItem item={item} />
+    ({ item }: { item: SearchSectionItem }) => (
+      <SearchResultItem {...item} />
     ),
     [],
   );
 
-  const keyExtractor = useCallback((item: SearchProductItem) => item.code, []);
+  const renderSectionHeader = useCallback(
+    ({ section }: { section: { title: string } }) => (
+      <VStack style={styles.sectionHeader}>
+        <Title>{section.title}</Title>
+      </VStack>
+    ),
+    [],
+  );
+
+  const keyExtractor = useCallback(
+    (item: SearchSectionItem) =>
+      "code" in item.item
+        ? (item.item as SearchProductItem).code
+        : `local-${(item.item as Food).id}`,
+    [],
+  );
 
   const listFooter = useMemo(
     () => (isFetchingNextPage ? <SearchResultLoader /> : null),
@@ -117,15 +169,17 @@ export function Search() {
       ) : isInitialLoad ? (
         <InitialLoaders count={loaderCount} />
       ) : (
-        <FlatList
+        <SectionList
           style={styles.list}
-          data={products}
+          sections={sections}
           renderItem={renderItem}
+          renderSectionHeader={renderSectionHeader}
           keyExtractor={keyExtractor}
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.5}
           ListFooterComponent={listFooter}
           keyboardShouldPersistTaps="handled"
+          stickySectionHeadersEnabled={false}
         />
       )}
     </VStack>

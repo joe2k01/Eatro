@@ -5,9 +5,11 @@ import { HStack } from "@components/layout/HStack";
 import { VStack } from "@components/layout/VStack";
 import { Body, Caption } from "@components/typography/Text";
 import { RemoteImage } from "@components/media/RemoteImage";
+import { Icon } from "@components/media/Icon";
 import { useTheme } from "@contexts/ThemeProvider";
-import { spacing } from "@constants/theme";
+import { spacing, BorderRadius } from "@constants/theme";
 import type { SearchProductItem } from "@api/validators/searchProducts";
+import type { Food } from "@db/schemas";
 
 const THUMBNAIL_SIZE = 48;
 
@@ -23,25 +25,48 @@ const styles = StyleSheet.create({
     width: THUMBNAIL_SIZE,
     height: THUMBNAIL_SIZE,
   },
+  iconPlaceholder: {
+    width: THUMBNAIL_SIZE,
+    height: THUMBNAIL_SIZE,
+    borderRadius: BorderRadius.md,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+  },
 });
 
-type SearchResultItemProps = {
-  item: SearchProductItem;
-};
+export type SearchResultItemProps =
+  | { item: SearchProductItem; source: "api" }
+  | { item: Food; source: "local" };
 
-export const SearchResultItem = memo(function SearchResultItem({
-  item,
-}: SearchResultItemProps) {
+export const SearchResultItem = memo(function SearchResultItem(
+  props: SearchResultItemProps,
+) {
+  const { source } = props;
   const theme = useTheme();
   const navigation = useNavigation();
 
+  const name = source === "api" ? props.item.name : props.item.name;
+  const brand =
+    source === "api" ? props.item.brand : (props.item.brand ?? undefined);
+
   const handlePress = useCallback(() => {
-    navigation.navigate("Product", { barcode: item.code });
-  }, [navigation, item.code]);
+    if (source === "api") {
+      navigation.navigate("Product", {
+        barcode: (props.item as SearchProductItem).code,
+      });
+    } else {
+      navigation.navigate("Product", {
+        foodId: (props.item as Food).id,
+      });
+    }
+  }, [navigation, props.item, source]);
 
   const imageSource = useMemo(
-    () => (item.imageUrl ? { uri: item.imageUrl } : undefined),
-    [item.imageUrl],
+    () =>
+      source === "api" && (props.item as SearchProductItem).imageUrl
+        ? { uri: (props.item as SearchProductItem).imageUrl }
+        : undefined,
+    [props.item, source],
   );
 
   return (
@@ -50,15 +75,37 @@ export const SearchResultItem = memo(function SearchResultItem({
       style={({ pressed }) => (pressed ? styles.pressed : undefined)}
     >
       <HStack style={styles.row} gap={1.5} alignItems="center">
-        <RemoteImage
-          source={imageSource}
-          shape="squircle"
-          style={styles.thumbnail}
-        />
+        {imageSource ? (
+          <RemoteImage
+            source={imageSource}
+            shape="squircle"
+            style={styles.thumbnail}
+          />
+        ) : (
+          <VStack
+            style={[
+              styles.iconPlaceholder,
+              { backgroundColor: theme.surface.tertiary },
+            ]}
+          >
+            <Icon
+              community
+              name="food-apple"
+              size="s"
+              color={theme.text.muted}
+            />
+          </VStack>
+        )}
         <VStack gap={0.25} flex={1}>
-          <Body numberOfLines={1}>{item.name}</Body>
-          {item.brand && (
-            <Caption color={theme.text.muted}>{item.brand}</Caption>
+          <Body numberOfLines={1}>{name}</Body>
+          {brand && <Caption color={theme.text.muted}>{brand}</Caption>}
+          {source === "local" && (
+            <Caption color={theme.text.muted}>
+              {Math.round((props.item as Food).energy_per_serving)} kcal · P:{" "}
+              {Math.round((props.item as Food).proteins_per_serving)}g C:{" "}
+              {Math.round((props.item as Food).carbohydrates_per_serving)}g F:{" "}
+              {Math.round((props.item as Food).fat_per_serving)}g
+            </Caption>
           )}
         </VStack>
       </HStack>
