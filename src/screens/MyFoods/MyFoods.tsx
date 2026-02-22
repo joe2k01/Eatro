@@ -49,7 +49,7 @@ export function MyFoods() {
       headerTitle: () => <Title>My Foods</Title>,
       headerRight: () => (
         <IconButton
-          name="plus"
+          name="add"
           variant="tertiary"
           onPress={() => navigation.navigate("CreateFood")}
         />

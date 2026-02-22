@@ -6,6 +6,7 @@ import { ProductContent } from "./ProductContent";
 
 function foodToNutriments(food: Food): GetProductDetails["nutriments"] {
   return {
+    per100g: undefined,
     perServing: {
       energy: food.energy_per_serving,
       proteins: food.proteins_per_serving,

@@ -27,20 +27,20 @@ const headerOptions = {
 const createFoodSchema = z.object({
   name: z.string().min(1, "Name is required"),
   servingSize: z
-    .number({ invalid_type_error: "Required" })
+    .number({ error: "Required" })
     .positive("Must be positive"),
   unit: z.string().min(1, "Unit is required"),
   energy: z
-    .number({ invalid_type_error: "Required" })
+    .number({ error: "Required" })
     .nonnegative("Must be non-negative"),
   protein: z
-    .number({ invalid_type_error: "Required" })
+    .number({ error: "Required" })
     .nonnegative("Must be non-negative"),
   carbs: z
-    .number({ invalid_type_error: "Required" })
+    .number({ error: "Required" })
     .nonnegative("Must be non-negative"),
   fat: z
-    .number({ invalid_type_error: "Required" })
+    .number({ error: "Required" })
     .nonnegative("Must be non-negative"),
   brand: z.string().optional(),
   barcode: z.string().optional(),
@@ -160,7 +160,7 @@ export function CreateFood() {
           <TextInput
             label="Serving size"
             value={formatNumber(values.servingSize)}
-            onChangeText={(text) => setValue("servingSize", parseNumber(text))}
+            onChangeText={(text) => setValue("servingSize", parseNumber(text) as number)}
             placeholder="100"
             keyboardType="decimal-pad"
             containerStyle={styles.inputContainer}
@@ -180,7 +180,7 @@ export function CreateFood() {
         <TextInput
           label="Calories"
           value={formatNumber(values.energy)}
-          onChangeText={(text) => setValue("energy", parseNumber(text))}
+            onChangeText={(text) => setValue("energy", parseNumber(text) as number)}
           placeholder="0"
           keyboardType="decimal-pad"
           unit="kcal"
@@ -191,7 +191,7 @@ export function CreateFood() {
           <TextInput
             label="Protein"
             value={formatNumber(values.protein)}
-            onChangeText={(text) => setValue("protein", parseNumber(text))}
+            onChangeText={(text) => setValue("protein", parseNumber(text) as number)}
             placeholder="0"
             keyboardType="decimal-pad"
             unit="g"
@@ -202,7 +202,7 @@ export function CreateFood() {
           <TextInput
             label="Carbs"
             value={formatNumber(values.carbs)}
-            onChangeText={(text) => setValue("carbs", parseNumber(text))}
+            onChangeText={(text) => setValue("carbs", parseNumber(text) as number)}
             placeholder="0"
             keyboardType="decimal-pad"
             unit="g"
@@ -213,7 +213,7 @@ export function CreateFood() {
           <TextInput
             label="Fat"
             value={formatNumber(values.fat)}
-            onChangeText={(text) => setValue("fat", parseNumber(text))}
+            onChangeText={(text) => setValue("fat", parseNumber(text) as number)}
             placeholder="0"
             keyboardType="decimal-pad"
             unit="g"
@@ -228,7 +228,7 @@ export function CreateFood() {
           style={styles.moreDetailsToggle}
         >
           <Icon
-            name={showMoreDetails ? "chevron-down" : "chevron-right"}
+            name={showMoreDetails ? "expand-more" : "chevron-right"}
             size="xs"
             color={theme.text.muted}
           />
