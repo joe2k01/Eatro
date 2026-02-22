@@ -147,7 +147,7 @@ export function Home() {
               <Display color={caloriesTextColor}>
                 {cals} / {goals?.calories}
               </Display>
-              <Caption color={captionTextColor}>kcal remaining</Caption>
+              <Caption color={captionTextColor}>kcal</Caption>
             </VStack>
             <DonutChart
               donutData={donutData}
