@@ -85,4 +85,108 @@ export class FoodRepository extends BaseRepository {
     console.log("row", id);
     return id;
   }
+
+  public async getFoodById(id: number): QueryResult<Food> {
+    const statement = await this.prepareStatement(
+      `SELECT * FROM foods WHERE id = $id AND deleted_at IS NULL`,
+      "getFoodById",
+    );
+
+    if (!statement) return null;
+
+    const result = await this.executeStatement(statement, { $id: id });
+    if (!result) return null;
+
+    const data = await this.getFirstRow(result);
+    return data ? FoodSchema.parse(data) : null;
+  }
+
+  public async insertManualFood(
+    food: Omit<Food, "id" | "deleted_at">,
+  ): QueryResult<number> {
+    const statement = await this.prepareStatement(
+      `INSERT INTO foods (name, brand, unit, serving_size, energy_per_serving, proteins_per_serving, carbohydrates_per_serving, fat_per_serving, barcode, source, created_at, updated_at)
+       VALUES ($name, $brand, $unit, $serving_size, $energy_per_serving, $proteins_per_serving, $carbohydrates_per_serving, $fat_per_serving, $barcode, $source, $created_at, $updated_at)
+       RETURNING id`,
+      "insertManualFood",
+    );
+
+    if (!statement) return null;
+
+    const result = await this.executeStatement(statement, {
+      $name: food.name,
+      $brand: food.brand,
+      $unit: food.unit,
+      $serving_size: food.serving_size,
+      $energy_per_serving: food.energy_per_serving,
+      $proteins_per_serving: food.proteins_per_serving,
+      $carbohydrates_per_serving: food.carbohydrates_per_serving,
+      $fat_per_serving: food.fat_per_serving,
+      $barcode: food.barcode,
+      $source: food.source,
+      $created_at: food.created_at,
+      $updated_at: food.updated_at,
+    });
+
+    if (!result) return null;
+
+    const row = await this.getFirstRow(result);
+    if (!row) return null;
+
+    const { id } = FoodSchema.pick({ id: true }).parse(row);
+    return id;
+  }
+
+  public async searchManualFoods(
+    query: string,
+    limit: number,
+  ): QueryResult<Food[]> {
+    const statement = await this.prepareStatement(
+      `SELECT * FROM foods
+       WHERE source = ${FoodSource.Manual}
+         AND deleted_at IS NULL
+         AND (name LIKE '%' || $query || '%' OR brand LIKE '%' || $query || '%')
+       ORDER BY created_at DESC
+       LIMIT $limit`,
+      "searchManualFoods",
+    );
+
+    if (!statement) return null;
+
+    const result = await this.executeStatement(statement, {
+      $query: query,
+      $limit: limit,
+    });
+
+    if (!result) return null;
+
+    const rows = await result.getAllAsync();
+    return rows.map((row) => FoodSchema.parse(row));
+  }
+
+  public async getManualFoods(
+    limit: number,
+    offset: number,
+  ): QueryResult<Food[]> {
+    const statement = await this.prepareStatement(
+      `SELECT * FROM foods
+       WHERE source = ${FoodSource.Manual}
+         AND deleted_at IS NULL
+       ORDER BY created_at DESC
+       LIMIT $limit OFFSET $offset`,
+      "getManualFoods",
+    );
+
+    if (!statement) return null;
+
+    const result = await this.executeStatement(statement, {
+      $limit: limit,
+      $offset: offset,
+    });
+
+    if (!result) return null;
+
+    const rows = await result.getAllAsync();
+    return rows.map((row) => FoodSchema.parse(row));
+  }
 }
