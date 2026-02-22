@@ -3,7 +3,7 @@ import type { BottomTabNavigationOptions } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import type { NavigatorScreenParams } from "@react-navigation/native";
 import { Home, HomeParams } from "@screens/Home";
-import { MyFoods, MyFoodsParams } from "@screens/MyFoods";
+import { MyFoods, MyFoodsParams, CreateFood } from "@screens/MyFoods";
 import { MealR, MealRParams } from "@screens/MealR";
 import { Search, SearchHeader, SearchParams } from "@screens/Search";
 import { SettingsNavigator, SettingsNavigatorParams } from "@screens/Settings";
@@ -50,6 +50,7 @@ function HomeStack() {
 
 export type MyFoodsStackParamsList = {
   MyFoods: MyFoodsParams;
+  CreateFood: undefined;
   Search: SearchParams;
 };
 
@@ -64,6 +65,7 @@ function MyFoodsStack() {
       screenOptions={stackOptions}
     >
       <MyFoodsStackNav.Screen name="MyFoods" component={MyFoods} />
+      <MyFoodsStackNav.Screen name="CreateFood" component={CreateFood} />
       <MyFoodsStackNav.Screen
         name="Search"
         component={Search}
