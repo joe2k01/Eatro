@@ -21,7 +21,7 @@ export function DbProductLoader({ foodId }: { foodId: number }) {
   const [food, setFood] = useState<Food | null>(null);
 
   useEffect(() => {
-    foodRepo.getFoodById(foodId).then(setFood);
+    foodRepo.getFoodByIdentifier({ id: foodId }).then(setFood);
   }, [foodRepo, foodId]);
 
   if (!food) return null;

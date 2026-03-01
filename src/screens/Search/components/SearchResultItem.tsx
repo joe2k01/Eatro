@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo } from "react";
+import { memo, useCallback, useMemo, type ReactNode } from "react";
 import { Pressable, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { HStack } from "@components/layout/HStack";
@@ -50,16 +50,32 @@ export const SearchResultItem = memo(function SearchResultItem(
     source === "api" ? props.item.brand : (props.item.brand ?? undefined);
 
   const handlePress = useCallback(() => {
-    if (source === "api") {
-      navigation.navigate("Product", {
-        barcode: (props.item as SearchProductItem).code,
-      });
-    } else {
-      navigation.navigate("Product", {
-        foodId: (props.item as Food).id,
-      });
+    switch (source) {
+      case "api":
+        navigation.navigate("Product", {
+          barcode: (props.item as SearchProductItem).code,
+        });
+        break;
+      case "local":
+        navigation.navigate("Product", {
+          foodId: (props.item as Food).id,
+        });
+        break;
     }
   }, [navigation, props.item, source]);
+
+  const nutrimentSummary: ReactNode = useMemo(() => {
+    if (source !== "local") return null;
+    const food = props.item as Food;
+    return (
+      <Caption color={theme.text.muted}>
+        {Math.round(food.energy_per_serving)} kcal · P:{" "}
+        {Math.round(food.proteins_per_serving)}g C:{" "}
+        {Math.round(food.carbohydrates_per_serving)}g F:{" "}
+        {Math.round(food.fat_per_serving)}g
+      </Caption>
+    );
+  }, [source, props.item, theme.text.muted]);
 
   const imageSource = useMemo(
     () =>
@@ -99,14 +115,7 @@ export const SearchResultItem = memo(function SearchResultItem(
         <VStack gap={0.25} flex={1}>
           <Body numberOfLines={1}>{name}</Body>
           {brand && <Caption color={theme.text.muted}>{brand}</Caption>}
-          {source === "local" && (
-            <Caption color={theme.text.muted}>
-              {Math.round((props.item as Food).energy_per_serving)} kcal · P:{" "}
-              {Math.round((props.item as Food).proteins_per_serving)}g C:{" "}
-              {Math.round((props.item as Food).carbohydrates_per_serving)}g F:{" "}
-              {Math.round((props.item as Food).fat_per_serving)}g
-            </Caption>
-          )}
+          {nutrimentSummary}
         </VStack>
       </HStack>
     </Pressable>

@@ -44,6 +44,10 @@ export function MyFoods() {
   const [filterQuery, setFilterQuery] = useState("");
   const foods = useManualFoods(filterQuery);
 
+  const navigateToCreateFood = useCallback(() => {
+    navigation.navigate("CreateFood");
+  }, [navigation]);
+
   const headerOptions = useMemo<NativeStackNavigationOptions>(
     () => ({
       headerTitle: () => <Title>My Foods</Title>,
@@ -51,11 +55,11 @@ export function MyFoods() {
         <IconButton
           name="add"
           variant="tertiary"
-          onPress={() => navigation.navigate("CreateFood")}
+          onPress={navigateToCreateFood}
         />
       ),
     }),
-    [navigation],
+    [navigateToCreateFood],
   );
   useDynamicNavigationOptions(headerOptions);
 
@@ -66,10 +70,7 @@ export function MyFoods() {
     [],
   );
 
-  const keyExtractor = useCallback(
-    (item: Food) => String(item.id),
-    [],
-  );
+  const keyExtractor = useCallback((item: Food) => String(item.id), []);
 
   const isEmpty = foods.length === 0 && !filterQuery.trim();
 
@@ -90,10 +91,7 @@ export function MyFoods() {
             </VStack>
           </VStack>
           <VStack style={styles.bottomButton}>
-            <Button
-              variant="primary"
-              onPress={() => navigation.navigate("CreateFood")}
-            >
+            <Button variant="primary" onPress={navigateToCreateFood}>
               Add your first food
             </Button>
           </VStack>

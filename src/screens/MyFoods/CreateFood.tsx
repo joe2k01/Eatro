@@ -112,7 +112,7 @@ export function CreateFood() {
     setSubmitting(true);
     try {
       const nowMs = Date.now();
-      const foodId = await foodRepo.insertManualFood({
+      const foodId = await foodRepo.upsertFood({
         name: values.name!.trim(),
         brand: values.brand?.trim() || null,
         unit: values.unit!,

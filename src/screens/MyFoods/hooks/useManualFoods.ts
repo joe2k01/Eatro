@@ -13,9 +13,10 @@ export function useManualFoods(filterQuery: string) {
     let active = true;
 
     async function load() {
-      const result = filterQuery.trim()
-        ? await foodRepo.searchManualFoods(filterQuery.trim(), PAGE_SIZE)
-        : await foodRepo.getManualFoods(PAGE_SIZE, 0);
+      const result = await foodRepo.searchManualFoods(
+        filterQuery.trim(),
+        PAGE_SIZE,
+      );
 
       if (active) setFoods(result ?? []);
     }

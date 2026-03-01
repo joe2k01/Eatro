@@ -9,17 +9,23 @@ export function useSearchManualFoods(query: string) {
   const [results, setResults] = useState<Food[]>([]);
 
   useEffect(() => {
-    if (!query.trim()) {
+    const trimmed = query.trim();
+    if (!trimmed) {
       setResults([]);
       return;
     }
 
     let active = true;
-    foodRepo
-      .searchManualFoods(query.trim(), MANUAL_SEARCH_LIMIT)
-      .then((data) => {
-        if (active) setResults(data ?? []);
-      });
+
+    async function search() {
+      const data = await foodRepo.searchManualFoods(
+        trimmed,
+        MANUAL_SEARCH_LIMIT,
+      );
+      if (active) setResults(data ?? []);
+    }
+
+    search();
 
     return () => {
       active = false;

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet } from "react-native";
 import { GetProductDetails } from "@api/validators/getProductDetails";
 import { VStack } from "@components/layout/VStack";
@@ -94,6 +94,10 @@ export function ProductContent({
 
   const tray = useRef<TrayApi>(null);
 
+  const openTray = useCallback(() => {
+    tray.current?.openTray();
+  }, []);
+
   return (
     <Box flex={1}>
       <SafeVStack guard="bottom" flex={1} paddingHorizontal={2}>
@@ -155,7 +159,7 @@ export function ProductContent({
           )}
         </VStack>
 
-        <Button variant="primary" onPress={() => tray.current?.openTray()}>
+        <Button variant="primary" onPress={openTray}>
           Add to meal
         </Button>
       </SafeVStack>
