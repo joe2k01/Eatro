@@ -1,6 +1,7 @@
-import { memo, useCallback, useMemo } from "react";
+import { memo, useCallback, useMemo, type ReactNode } from "react";
 import { Pressable, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { match } from "ts-pattern";
 import { HStack } from "@components/layout/HStack";
 import { VStack } from "@components/layout/VStack";
 import { Body, Caption } from "@components/typography/Text";
@@ -8,6 +9,7 @@ import { RemoteImage } from "@components/media/RemoteImage";
 import { useTheme } from "@contexts/ThemeProvider";
 import { spacing } from "@constants/theme";
 import type { SearchProductItem } from "@api/validators/searchProducts";
+import type { Food } from "@db/schemas";
 
 const THUMBNAIL_SIZE = 48;
 
@@ -25,24 +27,50 @@ const styles = StyleSheet.create({
   },
 });
 
-type SearchResultItemProps = {
-  item: SearchProductItem;
-};
+export type SearchResultItemProps =
+  | { item: SearchProductItem; source: "api" }
+  | { item: Food; source: "local" };
 
-export const SearchResultItem = memo(function SearchResultItem({
-  item,
-}: SearchResultItemProps) {
+export const SearchResultItem = memo(function SearchResultItem(
+  props: SearchResultItemProps,
+) {
   const theme = useTheme();
   const navigation = useNavigation();
 
   const handlePress = useCallback(() => {
-    navigation.navigate("Product", { barcode: item.code });
-  }, [navigation, item.code]);
+    match(props)
+      .with({ source: "api" }, ({ item }) => {
+        navigation.navigate("Product", { barcode: item.code });
+      })
+      .with({ source: "local" }, ({ item }) => {
+        navigation.navigate("Product", { foodId: item.id });
+      })
+      .exhaustive();
+  }, [navigation, props]);
 
-  const imageSource = useMemo(
-    () => (item.imageUrl ? { uri: item.imageUrl } : undefined),
-    [item.imageUrl],
-  );
+  const { name, brand, imageSource, nutrimentSummary } = useMemo(() => {
+    return match(props)
+      .with({ source: "api" }, ({ item }) => ({
+        name: item.name,
+        brand: item.brand,
+        imageSource: item.imageUrl ? { uri: item.imageUrl } as const : undefined,
+        nutrimentSummary: null as ReactNode,
+      }))
+      .with({ source: "local" }, ({ item }) => ({
+        name: item.name,
+        brand: item.brand ?? undefined,
+        imageSource: undefined,
+        nutrimentSummary: (
+          <Caption color={theme.text.muted}>
+            {Math.round(item.energy_per_serving)} kcal · P:{" "}
+            {Math.round(item.proteins_per_serving)}g C:{" "}
+            {Math.round(item.carbohydrates_per_serving)}g F:{" "}
+            {Math.round(item.fat_per_serving)}g
+          </Caption>
+        ),
+      }))
+      .exhaustive();
+  }, [props, theme.text.muted]);
 
   return (
     <Pressable
@@ -56,10 +84,9 @@ export const SearchResultItem = memo(function SearchResultItem({
           style={styles.thumbnail}
         />
         <VStack gap={0.25} flex={1}>
-          <Body numberOfLines={1}>{item.name}</Body>
-          {item.brand && (
-            <Caption color={theme.text.muted}>{item.brand}</Caption>
-          )}
+          <Body numberOfLines={1}>{name}</Body>
+          {brand && <Caption color={theme.text.muted}>{brand}</Caption>}
+          {nutrimentSummary}
         </VStack>
       </HStack>
     </Pressable>

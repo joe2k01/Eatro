@@ -6,7 +6,10 @@ import * as Sentry from "@sentry/react-native";
 // NOTE: Metro requires asset `require()` calls to be statically analyzable.
 // Do NOT build these paths dynamically (e.g. `.map(require)`), or bundling will fail.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const migrations = [require("./initial_schema.sql")];
+const migrations = [
+  require("./initial_schema.sql"),
+  require("./002_manual_foods_index.sql"),
+];
 
 export async function migrateDbIfNeeded(db: SQLiteDatabase) {
   try {
