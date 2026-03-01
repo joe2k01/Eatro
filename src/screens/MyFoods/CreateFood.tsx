@@ -48,6 +48,13 @@ const createFoodSchema = z.object({
 
 type CreateFoodValues = z.infer<typeof createFoodSchema>;
 
+export type NutrientBasis = "per100g" | "perServing";
+
+const nutrientBasisOptions: PopupButtonOption<NutrientBasis>[] = [
+  { label: "Per 100g", value: "per100g" },
+  { label: "Per serving", value: "perServing" },
+];
+
 const unitOptions: PopupButtonOption<string>[] = [
   { label: "g", value: "g" },
   { label: "ml", value: "ml" },
@@ -81,6 +88,7 @@ export function CreateFood() {
   const { food: foodRepo } = useRepositories();
   const [submitting, setSubmitting] = useState(false);
   const [showMoreDetails, setShowMoreDetails] = useState(false);
+  const [nutrientBasis, setNutrientBasis] = useState<NutrientBasis>("perServing");
 
   const { values, errors, setValue, validate } = useForm<
     CreateFoodValues,
@@ -101,10 +109,11 @@ export function CreateFood() {
   });
 
   const nutritionLabel = useMemo(() => {
+    if (nutrientBasis === "per100g") return "Nutrition per 100g";
     const size = values.servingSize;
     const unit = values.unit || "g";
     return size ? `Nutrition per ${size}${unit}` : "Nutrition per serving";
-  }, [values.servingSize, values.unit]);
+  }, [nutrientBasis, values.servingSize, values.unit]);
 
   const onChangeByField = useMemo(
     () =>
@@ -132,11 +141,12 @@ export function CreateFood() {
     setSubmitting(true);
     try {
       const nowMs = Date.now();
+      const isPer100g = nutrientBasis === "per100g";
       const foodId = await foodRepo.upsertFood({
         name: values.name!.trim(),
         brand: values.brand?.trim() || null,
-        unit: values.unit!,
-        serving_size: values.servingSize!,
+        unit: isPer100g ? "g" : values.unit!,
+        serving_size: isPer100g ? 100 : values.servingSize!,
         energy_per_serving: values.energy!,
         proteins_per_serving: values.protein!,
         carbohydrates_per_serving: values.carbs!,
@@ -163,7 +173,7 @@ export function CreateFood() {
     } finally {
       setSubmitting(false);
     }
-  }, [validate, values, foodRepo, showSnackbar, navigation]);
+  }, [validate, values, nutrientBasis, foodRepo, showSnackbar, navigation]);
 
   return (
     <SafeVStack guard="bottom" paddingHorizontal={2}>
@@ -176,24 +186,38 @@ export function CreateFood() {
           error={errors.name}
         />
 
-        <HStack gap={1} alignItems="flex-start">
-          <TextInput
-            label="Serving size"
-            value={formatNumber(values.servingSize)}
-            onChangeText={onChangeByField.servingSize}
-            placeholder="100"
-            keyboardType="decimal-pad"
-            containerStyle={styles.inputContainer}
-            error={errors.servingSize}
-          />
-          <Box paddingTop={3}>
-            <Picker
-              options={unitOptions}
-              onOptionSelect={(opt) => setValue("unit", opt.value)}
-              placeholder={values.unit || "g"}
+        <Picker
+          options={nutrientBasisOptions}
+          onOptionSelect={(opt) => {
+            setNutrientBasis(opt.value);
+            if (opt.value === "per100g") {
+              setValue("servingSize", 100);
+              setValue("unit", "g");
+            }
+          }}
+          placeholder={nutrientBasis === "per100g" ? "Per 100g" : "Per serving"}
+        />
+
+        {nutrientBasis === "perServing" && (
+          <HStack gap={1} alignItems="flex-start">
+            <TextInput
+              label="Serving size"
+              value={formatNumber(values.servingSize)}
+              onChangeText={onChangeByField.servingSize}
+              placeholder="100"
+              keyboardType="decimal-pad"
+              containerStyle={styles.inputContainer}
+              error={errors.servingSize}
             />
-          </Box>
-        </HStack>
+            <Box paddingTop={3}>
+              <Picker
+                options={unitOptions}
+                onOptionSelect={(opt) => setValue("unit", opt.value)}
+                placeholder={values.unit || "g"}
+              />
+            </Box>
+          </HStack>
+        )}
 
         <Caption color={theme.text.muted}>{nutritionLabel}</Caption>
 

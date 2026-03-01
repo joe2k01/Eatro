@@ -20,10 +20,6 @@ export function useManualFoods(
 
   useEffect(() => {
     const trimmed = query.trim();
-    if (!refetchOnFocus && !trimmed) {
-      setFoods([]);
-      return;
-    }
     let active = true;
 
     async function load() {
@@ -35,7 +31,7 @@ export function useManualFoods(
     return () => {
       active = false;
     };
-  }, [foodRepo, query, limit, refetchOnFocus]);
+  }, [query, limit]);
 
   useFocusEffect(
     useCallback(() => {
