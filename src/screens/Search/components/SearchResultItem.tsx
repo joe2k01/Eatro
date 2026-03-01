@@ -1,6 +1,7 @@
 import { memo, useCallback, useMemo, type ReactNode } from "react";
 import { Pressable, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { match } from "ts-pattern";
 import { HStack } from "@components/layout/HStack";
 import { VStack } from "@components/layout/VStack";
 import { Body, Caption } from "@components/typography/Text";
@@ -41,49 +42,43 @@ export type SearchResultItemProps =
 export const SearchResultItem = memo(function SearchResultItem(
   props: SearchResultItemProps,
 ) {
-  const { source } = props;
   const theme = useTheme();
   const navigation = useNavigation();
 
-  const name = source === "api" ? props.item.name : props.item.name;
-  const brand =
-    source === "api" ? props.item.brand : (props.item.brand ?? undefined);
-
   const handlePress = useCallback(() => {
-    switch (source) {
-      case "api":
-        navigation.navigate("Product", {
-          barcode: (props.item as SearchProductItem).code,
-        });
-        break;
-      case "local":
-        navigation.navigate("Product", {
-          foodId: (props.item as Food).id,
-        });
-        break;
-    }
-  }, [navigation, props.item, source]);
+    match(props)
+      .with({ source: "api" }, ({ item }) => {
+        navigation.navigate("Product", { barcode: item.code });
+      })
+      .with({ source: "local" }, ({ item }) => {
+        navigation.navigate("Product", { foodId: item.id });
+      })
+      .exhaustive();
+  }, [navigation, props]);
 
-  const nutrimentSummary: ReactNode = useMemo(() => {
-    if (source !== "local") return null;
-    const food = props.item as Food;
-    return (
-      <Caption color={theme.text.muted}>
-        {Math.round(food.energy_per_serving)} kcal · P:{" "}
-        {Math.round(food.proteins_per_serving)}g C:{" "}
-        {Math.round(food.carbohydrates_per_serving)}g F:{" "}
-        {Math.round(food.fat_per_serving)}g
-      </Caption>
-    );
-  }, [source, props.item, theme.text.muted]);
-
-  const imageSource = useMemo(
-    () =>
-      source === "api" && (props.item as SearchProductItem).imageUrl
-        ? { uri: (props.item as SearchProductItem).imageUrl }
-        : undefined,
-    [props.item, source],
-  );
+  const { name, brand, imageSource, nutrimentSummary } = useMemo(() => {
+    return match(props)
+      .with({ source: "api" }, ({ item }) => ({
+        name: item.name,
+        brand: item.brand,
+        imageSource: item.imageUrl ? { uri: item.imageUrl } as const : undefined,
+        nutrimentSummary: null as ReactNode,
+      }))
+      .with({ source: "local" }, ({ item }) => ({
+        name: item.name,
+        brand: item.brand ?? undefined,
+        imageSource: undefined,
+        nutrimentSummary: (
+          <Caption color={theme.text.muted}>
+            {Math.round(item.energy_per_serving)} kcal · P:{" "}
+            {Math.round(item.proteins_per_serving)}g C:{" "}
+            {Math.round(item.carbohydrates_per_serving)}g F:{" "}
+            {Math.round(item.fat_per_serving)}g
+          </Caption>
+        ),
+      }))
+      .exhaustive();
+  }, [props, theme.text.muted]);
 
   return (
     <Pressable
