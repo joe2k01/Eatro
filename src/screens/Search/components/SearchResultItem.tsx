@@ -6,9 +6,8 @@ import { HStack } from "@components/layout/HStack";
 import { VStack } from "@components/layout/VStack";
 import { Body, Caption } from "@components/typography/Text";
 import { RemoteImage } from "@components/media/RemoteImage";
-import { Icon } from "@components/media/Icon";
 import { useTheme } from "@contexts/ThemeProvider";
-import { spacing, BorderRadius } from "@constants/theme";
+import { spacing } from "@constants/theme";
 import type { SearchProductItem } from "@api/validators/searchProducts";
 import type { Food } from "@db/schemas";
 
@@ -25,13 +24,6 @@ const styles = StyleSheet.create({
   thumbnail: {
     width: THUMBNAIL_SIZE,
     height: THUMBNAIL_SIZE,
-  },
-  iconPlaceholder: {
-    width: THUMBNAIL_SIZE,
-    height: THUMBNAIL_SIZE,
-    borderRadius: BorderRadius.md,
-    alignItems: "center" as const,
-    justifyContent: "center" as const,
   },
 });
 
@@ -86,27 +78,11 @@ export const SearchResultItem = memo(function SearchResultItem(
       style={({ pressed }) => (pressed ? styles.pressed : undefined)}
     >
       <HStack style={styles.row} gap={1.5} alignItems="center">
-        {imageSource ? (
-          <RemoteImage
-            source={imageSource}
-            shape="squircle"
-            style={styles.thumbnail}
-          />
-        ) : (
-          <VStack
-            style={[
-              styles.iconPlaceholder,
-              { backgroundColor: theme.surface.tertiary },
-            ]}
-          >
-            <Icon
-              community
-              name="food-apple"
-              size="s"
-              color={theme.text.muted}
-            />
-          </VStack>
-        )}
+        <RemoteImage
+          source={imageSource}
+          shape="squircle"
+          style={styles.thumbnail}
+        />
         <VStack gap={0.25} flex={1}>
           <Body numberOfLines={1}>{name}</Body>
           {brand && <Caption color={theme.text.muted}>{brand}</Caption>}

@@ -96,11 +96,13 @@ export class FoodRepository extends BaseRepository {
     query: string,
     limit: number,
   ): QueryResult<Food[]> {
+    const trimmed = query.trim();
+
     const statement = await this.prepareStatement(
       `SELECT * FROM foods
        WHERE source = ${FoodSource.Manual}
          AND deleted_at IS NULL
-         AND (name LIKE '%' || $query || '%' OR brand LIKE '%' || $query || '%')
+         AND ($query = '' OR name LIKE '%' || $query || '%' OR brand LIKE '%' || $query || '%')
        ORDER BY created_at DESC
        LIMIT $limit`,
       "searchManualFoods",
@@ -109,7 +111,7 @@ export class FoodRepository extends BaseRepository {
     if (!statement) return null;
 
     const result = await this.executeStatement(statement, {
-      $query: query,
+      $query: trimmed,
       $limit: limit,
     });
 

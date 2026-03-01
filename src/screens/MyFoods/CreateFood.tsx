@@ -106,6 +106,26 @@ export function CreateFood() {
     return size ? `Nutrition per ${size}${unit}` : "Nutrition per serving";
   }, [values.servingSize, values.unit]);
 
+  const onChangeByField = useMemo(
+    () =>
+      ({
+        name: (text: string) => setValue("name", text),
+        servingSize: (text: string) =>
+          setValue("servingSize", parseNumber(text) ?? 0),
+        energy: (text: string) =>
+          setValue("energy", parseNumber(text) ?? 0),
+        protein: (text: string) =>
+          setValue("protein", parseNumber(text) ?? 0),
+        carbs: (text: string) =>
+          setValue("carbs", parseNumber(text) ?? 0),
+        fat: (text: string) =>
+          setValue("fat", parseNumber(text) ?? 0),
+        brand: (text: string) => setValue("brand", text),
+        barcode: (text: string) => setValue("barcode", text),
+      }) as const,
+    [setValue],
+  );
+
   const onSave = useCallback(async () => {
     if (!validate()) return;
 
@@ -151,7 +171,7 @@ export function CreateFood() {
         <TextInput
           label="Name"
           value={values.name ?? ""}
-          onChangeText={(text) => setValue("name", text)}
+          onChangeText={onChangeByField.name}
           placeholder="e.g. Grilled Chicken"
           error={errors.name}
         />
@@ -160,7 +180,7 @@ export function CreateFood() {
           <TextInput
             label="Serving size"
             value={formatNumber(values.servingSize)}
-            onChangeText={(text) => setValue("servingSize", parseNumber(text) as number)}
+            onChangeText={onChangeByField.servingSize}
             placeholder="100"
             keyboardType="decimal-pad"
             containerStyle={styles.inputContainer}
@@ -180,7 +200,7 @@ export function CreateFood() {
         <TextInput
           label="Calories"
           value={formatNumber(values.energy)}
-            onChangeText={(text) => setValue("energy", parseNumber(text) as number)}
+          onChangeText={onChangeByField.energy}
           placeholder="0"
           keyboardType="decimal-pad"
           unit="kcal"
@@ -191,7 +211,7 @@ export function CreateFood() {
           <TextInput
             label="Protein"
             value={formatNumber(values.protein)}
-            onChangeText={(text) => setValue("protein", parseNumber(text) as number)}
+            onChangeText={onChangeByField.protein}
             placeholder="0"
             keyboardType="decimal-pad"
             unit="g"
@@ -202,7 +222,7 @@ export function CreateFood() {
           <TextInput
             label="Carbs"
             value={formatNumber(values.carbs)}
-            onChangeText={(text) => setValue("carbs", parseNumber(text) as number)}
+            onChangeText={onChangeByField.carbs}
             placeholder="0"
             keyboardType="decimal-pad"
             unit="g"
@@ -213,7 +233,7 @@ export function CreateFood() {
           <TextInput
             label="Fat"
             value={formatNumber(values.fat)}
-            onChangeText={(text) => setValue("fat", parseNumber(text) as number)}
+            onChangeText={onChangeByField.fat}
             placeholder="0"
             keyboardType="decimal-pad"
             unit="g"
@@ -240,13 +260,13 @@ export function CreateFood() {
             <TextInput
               label="Brand"
               value={values.brand ?? ""}
-              onChangeText={(text) => setValue("brand", text)}
+              onChangeText={onChangeByField.brand}
               placeholder="Optional"
             />
             <TextInput
               label="Barcode"
               value={values.barcode ?? ""}
-              onChangeText={(text) => setValue("barcode", text)}
+              onChangeText={onChangeByField.barcode}
               placeholder="Optional"
             />
           </VStack>

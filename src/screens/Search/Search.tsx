@@ -22,7 +22,7 @@ import {
   SearchResultLoader,
   ROW_HEIGHT,
 } from "./components/SearchResultLoader";
-import { useSearchManualFoods } from "./hooks/useSearchManualFoods";
+import { useManualFoods } from "@screens/MyFoods/hooks/useManualFoods";
 
 const HEADER_HEIGHT_ESTIMATE = 56;
 
@@ -72,7 +72,10 @@ export function Search() {
 
   const queryEnabled = query.length > 0;
 
-  const manualFoods = useSearchManualFoods(query);
+  const manualFoods = useManualFoods(query, {
+    limit: 10,
+    refetchOnFocus: false,
+  });
 
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage } =
     useInfiniteQuery({
