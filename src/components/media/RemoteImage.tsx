@@ -1,8 +1,10 @@
 import { Image, ImageProps, ImageStyle } from "expo-image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
+import Svg, { Path, Rect } from "react-native-svg";
 import { BorderRadius } from "@constants/theme";
 import { useTheme } from "@contexts/ThemeProvider";
+import type { ThemeColors } from "@constants/theme";
 
 export type RemoteImageProps = ImageProps & {
   shape?: "squircle";
@@ -16,12 +18,6 @@ const styles = StyleSheet.create({
   fill: {
     ...StyleSheet.absoluteFillObject,
   },
-  patternDot: {
-    position: "absolute",
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
 });
 
 function hasUsableSource(source: ImageProps["source"]): boolean {
@@ -31,6 +27,57 @@ function hasUsableSource(source: ImageProps["source"]): boolean {
     return Boolean(source.uri);
   }
   return false;
+}
+
+const BLOB_PATH =
+  "M -22,8 C -28,-16 -2,-36 22,-26 C 46,-16 32,10 44,22 C 56,34 48,60 20,58 C -8,56 -16,32 -22,8 Z";
+
+function FallbackArtwork({ theme }: { theme: ThemeColors }) {
+  return (
+    <View style={styles.fill}>
+      <Svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+        <Rect width="100" height="100" fill={theme.surface.secondary} />
+        <Path
+          d={BLOB_PATH}
+          fill={theme.semantic.primary}
+          opacity={0.16}
+          transform="translate(50,50) rotate(-25)"
+        />
+        <Path
+          d={BLOB_PATH}
+          fill={theme.semantic.accent}
+          opacity={0.2}
+          transform="translate(50,50) rotate(155)"
+        />
+      </Svg>
+    </View>
+  );
+}
+
+type ResolvedImageProps = {
+  source: ImageProps["source"];
+  onError?: ImageProps["onError"];
+  canRenderSource: boolean;
+  hasError: boolean;
+} & Omit<ImageProps, "source" | "onError">;
+
+function ResolvedImage({
+  source,
+  onError,
+  canRenderSource,
+  hasError,
+  ...imageProps
+}: ResolvedImageProps) {
+  if (!canRenderSource || hasError) return null;
+
+  return (
+    <Image
+      {...imageProps}
+      source={source}
+      onError={onError}
+      style={styles.fill}
+    />
+  );
 }
 
 export function RemoteImage({
@@ -68,65 +115,14 @@ export function RemoteImage({
 
   return (
     <View style={[composedStyle, styles.container]}>
-      {showFallback && (
-        <View style={styles.fill}>
-          <View
-            style={[styles.fill, { backgroundColor: theme.surface.tertiary }]}
-          />
-          <View
-            style={[
-              styles.patternDot,
-              {
-                top: "20%",
-                left: "24%",
-                backgroundColor: theme.surface.secondary,
-                opacity: 0.5,
-              },
-            ]}
-          />
-          <View
-            style={[
-              styles.patternDot,
-              {
-                top: "52%",
-                left: "46%",
-                backgroundColor: theme.surface.secondary,
-                opacity: 0.45,
-              },
-            ]}
-          />
-          <View
-            style={[
-              styles.patternDot,
-              {
-                top: "34%",
-                left: "68%",
-                backgroundColor: theme.surface.secondary,
-                opacity: 0.35,
-              },
-            ]}
-          />
-          <View
-            style={[
-              styles.patternDot,
-              {
-                top: "70%",
-                left: "30%",
-                backgroundColor: theme.surface.secondary,
-                opacity: 0.3,
-              },
-            ]}
-          />
-        </View>
-      )}
-      {canRenderSource && !hasError && (
-        <Image
-          {...imageProps}
-          source={source}
-          onError={handleError}
-          style={styles.fill}
-        />
-      )}
+      {showFallback && <FallbackArtwork theme={theme} />}
+      <ResolvedImage
+        {...imageProps}
+        source={source}
+        onError={handleError}
+        canRenderSource={canRenderSource}
+        hasError={hasError}
+      />
     </View>
   );
 }
