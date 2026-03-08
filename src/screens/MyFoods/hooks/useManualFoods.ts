@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { Food } from "@db/schemas";
 import { useRepositories } from "@db/context/DatabaseProvider";
-import { useFocusEffect } from "@react-navigation/native";
+import { useIsFocused } from "@react-navigation/native";
 
 const DEFAULT_LIMIT = 50;
 
@@ -15,37 +15,25 @@ export function useManualFoods(
   options: UseManualFoodsOptions = {},
 ) {
   const { food: foodRepo } = useRepositories();
+  const isFocused = useIsFocused();
   const [foods, setFoods] = useState<Food[]>([]);
-  const requestVersionRef = useRef(0);
   const { limit = DEFAULT_LIMIT, refetchOnFocus = true } = options;
-
-  const loadFoods = useCallback(
-    async (rawQuery: string) => {
-      const trimmed = rawQuery.trim();
-      const requestVersion = ++requestVersionRef.current;
-      const data = await foodRepo.searchManualFoods(trimmed, limit);
-
-      // Ignore stale async responses from older queries/focus cycles.
-      if (requestVersion !== requestVersionRef.current) return;
-      setFoods(data ?? []);
-    },
-    [foodRepo, limit],
-  );
+  const shouldLoad = !refetchOnFocus || isFocused;
 
   useEffect(() => {
-    loadFoods(query);
-  }, [query, limit, loadFoods]);
+    if (!shouldLoad) return;
+    let active = true;
 
-  useFocusEffect(
-    useCallback(() => {
-      if (!refetchOnFocus) return;
-      loadFoods(query);
+    async function loadFoods() {
+      const data = await foodRepo.searchManualFoods(query, limit);
+      if (active) setFoods(data ?? []);
+    }
+    loadFoods();
 
-      return () => {
-        requestVersionRef.current += 1;
-      };
-    }, [query, refetchOnFocus, loadFoods]),
-  );
+    return () => {
+      active = false;
+    };
+  }, [foodRepo, query, limit, shouldLoad]);
 
   return foods;
 }
