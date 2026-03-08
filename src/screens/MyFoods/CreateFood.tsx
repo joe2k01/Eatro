@@ -7,7 +7,7 @@ import { SafeVStack } from "@components/SafeVStack";
 import { VStack } from "@components/layout/VStack";
 import { HStack } from "@components/layout/HStack";
 import { Box } from "@components/layout/Box";
-import { Caption, Title } from "@components/typography/Text";
+import { Caption } from "@components/typography/Text";
 import { TextInput, Picker } from "@components/forms";
 import { Button } from "@components/buttons/Button";
 import { Icon } from "@components/media/Icon";

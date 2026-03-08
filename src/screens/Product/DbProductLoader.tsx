@@ -26,7 +26,10 @@ export function DbProductLoader({ foodId }: { foodId: number }) {
     foodRepo.getFoodByIdentifier({ id: foodId }).then(setFood);
   }, [foodRepo, foodId]);
 
-  const nutriments = useMemo(() => (food ? foodToNutriments(food) : null), [food]);
+  const nutriments = useMemo(
+    () => (food ? foodToNutriments(food) : null),
+    [food],
+  );
 
   if (!food || !nutriments) return null;
 
