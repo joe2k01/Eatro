@@ -11,8 +11,7 @@ function foodToNutriments(food: Food): GetProductDetails["nutriments"] {
     carbohydrates: food.carbohydrates_per_serving,
     fat: food.fat_per_serving,
   };
-  const isPer100g =
-    food.unit === "g" && food.serving_size === 100;
+  const isPer100g = food.unit === "g" && food.serving_size === 100;
   if (isPer100g) {
     return { per100g: values, perServing: undefined };
   }
@@ -27,18 +26,7 @@ export function DbProductLoader({ foodId }: { foodId: number }) {
     foodRepo.getFoodByIdentifier({ id: foodId }).then(setFood);
   }, [foodRepo, foodId]);
 
-  const nutriments = useMemo(
-    () => (food ? foodToNutriments(food) : null),
-    [
-      food?.id,
-      food?.unit,
-      food?.serving_size,
-      food?.energy_per_serving,
-      food?.proteins_per_serving,
-      food?.carbohydrates_per_serving,
-      food?.fat_per_serving,
-    ],
-  );
+  const nutriments = useMemo(() => (food ? foodToNutriments(food) : null), [food]);
 
   if (!food || !nutriments) return null;
 
