@@ -56,16 +56,16 @@ function FallbackArtwork({ theme }: { theme: ThemeColors }) {
 
 type ResolvedImageProps = {
   source: ImageProps["source"];
-  onError?: ImageProps["onError"];
   canRenderSource: boolean;
   hasError: boolean;
+  onLoadError: () => void;
 } & Omit<ImageProps, "source" | "onError">;
 
 function ResolvedImage({
   source,
-  onError,
   canRenderSource,
   hasError,
+  onLoadError,
   ...imageProps
 }: ResolvedImageProps) {
   if (!canRenderSource || hasError) return null;
@@ -74,7 +74,7 @@ function ResolvedImage({
     <Image
       {...imageProps}
       source={source}
-      onError={onError}
+      onError={onLoadError}
       style={styles.fill}
     />
   );
@@ -84,7 +84,6 @@ export function RemoteImage({
   shape,
   style,
   source,
-  onError,
   ...imageProps
 }: RemoteImageProps) {
   const theme = useTheme();
@@ -103,13 +102,9 @@ export function RemoteImage({
     setHasError(false);
   }, [source]);
 
-  const handleError = useCallback(
-    (event: Parameters<NonNullable<ImageProps["onError"]>>[0]) => {
-      setHasError(true);
-      onError?.(event);
-    },
-    [onError],
-  );
+  const handleError = useCallback(() => {
+    setHasError(true);
+  }, []);
 
   const showFallback = !canRenderSource || hasError;
 
@@ -119,9 +114,9 @@ export function RemoteImage({
       <ResolvedImage
         {...imageProps}
         source={source}
-        onError={handleError}
         canRenderSource={canRenderSource}
         hasError={hasError}
+        onLoadError={handleError}
       />
     </View>
   );
