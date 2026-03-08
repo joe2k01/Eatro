@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import { type SQLiteDatabase } from "expo-sqlite";
 import { Asset } from "expo-asset";
 import { File } from "expo-file-system";
