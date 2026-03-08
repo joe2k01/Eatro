@@ -18,6 +18,8 @@ export function useManualFoods(
   const isFocused = useIsFocused();
   const [foods, setFoods] = useState<Food[]>([]);
   const { limit = DEFAULT_LIMIT, refetchOnFocus = true } = options;
+  // refetchOnFocus=true (MyFoods): load only while screen is focused.
+  // refetchOnFocus=false (Search): load whenever query/limit change.
   const shouldLoad = !refetchOnFocus || isFocused;
 
   useEffect(() => {
