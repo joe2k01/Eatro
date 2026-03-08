@@ -7,7 +7,7 @@ import { SafeVStack } from "@components/SafeVStack";
 import { VStack } from "@components/layout/VStack";
 import { HStack } from "@components/layout/HStack";
 import { Box } from "@components/layout/Box";
-import { Caption, Title } from "@components/typography/Text";
+import { Caption } from "@components/typography/Text";
 import { TextInput, Picker } from "@components/forms";
 import { Button } from "@components/buttons/Button";
 import { Icon } from "@components/media/Icon";
@@ -26,22 +26,12 @@ const headerOptions = {
 
 const createFoodSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  servingSize: z
-    .number({ error: "Required" })
-    .positive("Must be positive"),
+  servingSize: z.number({ error: "Required" }).positive("Must be positive"),
   unit: z.string().min(1, "Unit is required"),
-  energy: z
-    .number({ error: "Required" })
-    .nonnegative("Must be non-negative"),
-  protein: z
-    .number({ error: "Required" })
-    .nonnegative("Must be non-negative"),
-  carbs: z
-    .number({ error: "Required" })
-    .nonnegative("Must be non-negative"),
-  fat: z
-    .number({ error: "Required" })
-    .nonnegative("Must be non-negative"),
+  energy: z.number({ error: "Required" }).nonnegative("Must be non-negative"),
+  protein: z.number({ error: "Required" }).nonnegative("Must be non-negative"),
+  carbs: z.number({ error: "Required" }).nonnegative("Must be non-negative"),
+  fat: z.number({ error: "Required" }).nonnegative("Must be non-negative"),
   brand: z.string().optional(),
   barcode: z.string().optional(),
 });
@@ -70,6 +60,19 @@ const styles = StyleSheet.create({
   inputContainer: {
     flex: 1,
   },
+  servingRow: {
+    alignItems: "flex-start",
+  },
+  servingField: {
+    flex: 1,
+  },
+  servingUnitField: {
+    flex: 1,
+    gap: 4,
+  },
+  servingUnitLabel: {
+    minHeight: 20,
+  },
   macroInput: {
     textAlign: "center",
   },
@@ -88,7 +91,8 @@ export function CreateFood() {
   const { food: foodRepo } = useRepositories();
   const [submitting, setSubmitting] = useState(false);
   const [showMoreDetails, setShowMoreDetails] = useState(false);
-  const [nutrientBasis, setNutrientBasis] = useState<NutrientBasis>("perServing");
+  const [nutrientBasis, setNutrientBasis] =
+    useState<NutrientBasis>("perServing");
 
   const { values, errors, setValue, validate } = useForm<
     CreateFoodValues,
@@ -121,14 +125,10 @@ export function CreateFood() {
         name: (text: string) => setValue("name", text),
         servingSize: (text: string) =>
           setValue("servingSize", parseNumber(text) ?? 0),
-        energy: (text: string) =>
-          setValue("energy", parseNumber(text) ?? 0),
-        protein: (text: string) =>
-          setValue("protein", parseNumber(text) ?? 0),
-        carbs: (text: string) =>
-          setValue("carbs", parseNumber(text) ?? 0),
-        fat: (text: string) =>
-          setValue("fat", parseNumber(text) ?? 0),
+        energy: (text: string) => setValue("energy", parseNumber(text) ?? 0),
+        protein: (text: string) => setValue("protein", parseNumber(text) ?? 0),
+        carbs: (text: string) => setValue("carbs", parseNumber(text) ?? 0),
+        fat: (text: string) => setValue("fat", parseNumber(text) ?? 0),
         brand: (text: string) => setValue("brand", text),
         barcode: (text: string) => setValue("barcode", text),
       }) as const,
@@ -199,23 +199,26 @@ export function CreateFood() {
         />
 
         {nutrientBasis === "perServing" && (
-          <HStack gap={1} alignItems="flex-start">
+          <HStack gap={1} style={styles.servingRow}>
             <TextInput
               label="Serving size"
               value={formatNumber(values.servingSize)}
               onChangeText={onChangeByField.servingSize}
               placeholder="100"
               keyboardType="decimal-pad"
-              containerStyle={styles.inputContainer}
+              containerStyle={styles.servingField}
               error={errors.servingSize}
             />
-            <Box paddingTop={3}>
+            <VStack style={styles.servingUnitField}>
+              <Caption color={theme.text.muted} style={styles.servingUnitLabel}>
+                Unit
+              </Caption>
               <Picker
                 options={unitOptions}
                 onOptionSelect={(opt) => setValue("unit", opt.value)}
                 placeholder={values.unit || "g"}
               />
-            </Box>
+            </VStack>
           </HStack>
         )}
 
@@ -297,11 +300,7 @@ export function CreateFood() {
         )}
 
         <Box paddingTop={1}>
-          <Button
-            variant="primary"
-            onPress={onSave}
-            disabled={submitting}
-          >
+          <Button variant="primary" onPress={onSave} disabled={submitting}>
             Save food
           </Button>
         </Box>

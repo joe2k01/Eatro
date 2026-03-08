@@ -1,4 +1,5 @@
 import { Food, FoodSchema, FoodSource } from "@db/schemas";
+import * as Sentry from "@sentry/react-native";
 import { BaseRepository, type QueryResult } from "./BaseRepository";
 
 export class FoodRepository extends BaseRepository {
@@ -97,27 +98,24 @@ export class FoodRepository extends BaseRepository {
     limit: number,
   ): QueryResult<Food[]> {
     const trimmed = query.trim();
-
-    const statement = await this.prepareStatement(
-      `SELECT * FROM foods
-       WHERE source = ${FoodSource.Manual}
-         AND deleted_at IS NULL
-         AND ($query = '' OR name LIKE '%' || $query || '%' OR brand LIKE '%' || $query || '%')
-       ORDER BY created_at DESC
-       LIMIT $limit`,
-      "searchManualFoods",
-    );
-
-    if (!statement) return null;
-
-    const result = await this.executeStatement(statement, {
-      $query: trimmed,
-      $limit: limit,
-    });
-
-    if (!result) return null;
-
-    const rows = await result.getAllAsync();
-    return rows.map((row) => FoodSchema.parse(row));
+    try {
+      const rows = await this.db.getAllAsync(
+        `SELECT * FROM foods
+         WHERE source = ${FoodSource.Manual}
+           AND deleted_at IS NULL
+           AND ($query = '' OR name LIKE '%' || $query || '%' OR brand LIKE '%' || $query || '%')
+         ORDER BY created_at DESC
+         LIMIT $limit`,
+        {
+          $query: trimmed,
+          $limit: limit,
+        },
+      );
+      return rows.map((row) => FoodSchema.parse(row));
+    } catch (error) {
+      Sentry.captureException(error);
+      console.error(error);
+      return null;
+    }
   }
 }

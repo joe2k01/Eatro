@@ -53,7 +53,9 @@ export const SearchResultItem = memo(function SearchResultItem(
       .with({ source: "api" }, ({ item }) => ({
         name: item.name,
         brand: item.brand,
-        imageSource: item.imageUrl ? { uri: item.imageUrl } as const : undefined,
+        imageSource: item.imageUrl
+          ? ({ uri: item.imageUrl } as const)
+          : undefined,
         nutrimentSummary: null as ReactNode,
       }))
       .with({ source: "local" }, ({ item }) => ({

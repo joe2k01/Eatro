@@ -1,9 +1,5 @@
 import { useCallback, useMemo } from "react";
-import {
-  SectionList,
-  StyleSheet,
-  useWindowDimensions,
-} from "react-native";
+import { SectionList, StyleSheet, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRoute, type RouteProp } from "@react-navigation/native";
 import { useInfiniteQuery } from "@tanstack/react-query";
@@ -99,18 +95,14 @@ export function Search() {
     if (manualFoods.length > 0) {
       result.push({
         title: "My Foods",
-        data: manualFoods.map(
-          (f) => ({ item: f, source: "local" as const }),
-        ),
+        data: manualFoods.map((f) => ({ item: f, source: "local" as const })),
       });
     }
 
     if (products.length > 0) {
       result.push({
         title: "Online Results",
-        data: products.map(
-          (p) => ({ item: p, source: "api" as const }),
-        ),
+        data: products.map((p) => ({ item: p, source: "api" as const })),
       });
     }
 
@@ -124,9 +116,7 @@ export function Search() {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const renderItem = useCallback(
-    ({ item }: { item: SearchSectionItem }) => (
-      <SearchResultItem {...item} />
-    ),
+    ({ item }: { item: SearchSectionItem }) => <SearchResultItem {...item} />,
     [],
   );
 
