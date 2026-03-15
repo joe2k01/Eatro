@@ -4780,7 +4780,6 @@ __metadata:
     expo-image: "npm:~55.0.6"
     expo-localization: "npm:~55.0.8"
     expo-sqlite: "npm:~55.0.10"
-    expo-sqlite-mock: "npm:^3.0.2"
     expo-status-bar: "npm:~55.0.4"
     jest: "npm:~29.7.0"
     jest-expo: "npm:~55.0.9"
@@ -5588,18 +5587,6 @@ __metadata:
   version: 55.0.6
   resolution: "expo-server@npm:55.0.6"
   checksum: 10c0/c8918cd5f09d6cbda028b527edcc6dbc8df932e3def085ef5de063678164d8f048e1fdb975c641f9d7ff2552394fb3acb34ffd58ac214f302eb239210c60fdc4
-  languageName: node
-  linkType: hard
-
-"expo-sqlite-mock@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "expo-sqlite-mock@npm:3.0.2"
-  peerDependencies:
-    better-sqlite3: "*"
-    expo: ">=53"
-    expo-sqlite: "*"
-    jest: ~29
-  checksum: 10c0/8ab436a2db6f9a5fa14d08dcab35b48572e3bd3ff879a392ace92cebe664f6fe6769fda07b5dc5a622aea9a850c9e11a0fdab194527b28596f8f3e86add5d31c
   languageName: node
   linkType: hard
 
