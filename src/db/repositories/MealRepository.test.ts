@@ -97,8 +97,6 @@ describe("MealRepository", () => {
     );
     expect(firstMeal?.energy).toBeGreaterThan(0);
 
-    repos = createRepositories(db);
-
     await repos.meal.upsertMealAndLogFoodTx(
       {
         dayUtcSeconds: dayUtc,
