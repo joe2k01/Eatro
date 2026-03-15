@@ -51,13 +51,13 @@ describe("FoodRepository", () => {
   });
 
   it("upsertFood updates existing API item on barcode conflict", async () => {
-    const originalId = await repos.food.upsertFood(getBaseFood(FoodSource.Api));
-    const updatedId = await repos.food.upsertFood(
-      getBaseFood(FoodSource.Api, {
-        name: "Greek Yogurt Updated",
-        proteins_per_serving: 22,
-      }),
-    );
+    const foodData = getBaseFood(FoodSource.Api);
+    const originalId = await repos.food.upsertFood(foodData);
+    const updatedId = await repos.food.upsertFood({
+      ...foodData,
+      name: "Greek Yogurt Updated",
+      proteins_per_serving: 22,
+    });
 
     expect(updatedId).toBe(originalId);
 
@@ -106,27 +106,26 @@ describe("FoodRepository", () => {
       getBaseFood(FoodSource.Api, { barcode: "999999", name: "API Food" }),
     );
 
-    const rows = await repos.food.searchManualFoods("  a ", 1);
+    // Filtering: both manual foods match "a", API food is excluded; ordered by created_at DESC
+    const all = await repos.food.searchManualFoods("  a ", 10);
+    expect(all).toHaveLength(2);
+    expect(all?.[0]?.name).toBe("Banana");
+    expect(all?.[1]?.name).toBe("Apple");
 
-    expect(rows).not.toBeNull();
-    expect(rows?.length).toBe(1);
-    expect(rows?.[0]?.name).toBe("Banana");
+    // Limit: only the most recent match is returned
+    const limited = await repos.food.searchManualFoods("  a ", 1);
+    expect(limited).toHaveLength(1);
+    expect(limited?.[0]?.name).toBe("Banana");
   });
 
   it("upsertFood returns null for duplicate manual name/brand", async () => {
-    await repos.food.upsertFood(
-      getBaseFood(FoodSource.Manual, {
-        name: "Duplicate Manual",
-        brand: "BrandX",
-      }),
-    );
+    const foodData = getBaseFood(FoodSource.Manual, {
+      name: "Duplicate Manual",
+      brand: "BrandX",
+    });
 
-    const result = await repos.food.upsertFood(
-      getBaseFood(FoodSource.Manual, {
-        name: "Duplicate Manual",
-        brand: "BrandX",
-      }),
-    );
+    await repos.food.upsertFood(foodData);
+    const result = await repos.food.upsertFood(foodData);
 
     expect(result).toBeNull();
   });

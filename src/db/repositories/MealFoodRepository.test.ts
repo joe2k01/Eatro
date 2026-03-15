@@ -8,6 +8,8 @@ import {
 } from "../../../test/helpers/database";
 import type { SQLiteDatabase } from "expo-sqlite";
 
+const DAY_UTC_SECONDS = new Date("2025-01-01T00:00:00Z").getTime() / 1000;
+
 describe("MealFoodRepository", () => {
   let db: SQLiteDatabase;
   let repos: TestRepositories;
@@ -43,12 +45,11 @@ describe("MealFoodRepository", () => {
   it("insertMealFood inserts a row and getMealFoodsByMealId returns nested food", async () => {
     const firstFoodId = await seedFood("mf-1", "Rice");
     const secondFoodId = await seedFood("mf-2", "Beans");
-    const dayUtc = 1735689600;
     const nowMs = Date.now();
 
     const mealId = await repos.meal.upsertMealAndLogFoodTx(
       {
-        dayUtcSeconds: dayUtc,
+        dayUtcSeconds: DAY_UTC_SECONDS,
         type: MealType.Dinner,
         customType: null,
         foodId: firstFoodId as number,

@@ -8,6 +8,8 @@ import {
 } from "../../../test/helpers/database";
 import type { SQLiteDatabase } from "expo-sqlite";
 
+const DAY_UTC_SECONDS = new Date("2025-01-01T00:00:00Z").getTime() / 1000;
+
 describe("MealRepository", () => {
   let db: SQLiteDatabase;
   let repos: TestRepositories;
@@ -44,11 +46,10 @@ describe("MealRepository", () => {
     const foodId = await seedFood();
     expect(foodId).not.toBeNull();
 
-    const dayUtc = 1735689600;
     const nowMs = Date.now();
     const mealId = await repos.meal.upsertMealAndLogFoodTx(
       {
-        dayUtcSeconds: dayUtc,
+        dayUtcSeconds: DAY_UTC_SECONDS,
         type: MealType.Lunch,
         customType: null,
         foodId: foodId as number,
@@ -61,7 +62,11 @@ describe("MealRepository", () => {
 
     expect(mealId).toEqual(expect.any(Number));
 
-    const meal = await repos.meal.getMealByDayUtc(dayUtc, MealType.Lunch, null);
+    const meal = await repos.meal.getMealByDayUtc(
+      DAY_UTC_SECONDS,
+      MealType.Lunch,
+      null,
+    );
     expect(meal?.id).toBe(mealId);
     expect(meal?.energy).toBeGreaterThan(0);
 
@@ -75,12 +80,11 @@ describe("MealRepository", () => {
 
   it("upsertMealAndLogFoodTx accumulates totals on repeated upsert", async () => {
     const foodId = await seedFood();
-    const dayUtc = 1735689600;
     const nowMs = Date.now();
 
     await repos.meal.upsertMealAndLogFoodTx(
       {
-        dayUtcSeconds: dayUtc,
+        dayUtcSeconds: DAY_UTC_SECONDS,
         type: MealType.Breakfast,
         customType: null,
         foodId: foodId as number,
@@ -91,7 +95,7 @@ describe("MealRepository", () => {
       repos.mealFood,
     );
     const firstMeal = await repos.meal.getMealByDayUtc(
-      dayUtc,
+      DAY_UTC_SECONDS,
       MealType.Breakfast,
       null,
     );
@@ -99,7 +103,7 @@ describe("MealRepository", () => {
 
     await repos.meal.upsertMealAndLogFoodTx(
       {
-        dayUtcSeconds: dayUtc,
+        dayUtcSeconds: DAY_UTC_SECONDS,
         type: MealType.Breakfast,
         customType: null,
         foodId: foodId as number,
@@ -111,7 +115,7 @@ describe("MealRepository", () => {
     );
 
     const meal = await repos.meal.getMealByDayUtc(
-      dayUtc,
+      DAY_UTC_SECONDS,
       MealType.Breakfast,
       null,
     );
@@ -120,11 +124,11 @@ describe("MealRepository", () => {
     expect(meal?.carbohydrates).toBeGreaterThan(firstMeal?.carbohydrates ?? 0);
     expect(meal?.fat).toBeGreaterThan(firstMeal?.fat ?? 0);
 
-    const totals = await repos.meal.getDayTotals(dayUtc);
+    const totals = await repos.meal.getDayTotals(DAY_UTC_SECONDS);
     expect(totals?.energy).toBe(meal?.energy);
     expect(totals?.proteins).toBe(meal?.proteins);
 
-    const meals = await repos.meal.getMealsByDay(dayUtc);
+    const meals = await repos.meal.getMealsByDay(DAY_UTC_SECONDS);
     expect(meals?.length).toBe(1);
   });
 });
