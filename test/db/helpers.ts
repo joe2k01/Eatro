@@ -29,10 +29,21 @@ export async function closeTestDb(db: SQLiteDatabase): Promise<void> {
 }
 
 export function createRepositories(db: SQLiteDatabase) {
-  const mealFood = new MealFoodRepository(db);
   return {
     food: new FoodRepository(db),
     meal: new MealRepository(db),
-    mealFood,
+    mealFood: new MealFoodRepository(db),
   };
+}
+
+export type TestRepositories = ReturnType<typeof createRepositories>;
+
+export async function finalizeRepositories(
+  repositories: TestRepositories,
+): Promise<void> {
+  await Promise.all([
+    repositories.food.finalize(),
+    repositories.meal.finalize(),
+    repositories.mealFood.finalize(),
+  ]);
 }

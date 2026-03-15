@@ -1,10 +1,16 @@
 import { FoodSource, MealType } from "@db/schemas";
-import { closeTestDb, createRepositories, createTestDb } from "./helpers";
+import {
+  closeTestDb,
+  createRepositories,
+  createTestDb,
+  finalizeRepositories,
+  type TestRepositories,
+} from "./helpers";
 import type { SQLiteDatabase } from "expo-sqlite";
 
 describe("MealRepository", () => {
   let db: SQLiteDatabase;
-  let repos: ReturnType<typeof createRepositories>;
+  let repos: TestRepositories;
 
   beforeEach(async () => {
     db = await createTestDb();
@@ -12,9 +18,7 @@ describe("MealRepository", () => {
   });
 
   afterEach(async () => {
-    await repos.meal.finalize();
-    await repos.mealFood.finalize();
-    await repos.food.finalize();
+    await finalizeRepositories(repos);
     await closeTestDb(db);
   });
 
