@@ -4,7 +4,10 @@ jest.mock("@sentry/react-native", () => ({
 
 const originalWarn = console.warn;
 console.warn = (...args: unknown[]) => {
-  if (typeof args[0] === "string" && args[0].includes("Failed to initialize devtools client")) {
+  if (
+    typeof args[0] === "string" &&
+    args[0].includes("Failed to initialize devtools client")
+  ) {
     return;
   }
   originalWarn(...args);

@@ -1,9 +1,7 @@
 /** @type {import('jest').Config} */
 module.exports = {
   preset: "jest-expo",
-  setupFilesAfterEnv: [
-    "<rootDir>/test/setup.ts",
-  ],
+  setupFilesAfterEnv: ["<rootDir>/test/setup.ts"],
   moduleNameMapper: {
     "^expo-sqlite$": "<rootDir>/test/mocks/expo-sqlite.ts",
     "^@components/(.*)$": "<rootDir>/src/components/$1",

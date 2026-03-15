@@ -13,7 +13,6 @@ function normalizeParams(
   return result;
 }
 
-
 class MockExecuteResult {
   constructor(
     private readonly rows: Record<string, unknown>[],
@@ -33,15 +32,15 @@ class MockExecuteResult {
 }
 
 class MockSQLiteStatement {
-  constructor(
-    private readonly stmt: Database.Statement,
-  ) {}
+  constructor(private readonly stmt: Database.Statement) {}
 
   async executeAsync(
     params: Record<string, unknown> | unknown[],
   ): Promise<MockExecuteResult> {
     if (Array.isArray(params)) {
-      throw new Error("MockSQLiteStatement: positional params are not supported");
+      throw new Error(
+        "MockSQLiteStatement: positional params are not supported",
+      );
     }
 
     const normalized = normalizeParams(params);
@@ -57,7 +56,11 @@ class MockSQLiteStatement {
     }
 
     const info = this.stmt.run(normalized);
-    return new MockExecuteResult([], info.changes, Number(info.lastInsertRowid));
+    return new MockExecuteResult(
+      [],
+      info.changes,
+      Number(info.lastInsertRowid),
+    );
   }
 
   async finalizeAsync(): Promise<void> {

@@ -89,10 +89,18 @@ describe("FoodRepository", () => {
   it("searchManualFoods filters and respects limit", async () => {
     const now = Date.now();
     await repos.food.upsertFood(
-      getBaseFood(FoodSource.Manual, { name: "Apple", brand: "Farm", created_at: now - 1000 }),
+      getBaseFood(FoodSource.Manual, {
+        name: "Apple",
+        brand: "Farm",
+        created_at: now - 1000,
+      }),
     );
     await repos.food.upsertFood(
-      getBaseFood(FoodSource.Manual, { name: "Banana", brand: "Farm", created_at: now }),
+      getBaseFood(FoodSource.Manual, {
+        name: "Banana",
+        brand: "Farm",
+        created_at: now,
+      }),
     );
     await repos.food.upsertFood(
       getBaseFood(FoodSource.Api, { barcode: "999999", name: "API Food" }),
@@ -107,11 +115,17 @@ describe("FoodRepository", () => {
 
   it("upsertFood returns null for duplicate manual name/brand", async () => {
     await repos.food.upsertFood(
-      getBaseFood(FoodSource.Manual, { name: "Duplicate Manual", brand: "BrandX" }),
+      getBaseFood(FoodSource.Manual, {
+        name: "Duplicate Manual",
+        brand: "BrandX",
+      }),
     );
 
     const result = await repos.food.upsertFood(
-      getBaseFood(FoodSource.Manual, { name: "Duplicate Manual", brand: "BrandX" }),
+      getBaseFood(FoodSource.Manual, {
+        name: "Duplicate Manual",
+        brand: "BrandX",
+      }),
     );
 
     expect(result).toBeNull();
