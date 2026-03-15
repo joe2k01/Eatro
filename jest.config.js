@@ -2,10 +2,10 @@
 module.exports = {
   preset: "jest-expo",
   setupFilesAfterEnv: [
-    "expo-sqlite-mock/src/setup.ts",
     "<rootDir>/test/setup.ts",
   ],
   moduleNameMapper: {
+    "^expo-sqlite$": "<rootDir>/test/mocks/expo-sqlite.ts",
     "^@components/(.*)$": "<rootDir>/src/components/$1",
     "^@hooks/(.*)$": "<rootDir>/src/hooks/$1",
     "^@screens/(.*)$": "<rootDir>/src/screens/$1",

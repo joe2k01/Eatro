@@ -1,5 +1,3 @@
-process.env.EXPO_SQLITE_MOCK = ":memory:";
-
 jest.mock("@sentry/react-native", () => ({
   captureException: jest.fn(),
 }));
