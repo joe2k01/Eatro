@@ -52,7 +52,10 @@
       [
         "expo-asset",
         {
-          "assets": ["src/db/migrations/initial_schema.sql"]
+          "assets": [
+            "src/db/migrations/initial_schema.sql",
+            "src/db/migrations/002_manual_foods_index.sql"
+          ]
         }
       ],
       "@react-native-community/datetimepicker",
