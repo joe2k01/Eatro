@@ -36,7 +36,7 @@ describe("FoodRepository", () => {
       proteins_per_serving: 20,
       carbohydrates_per_serving: 10,
       fat_per_serving: 4,
-      barcode: "1234567890",
+      barcode: source === FoodSource.Manual ? null : "1234567890",
       source,
       created_at: now,
       updated_at: now,
@@ -61,23 +61,24 @@ describe("FoodRepository", () => {
 
     expect(updatedId).toBe(originalId);
 
-    const byBarcode = await repos.food.getFoodByIdentifier({
-      barcode: "1234567890",
+    const food = await repos.food.getFoodByIdentifier({
+      id: originalId as number,
     });
-    expect(byBarcode?.name).toBe("Greek Yogurt Updated");
-    expect(byBarcode?.proteins_per_serving).toBe(22);
+    expect(food?.name).toBe("Greek Yogurt Updated");
+    expect(food?.proteins_per_serving).toBe(22);
   });
 
   it("getFoodByIdentifier supports id, barcode, and name", async () => {
-    const id = await repos.food.upsertFood(getBaseFood(FoodSource.Api));
+    const foodData = getBaseFood(FoodSource.Api);
+    const id = await repos.food.upsertFood(foodData);
     expect(id).not.toBeNull();
 
     const byId = await repos.food.getFoodByIdentifier({ id: id as number });
     const byBarcode = await repos.food.getFoodByIdentifier({
-      barcode: "1234567890",
+      barcode: foodData.barcode as string,
     });
     const byName = await repos.food.getFoodByIdentifier({
-      name: "Greek Yogurt",
+      name: foodData.name,
     });
 
     expect(byId?.id).toBe(id);
@@ -88,26 +89,13 @@ describe("FoodRepository", () => {
   it("searchManualFoods filters and respects limit", async () => {
     const now = Date.now();
     await repos.food.upsertFood(
-      getBaseFood(FoodSource.Manual, {
-        barcode: null,
-        name: "Apple",
-        brand: "Farm",
-        created_at: now - 1000,
-      }),
+      getBaseFood(FoodSource.Manual, { name: "Apple", brand: "Farm", created_at: now - 1000 }),
     );
     await repos.food.upsertFood(
-      getBaseFood(FoodSource.Manual, {
-        barcode: null,
-        name: "Banana",
-        brand: "Farm",
-        created_at: now,
-      }),
+      getBaseFood(FoodSource.Manual, { name: "Banana", brand: "Farm", created_at: now }),
     );
     await repos.food.upsertFood(
-      getBaseFood(FoodSource.Api, {
-        barcode: "999999",
-        name: "API Food",
-      }),
+      getBaseFood(FoodSource.Api, { barcode: "999999", name: "API Food" }),
     );
 
     const rows = await repos.food.searchManualFoods("  a ", 1);
@@ -119,19 +107,11 @@ describe("FoodRepository", () => {
 
   it("upsertFood returns null for duplicate manual name/brand", async () => {
     await repos.food.upsertFood(
-      getBaseFood(FoodSource.Manual, {
-        barcode: null,
-        name: "Duplicate Manual",
-        brand: "BrandX",
-      }),
+      getBaseFood(FoodSource.Manual, { name: "Duplicate Manual", brand: "BrandX" }),
     );
 
     const result = await repos.food.upsertFood(
-      getBaseFood(FoodSource.Manual, {
-        barcode: null,
-        name: "Duplicate Manual",
-        brand: "BrandX",
-      }),
+      getBaseFood(FoodSource.Manual, { name: "Duplicate Manual", brand: "BrandX" }),
     );
 
     expect(result).toBeNull();
