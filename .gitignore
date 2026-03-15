@@ -44,3 +44,6 @@ yarn-error.*
 
 # yarn
 .yarn/*
+
+# plans (design/implementation notes)
+docs/plans/
