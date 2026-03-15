@@ -52,7 +52,6 @@ describe("FoodRepository", () => {
 
   it("upsertFood updates existing API item on barcode conflict", async () => {
     const originalId = await repos.food.upsertFood(getBaseFood(FoodSource.Api));
-    repos = createRepositories(db);
     const updatedId = await repos.food.upsertFood(
       getBaseFood(FoodSource.Api, {
         name: "Greek Yogurt Updated",
@@ -74,11 +73,9 @@ describe("FoodRepository", () => {
     expect(id).not.toBeNull();
 
     const byId = await repos.food.getFoodByIdentifier({ id: id as number });
-    repos = createRepositories(db);
     const byBarcode = await repos.food.getFoodByIdentifier({
       barcode: "1234567890",
     });
-    repos = createRepositories(db);
     const byName = await repos.food.getFoodByIdentifier({
       name: "Greek Yogurt",
     });
@@ -98,7 +95,6 @@ describe("FoodRepository", () => {
         created_at: now - 1000,
       }),
     );
-    repos = createRepositories(db);
     await repos.food.upsertFood(
       getBaseFood(FoodSource.Manual, {
         barcode: null,
@@ -107,7 +103,6 @@ describe("FoodRepository", () => {
         created_at: now,
       }),
     );
-    repos = createRepositories(db);
     await repos.food.upsertFood(
       getBaseFood(FoodSource.Api, {
         barcode: "999999",
@@ -130,7 +125,6 @@ describe("FoodRepository", () => {
         brand: "BrandX",
       }),
     );
-    repos = createRepositories(db);
 
     const result = await repos.food.upsertFood(
       getBaseFood(FoodSource.Manual, {
