@@ -42,7 +42,6 @@ describe("MealFoodRepository", () => {
 
   it("insertMealFood inserts a row and getMealFoodsByMealId returns nested food", async () => {
     const firstFoodId = await seedFood("mf-1", "Rice");
-    repos = createRepositories(db);
     const secondFoodId = await seedFood("mf-2", "Beans");
     const dayUtc = 1735689600;
     const nowMs = Date.now();
@@ -61,7 +60,6 @@ describe("MealFoodRepository", () => {
     );
 
     expect(mealId).not.toBeNull();
-    repos = createRepositories(db);
 
     const inserted = await repos.mealFood.insertMealFood(
       mealId as number,
