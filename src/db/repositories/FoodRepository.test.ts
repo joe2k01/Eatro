@@ -5,7 +5,7 @@ import {
   createTestDb,
   finalizeRepositories,
   type TestRepositories,
-} from "./helpers";
+} from "./testHelpers";
 import type { SQLiteDatabase } from "expo-sqlite";
 
 describe("FoodRepository", () => {
@@ -22,7 +22,10 @@ describe("FoodRepository", () => {
     await closeTestDb(db);
   });
 
-  function getBaseFood(source: FoodSource, overrides?: Partial<Record<string, unknown>>) {
+  function getBaseFood(
+    source: FoodSource,
+    overrides?: Partial<Record<string, unknown>>,
+  ) {
     const now = Date.now();
     return {
       name: "Greek Yogurt",
@@ -59,7 +62,9 @@ describe("FoodRepository", () => {
 
     expect(updatedId).toBe(originalId);
 
-    const byBarcode = await repos.food.getFoodByIdentifier({ barcode: "1234567890" });
+    const byBarcode = await repos.food.getFoodByIdentifier({
+      barcode: "1234567890",
+    });
     expect(byBarcode?.name).toBe("Greek Yogurt Updated");
     expect(byBarcode?.proteins_per_serving).toBe(22);
   });
@@ -70,9 +75,13 @@ describe("FoodRepository", () => {
 
     const byId = await repos.food.getFoodByIdentifier({ id: id as number });
     repos = createRepositories(db);
-    const byBarcode = await repos.food.getFoodByIdentifier({ barcode: "1234567890" });
+    const byBarcode = await repos.food.getFoodByIdentifier({
+      barcode: "1234567890",
+    });
     repos = createRepositories(db);
-    const byName = await repos.food.getFoodByIdentifier({ name: "Greek Yogurt" });
+    const byName = await repos.food.getFoodByIdentifier({
+      name: "Greek Yogurt",
+    });
 
     expect(byId?.id).toBe(id);
     expect(byBarcode?.id).toBe(id);

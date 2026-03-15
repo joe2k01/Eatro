@@ -1,13 +1,13 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { openDatabaseAsync, type SQLiteDatabase } from "expo-sqlite";
-import { FoodRepository } from "@db/repositories/FoodRepository";
-import { MealRepository } from "@db/repositories/MealRepository";
-import { MealFoodRepository } from "@db/repositories/MealFoodRepository";
+import { FoodRepository } from "./FoodRepository";
+import { MealRepository } from "./MealRepository";
+import { MealFoodRepository } from "./MealFoodRepository";
 
 const migrationFiles = [
-  resolve(__dirname, "../../src/db/migrations/initial_schema.sql"),
-  resolve(__dirname, "../../src/db/migrations/002_manual_foods_index.sql"),
+  resolve(__dirname, "../migrations/initial_schema.sql"),
+  resolve(__dirname, "../migrations/002_manual_foods_index.sql"),
 ];
 
 let dbCounter = 0;

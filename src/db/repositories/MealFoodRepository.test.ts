@@ -5,7 +5,7 @@ import {
   createTestDb,
   finalizeRepositories,
   type TestRepositories,
-} from "./helpers";
+} from "./testHelpers";
 import type { SQLiteDatabase } from "expo-sqlite";
 
 describe("MealFoodRepository", () => {

@@ -15,6 +15,6 @@ module.exports = {
     "^@db/(.*)$": "<rootDir>/src/db/$1",
     "^@utils/(.*)$": "<rootDir>/src/utils/$1",
   },
-  testMatch: ["<rootDir>/test/**/*.test.ts"],
+  testMatch: ["<rootDir>/src/**/*.test.ts"],
   testTimeout: 10000,
 };

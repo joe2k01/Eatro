@@ -5,7 +5,7 @@ import {
   createTestDb,
   finalizeRepositories,
   type TestRepositories,
-} from "./helpers";
+} from "./testHelpers";
 import type { SQLiteDatabase } from "expo-sqlite";
 
 describe("MealRepository", () => {
@@ -65,7 +65,9 @@ describe("MealRepository", () => {
     expect(meal?.id).toBe(mealId);
     expect(meal?.energy).toBeGreaterThan(0);
 
-    const mealFoods = await repos.mealFood.getMealFoodsByMealId(mealId as number);
+    const mealFoods = await repos.mealFood.getMealFoodsByMealId(
+      mealId as number,
+    );
     expect(mealFoods?.length).toBe(1);
     expect(mealFoods?.[0]?.food_id).toBe(foodId);
     expect(mealFoods?.[0]?.food?.name).toBe("Chicken Breast");
@@ -88,7 +90,11 @@ describe("MealRepository", () => {
       },
       repos.mealFood,
     );
-    const firstMeal = await repos.meal.getMealByDayUtc(dayUtc, MealType.Breakfast, null);
+    const firstMeal = await repos.meal.getMealByDayUtc(
+      dayUtc,
+      MealType.Breakfast,
+      null,
+    );
     expect(firstMeal?.energy).toBeGreaterThan(0);
 
     repos = createRepositories(db);
@@ -106,7 +112,11 @@ describe("MealRepository", () => {
       repos.mealFood,
     );
 
-    const meal = await repos.meal.getMealByDayUtc(dayUtc, MealType.Breakfast, null);
+    const meal = await repos.meal.getMealByDayUtc(
+      dayUtc,
+      MealType.Breakfast,
+      null,
+    );
     expect(meal?.energy).toBeGreaterThan(firstMeal?.energy ?? 0);
     expect(meal?.proteins).toBeGreaterThan(firstMeal?.proteins ?? 0);
     expect(meal?.carbohydrates).toBeGreaterThan(firstMeal?.carbohydrates ?? 0);
