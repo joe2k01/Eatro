@@ -1,0 +1,26 @@
+name: Setup Node and Yarn
+description: Checkout, set up Node, enable Corepack, restore cache, and install dependencies
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v6
+
+    - name: Set up Node
+      uses: actions/setup-node@v6
+      with:
+        node-version: "24"
+
+    - name: Enable Corepack
+      shell: bash
+      run: corepack enable
+
+    - name: Restore node_modules cache
+      uses: actions/cache@v5
+      with:
+        path: node_modules
+        key: node-modules-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
+
+    - name: Install dependencies
+      shell: bash
+      run: yarn install --immutable

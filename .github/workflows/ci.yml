@@ -10,43 +10,13 @@ jobs:
   install:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-
-      - name: Set up Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24"
-          cache: "yarn"
-
-      - name: Restore node_modules cache
-        uses: actions/cache@v5
-        with:
-          path: node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+      - uses: ./.github/actions/setup-node-yarn
 
   lint:
     needs: install
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-
-      - name: Set up Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24"
-          cache: "yarn"
-
-      - name: Restore node_modules cache
-        uses: actions/cache@v5
-        with:
-          path: node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+      - uses: ./.github/actions/setup-node-yarn
 
       - name: Lint
         run: yarn lint
@@ -55,22 +25,7 @@ jobs:
     needs: install
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-
-      - name: Set up Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24"
-          cache: "yarn"
-
-      - name: Restore node_modules cache
-        uses: actions/cache@v5
-        with:
-          path: node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+      - uses: ./.github/actions/setup-node-yarn
 
       - name: Check formatting
         run: yarn format-check
@@ -79,22 +34,7 @@ jobs:
     needs: install
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-
-      - name: Set up Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: "24"
-          cache: "yarn"
-
-      - name: Restore node_modules cache
-        uses: actions/cache@v5
-        with:
-          path: node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+      - uses: ./.github/actions/setup-node-yarn
 
       - name: Test
         run: yarn test
