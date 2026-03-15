@@ -1,11 +1,9 @@
 name: Setup Node and Yarn
-description: Checkout, set up Node, enable Corepack, restore cache, and install dependencies
+description: Set up Node, enable Corepack, restore cache, and install dependencies
 
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@v6
-
     - name: Set up Node
       uses: actions/setup-node@v6
       with:

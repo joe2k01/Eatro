@@ -10,12 +10,14 @@ jobs:
   install:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node-yarn
 
   lint:
     needs: install
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node-yarn
 
       - name: Lint
@@ -25,6 +27,7 @@ jobs:
     needs: install
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node-yarn
 
       - name: Check formatting
@@ -34,6 +37,7 @@ jobs:
     needs: install
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node-yarn
 
       - name: Test
