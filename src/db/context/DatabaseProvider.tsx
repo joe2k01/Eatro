@@ -12,11 +12,15 @@ import { migrateDbIfNeeded } from "../migrations/migrate";
 import { FoodRepository } from "../repositories/FoodRepository";
 import { MealRepository } from "../repositories/MealRepository";
 import { MealFoodRepository } from "../repositories/MealFoodRepository";
+import { CustomMealRepository } from "../repositories/CustomMealRepository";
+import { CustomMealFoodRepository } from "../repositories/CustomMealFoodRepository";
 
 type Repositories = {
   food: FoodRepository;
   meal: MealRepository;
   mealFood: MealFoodRepository;
+  customMeal: CustomMealRepository;
+  customMealFood: CustomMealFoodRepository;
 };
 
 const RepositoriesContext = createContext<Repositories | null>(null);
@@ -49,6 +53,8 @@ function RepositoriesProvider({ children }: { children: React.ReactNode }) {
       food: new FoodRepository(db),
       meal: new MealRepository(db),
       mealFood: new MealFoodRepository(db),
+      customMeal: new CustomMealRepository(db),
+      customMealFood: new CustomMealFoodRepository(db),
     };
 
     setRepositories(newRepositories);
@@ -59,6 +65,8 @@ function RepositoriesProvider({ children }: { children: React.ReactNode }) {
         newRepositories.food.finalize(),
         newRepositories.meal.finalize(),
         newRepositories.mealFood.finalize(),
+        newRepositories.customMeal.finalize(),
+        newRepositories.customMealFood.finalize(),
       ]).catch((error) => {
         Sentry.captureException(error);
         console.error("Error finalizing repositories on cleanup:", error);

@@ -10,6 +10,7 @@ import * as Sentry from "@sentry/react-native";
 const migrations = [
   require("./initial_schema.sql"),
   require("./002_manual_foods_index.sql"),
+  require("./003_custom_meals.sql"),
 ];
 
 export async function migrateDbIfNeeded(db: SQLiteDatabase) {
