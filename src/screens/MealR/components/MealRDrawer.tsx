@@ -48,7 +48,7 @@ export function MealRDrawerItem({
           </Caption>
         </VStack>
         <Pressable onPress={onDelete} hitSlop={8}>
-          <Icon name="close" size="s" variant="destructive" />
+          <Icon name="close" size="s" color={theme.text.primary} />
         </Pressable>
       </HStack>
     </Pressable>

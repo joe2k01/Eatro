@@ -60,6 +60,14 @@ export type ProductTrayProps = {
   onDismiss?: () => void;
 };
 
+/** Inner body for {@link ProductTray}; use with a host-owned {@link Tray} (e.g. MealR flow sheet). */
+export type ProductTrayContentProps = Omit<
+  ProductTrayProps,
+  "trayRef" | "onDismiss"
+> & {
+  onClose: () => Promise<void>;
+};
+
 const productTrayFormSchema = z.object({
   servings: z.number().nonnegative().optional(),
   servingSize: z.number().nonnegative().optional(),
@@ -97,8 +105,7 @@ function computePerServingFromNutriments(
   };
 }
 
-export function ProductTray({
-  trayRef,
+export function ProductTrayContent({
   foodId,
   name,
   brand,
@@ -107,8 +114,8 @@ export function ProductTray({
   servingSize,
   servingsUnit,
   onAccept,
-  onDismiss,
-}: ProductTrayProps) {
+  onClose,
+}: ProductTrayContentProps) {
   const theme = useTheme();
   const showSnackbar = useSnackbar();
   const [saving, setSaving] = useState(false);
@@ -256,12 +263,14 @@ export function ProductTray({
         throw new Error("Failed to log meal, please try again");
       }
 
-      await trayRef.current?.closeTray();
-
+      // Show before closing the sheet so feedback isn’t lost when the modal
+      // unmounts / reparents (Product screen flow uses this path).
       showSnackbar({
         message: "Meal logged successfully",
         variant: SnackbarVariant.Success,
       });
+
+      await onClose();
     } catch (error) {
       showSnackbar({
         message:
@@ -286,7 +295,7 @@ export function ProductTray({
     servingSizeValue,
     servingsValue,
     showSnackbar,
-    trayRef,
+    onClose,
   ]);
 
   const onConfirmAccept = useCallback(async () => {
@@ -302,7 +311,7 @@ export function ProductTray({
       fat: computedNutriments.fat,
     });
 
-    await trayRef.current?.closeTray();
+    await onClose();
   }, [
     canConfirm,
     computedNutriments,
@@ -310,7 +319,7 @@ export function ProductTray({
     onAccept,
     servingSizeValue,
     servingsValue,
-    trayRef,
+    onClose,
   ]);
 
   const inputRowStyle = useMemo(
@@ -319,141 +328,153 @@ export function ProductTray({
   );
 
   return (
-    <Tray ref={trayRef} onDismiss={onDismiss}>
-      <VStack gap={2} backgroundColor="transparent">
-        <VStack backgroundColor="transparent">
-          <Heading>{name}</Heading>
-          <Caption color={theme.text.muted}>{brand}</Caption>
-        </VStack>
+    <VStack gap={2} backgroundColor="transparent">
+      <VStack backgroundColor="transparent">
+        <Heading>{name}</Heading>
+        <Caption color={theme.text.muted}>{brand}</Caption>
+      </VStack>
 
-        {computedNutriments && (
+      {computedNutriments && (
+        <HStack
+          backgroundColor="transparent"
+          justifyContent="space-between"
+          flex={1}
+        >
+          {Object.entries(computedNutriments).map(([key, value]) => (
+            <VStack key={key} backgroundColor="transparent" flex={1}>
+              <Body textAlign="center">
+                {typeof value === "number"
+                  ? formatNutrientValue(key, value)
+                  : String(value)}
+              </Body>
+              <Caption textAlign="center">{key}</Caption>
+            </VStack>
+          ))}
+        </HStack>
+      )}
+
+      <HStack
+        backgroundColor="transparent"
+        justifyContent="space-between"
+        alignItems="center"
+      >
+        <Body>Number of servings</Body>
+        <TextInput
+          value={servingsValueText}
+          onChangeText={setServingsValueText}
+          placeholder="1"
+          keyboardType="decimal-pad"
+          containerStyle={styles.inputContainer}
+          inputRowStyle={inputRowStyle}
+          inBottomSheet
+        />
+      </HStack>
+
+      <HStack
+        backgroundColor="transparent"
+        justifyContent="space-between"
+        alignItems="center"
+      >
+        <Body>Serving size</Body>
+        <TextInput
+          value={servingSizeValueText}
+          onChangeText={setServingSizeValueText}
+          placeholder={String(defaultServingSize)}
+          keyboardType="decimal-pad"
+          unit={unit}
+          containerStyle={styles.inputContainer}
+          inputRowStyle={inputRowStyle}
+          inBottomSheet
+        />
+      </HStack>
+
+      {onAccept ? (
+        <Button
+          variant="primary"
+          onPress={onConfirmAccept}
+          disabled={!canConfirm}
+        >
+          Add to meal
+        </Button>
+      ) : (
+        <VStack gap={2} backgroundColor="transparent">
           <HStack
             backgroundColor="transparent"
             justifyContent="space-between"
-            flex={1}
+            alignItems="center"
           >
-            {Object.entries(computedNutriments).map(([key, value]) => (
-              <VStack key={key} backgroundColor="transparent" flex={1}>
-                <Body textAlign="center">
-                  {typeof value === "number"
-                    ? formatNutrientValue(key, value)
-                    : String(value)}
-                </Body>
-                <Caption textAlign="center">{key}</Caption>
-              </VStack>
-            ))}
+            <Body>Day</Body>
+            <HStack backgroundColor="transparent" alignItems="center" gap={1}>
+              <IconButton
+                name="chevron-left"
+                variant="tertiary"
+                onPress={() =>
+                  setDayUtcSeconds((d) => addUtcDaysSeconds(d, -1))
+                }
+                disabled={saving}
+              />
+              <Body>{dayLabel}</Body>
+              <IconButton
+                name="chevron-right"
+                variant="tertiary"
+                onPress={() => setDayUtcSeconds((d) => addUtcDaysSeconds(d, 1))}
+                disabled={saving}
+              />
+            </HStack>
           </HStack>
-        )}
 
-        <HStack
-          backgroundColor="transparent"
-          justifyContent="space-between"
-          alignItems="center"
-        >
-          <Body>Number of servings</Body>
-          <TextInput
-            value={servingsValueText}
-            onChangeText={setServingsValueText}
-            placeholder="1"
-            keyboardType="decimal-pad"
-            containerStyle={styles.inputContainer}
-            inputRowStyle={inputRowStyle}
-            inBottomSheet
-          />
-        </HStack>
+          <HStack
+            backgroundColor="transparent"
+            gap={3}
+            alignItems="center"
+            justifyContent="space-between"
+          >
+            <Body>Meal</Body>
+            <Picker
+              options={mealOptions}
+              onOptionSelect={setMealType}
+              variant="primary"
+              inverted
+            />
+          </HStack>
 
-        <HStack
-          backgroundColor="transparent"
-          justifyContent="space-between"
-          alignItems="center"
-        >
-          <Body>Serving size</Body>
-          <TextInput
-            value={servingSizeValueText}
-            onChangeText={setServingSizeValueText}
-            placeholder={String(defaultServingSize)}
-            keyboardType="decimal-pad"
-            unit={unit}
-            containerStyle={styles.inputContainer}
-            inputRowStyle={inputRowStyle}
-            inBottomSheet
-          />
-        </HStack>
+          {mealType?.value === MealType.Custom ? (
+            <TextInput
+              value={values.customMealType ?? ""}
+              onChangeText={(text) => setValue("customMealType", text)}
+              placeholder="e.g. Post-workout"
+              inBottomSheet
+            />
+          ) : null}
 
-        {onAccept ? (
           <Button
             variant="primary"
-            onPress={onConfirmAccept}
-            disabled={!canConfirm}
+            onPress={onConfirmLog}
+            disabled={
+              !canConfirm ||
+              (mealType?.value === MealType.Custom && !customMealType.trim())
+            }
           >
-            Add to meal
+            Confirm
           </Button>
-        ) : (
-          <VStack gap={2} backgroundColor="transparent">
-            <HStack
-              backgroundColor="transparent"
-              justifyContent="space-between"
-              alignItems="center"
-            >
-              <Body>Day</Body>
-              <HStack backgroundColor="transparent" alignItems="center" gap={1}>
-                <IconButton
-                  name="chevron-left"
-                  variant="tertiary"
-                  onPress={() =>
-                    setDayUtcSeconds((d) => addUtcDaysSeconds(d, -1))
-                  }
-                  disabled={saving}
-                />
-                <Body>{dayLabel}</Body>
-                <IconButton
-                  name="chevron-right"
-                  variant="tertiary"
-                  onPress={() =>
-                    setDayUtcSeconds((d) => addUtcDaysSeconds(d, 1))
-                  }
-                  disabled={saving}
-                />
-              </HStack>
-            </HStack>
+        </VStack>
+      )}
+    </VStack>
+  );
+}
 
-            <HStack
-              backgroundColor="transparent"
-              gap={3}
-              alignItems="center"
-              justifyContent="space-between"
-            >
-              <Body>Meal</Body>
-              <Picker
-                options={mealOptions}
-                onOptionSelect={setMealType}
-                variant="primary"
-                inverted
-              />
-            </HStack>
+export function ProductTray({
+  trayRef,
+  onDismiss,
+  ...contentProps
+}: ProductTrayProps) {
+  const onClose = useCallback(async () => {
+    await trayRef.current?.closeTray();
+  }, [trayRef]);
 
-            {mealType?.value === MealType.Custom ? (
-              <TextInput
-                value={values.customMealType ?? ""}
-                onChangeText={(text) => setValue("customMealType", text)}
-                placeholder="e.g. Post-workout"
-                inBottomSheet
-              />
-            ) : null}
-
-            <Button
-              variant="primary"
-              onPress={onConfirmLog}
-              disabled={
-                !canConfirm ||
-                (mealType?.value === MealType.Custom && !customMealType.trim())
-              }
-            >
-              Confirm
-            </Button>
-          </VStack>
-        )}
-      </VStack>
+  return (
+    <Tray ref={trayRef} onDismiss={onDismiss}>
+      <ProductTrayContent {...contentProps} onClose={onClose} />
     </Tray>
   );
 }
