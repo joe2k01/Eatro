@@ -14,12 +14,11 @@ import { Picker, TextInput } from "@components/forms";
 import { useTheme } from "@contexts/ThemeProvider";
 import { SnackbarVariant, useSnackbar } from "@components/feedback";
 import { useRepositories } from "@db/context/DatabaseProvider";
-import type { CustomMeal } from "@db/schemas";
+import type { CustomMeal, CustomMealFood } from "@db/schemas";
 import { MealType } from "@db/schemas";
 import { utcStartOfTodaySeconds, addUtcDaysSeconds } from "@db/utils/utc";
-import type { CustomMealFoodWithFood } from "@db/repositories/CustomMealFoodRepository";
 import { spacing } from "@constants/theme";
-import type { PopupButtonOption } from "../../../modules/popup-button";
+import { mealOptions } from "@constants/mealOptions";
 
 export type CustomMealDetailParams = { customMealId: number };
 
@@ -36,15 +35,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const mealOptions: PopupButtonOption<MealType>[] = [
-  { label: "Breakfast", value: MealType.Breakfast },
-  { label: "Lunch", value: MealType.Lunch },
-  { label: "Dinner", value: MealType.Dinner },
-  { label: "Snack", value: MealType.Snack },
-  { label: "Custom", value: MealType.Custom },
-];
-
-function FoodRow({ item }: { item: CustomMealFoodWithFood }) {
+function FoodRow({ item }: { item: CustomMealFood }) {
   const theme = useTheme();
 
   return (
@@ -54,10 +45,10 @@ function FoodRow({ item }: { item: CustomMealFoodWithFood }) {
       alignItems="center"
     >
       <VStack flex={1} backgroundColor="transparent">
-        <Body numberOfLines={1}>{item.food.name}</Body>
+        <Body numberOfLines={1}>{item.name}</Body>
         <Caption color={theme.text.muted}>
-          {item.quantity} × {item.serving_size}
-          {item.food.unit ?? "g"} · {Math.round(item.energy)} kcal
+          {item.quantity} × {item.serving_size}g · {Math.round(item.energy)}{" "}
+          kcal
         </Caption>
       </VStack>
     </HStack>
@@ -77,7 +68,7 @@ export function CustomMealDetail() {
   } = useRepositories();
 
   const [mealData, setMealData] = useState<CustomMeal | null>(null);
-  const [foods, setFoods] = useState<CustomMealFoodWithFood[]>([]);
+  const [foods, setFoods] = useState<CustomMealFood[]>([]);
   const [saving, setSaving] = useState(false);
 
   const trayRef = useRef<TrayApi>(null);
@@ -91,13 +82,24 @@ export function CustomMealDetail() {
   const [customMealType, setCustomMealType] = useState("");
 
   useEffect(() => {
-    (async () => {
-      const m = await customMealRepo.getCustomMealById(customMealId);
-      setMealData(m);
+    let active = true;
 
-      const f = await customMealFood.getFoodsByCustomMealId(customMealId);
-      setFoods(f ?? []);
-    })();
+    async function loadMealData() {
+      const [m, f] = await Promise.all([
+        customMealRepo.getCustomMealById(customMealId),
+        customMealFood.getFoodsByCustomMealId(customMealId),
+      ]);
+
+      if (active) {
+        setMealData(m);
+        setFoods(f ?? []);
+      }
+    }
+    loadMealData();
+
+    return () => {
+      active = false;
+    };
   }, [customMealId, customMealRepo, customMealFood]);
 
   const dayLabel = useMemo(() => {
@@ -172,14 +174,12 @@ export function CustomMealDetail() {
   ]);
 
   const renderItem = useCallback(
-    ({ item }: ListRenderItemInfo<CustomMealFoodWithFood>) => (
-      <FoodRow item={item} />
-    ),
+    ({ item }: ListRenderItemInfo<CustomMealFood>) => <FoodRow item={item} />,
     [],
   );
 
   const keyExtractor = useCallback(
-    (item: CustomMealFoodWithFood) => String(item.id),
+    (item: CustomMealFood) => String(item.id),
     [],
   );
 

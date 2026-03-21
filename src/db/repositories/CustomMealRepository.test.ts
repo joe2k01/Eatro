@@ -8,6 +8,17 @@ import {
 } from "../../../test/helpers/database";
 import type { SQLiteDatabase } from "expo-sqlite";
 
+const defaultFood = {
+  brand: "Test",
+  unit: "g",
+  serving_size: 100,
+  energy_per_serving: 200,
+  proteins_per_serving: 15,
+  carbohydrates_per_serving: 25,
+  fat_per_serving: 8,
+  source: FoodSource.Api,
+};
+
 describe("CustomMealRepository", () => {
   let db: SQLiteDatabase;
   let repos: TestRepositories;
@@ -25,16 +36,9 @@ describe("CustomMealRepository", () => {
   async function seedFood(barcode: string, name: string) {
     const now = Date.now();
     return repos.food.upsertFood({
+      ...defaultFood,
       name,
-      brand: "Test",
-      unit: "g",
-      serving_size: 100,
-      energy_per_serving: 200,
-      proteins_per_serving: 15,
-      carbohydrates_per_serving: 25,
-      fat_per_serving: 8,
       barcode,
-      source: FoodSource.Api,
       created_at: now,
       updated_at: now,
     });
@@ -130,6 +134,8 @@ describe("CustomMealRepository", () => {
       [
         {
           foodId: foodId1 as number,
+          name: "Rice",
+          brand: "Test",
           quantity: 1.5,
           servingSize: 100,
           energy: 200,
@@ -139,6 +145,8 @@ describe("CustomMealRepository", () => {
         },
         {
           foodId: foodId2 as number,
+          name: "Chicken",
+          brand: "Test",
           quantity: 1,
           servingSize: 150,
           energy: 250,
@@ -157,8 +165,8 @@ describe("CustomMealRepository", () => {
     );
     expect(foods).not.toBeNull();
     expect(foods?.length).toBe(2);
-    expect(foods?.[0]?.food?.name).toBe("Rice");
-    expect(foods?.[1]?.food?.name).toBe("Chicken");
+    expect(foods?.[0]?.name).toBe("Rice");
+    expect(foods?.[1]?.name).toBe("Chicken");
     expect(foods?.[0]?.quantity).toBe(1.5);
     expect(foods?.[0]?.serving_size).toBe(100);
   });

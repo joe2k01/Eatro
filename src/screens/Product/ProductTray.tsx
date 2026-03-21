@@ -14,7 +14,7 @@ import { MealType } from "@db/schemas";
 import { utcStartOfTodaySeconds, addUtcDaysSeconds } from "@db/utils/utc";
 import { useRepositories } from "@db/context/DatabaseProvider";
 import { IconButton } from "@components/buttons/IconButton";
-import { PopupButtonOption } from "../../../modules/popup-button";
+import { mealOptions } from "@constants/mealOptions";
 import { parseNumber } from "../../utils/numberFormat";
 import { useTextInput } from "@components/forms/hooks/useTextInput";
 import { SnackbarVariant, useSnackbar } from "@components/feedback";
@@ -96,14 +96,6 @@ function computePerServingFromNutriments(
     energy: (energy * servingSize) / base,
   };
 }
-
-const mealOptions: PopupButtonOption<MealType>[] = [
-  { label: "Breakfast", value: MealType.Breakfast },
-  { label: "Lunch", value: MealType.Lunch },
-  { label: "Dinner", value: MealType.Dinner },
-  { label: "Snack", value: MealType.Snack },
-  { label: "Custom", value: MealType.Custom },
-];
 
 export function ProductTray({
   trayRef,

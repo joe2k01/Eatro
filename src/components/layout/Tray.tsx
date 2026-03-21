@@ -48,9 +48,8 @@ export const Tray = forwardRef<TrayApi, TrayProps>(function Tray(
     if (closePromiseRef.current) {
       closePromiseRef.current.resolve();
       closePromiseRef.current = null;
-    } else {
-      onDismissProp?.();
     }
+    onDismissProp?.();
     sheetRef.current?.dismiss();
   }, [onDismissProp]);
 

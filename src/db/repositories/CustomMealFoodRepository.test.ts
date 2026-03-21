@@ -8,6 +8,17 @@ import {
 } from "../../../test/helpers/database";
 import type { SQLiteDatabase } from "expo-sqlite";
 
+const defaultFood = {
+  brand: "Test",
+  unit: "g",
+  serving_size: 100,
+  energy_per_serving: 150,
+  proteins_per_serving: 12,
+  carbohydrates_per_serving: 18,
+  fat_per_serving: 6,
+  source: FoodSource.Api,
+};
+
 describe("CustomMealFoodRepository", () => {
   let db: SQLiteDatabase;
   let repos: TestRepositories;
@@ -25,16 +36,9 @@ describe("CustomMealFoodRepository", () => {
   async function seedFood(barcode: string, name: string) {
     const now = Date.now();
     return repos.food.upsertFood({
+      ...defaultFood,
       name,
-      brand: "Test",
-      unit: "g",
-      serving_size: 100,
-      energy_per_serving: 150,
-      proteins_per_serving: 12,
-      carbohydrates_per_serving: 18,
-      fat_per_serving: 6,
       barcode,
-      source: FoodSource.Api,
       created_at: now,
       updated_at: now,
     });
@@ -52,37 +56,41 @@ describe("CustomMealFoodRepository", () => {
     });
   }
 
-  it("inserts a custom meal food and retrieves it with joined food data", async () => {
+  it("inserts a custom meal food and retrieves it", async () => {
     const mealId = await seedCustomMeal("Test Meal");
     const foodId = await seedFood("cmf-1", "Pasta");
     const nowMs = Date.now();
 
-    const inserted = await repos.customMealFood.insertCustomMealFood(
-      mealId as number,
-      foodId as number,
-      2,
-      120,
-      300,
-      24,
-      36,
-      12,
+    const insertedId = await repos.customMealFood.insertCustomMealFood({
+      customMealId: mealId as number,
+      foodId: foodId as number,
+      name: "Pasta",
+      brand: "Test",
+      quantity: 2,
+      servingSize: 120,
+      energy: 300,
+      proteins: 24,
+      carbohydrates: 36,
+      fat: 12,
       nowMs,
-    );
+    });
 
-    expect(inserted).toBe(true);
+    expect(insertedId).toEqual(expect.any(Number));
 
     const foods = await repos.customMealFood.getFoodsByCustomMealId(
       mealId as number,
     );
     expect(foods).not.toBeNull();
     expect(foods?.length).toBe(1);
-    expect(foods?.[0]?.food?.name).toBe("Pasta");
-    expect(foods?.[0]?.quantity).toBe(2);
-    expect(foods?.[0]?.serving_size).toBe(120);
-    expect(foods?.[0]?.energy).toBe(300);
-    expect(foods?.[0]?.proteins).toBe(24);
-    expect(foods?.[0]?.carbohydrates).toBe(36);
-    expect(foods?.[0]?.fat).toBe(12);
+
+    const first = foods![0];
+    expect(first.name).toBe("Pasta");
+    expect(first.quantity).toBe(2);
+    expect(first.serving_size).toBe(120);
+    expect(first.energy).toBe(300);
+    expect(first.proteins).toBe(24);
+    expect(first.carbohydrates).toBe(36);
+    expect(first.fat).toBe(12);
   });
 
   it("retrieves multiple foods for a custom meal in creation order", async () => {
@@ -91,34 +99,38 @@ describe("CustomMealFoodRepository", () => {
     const foodId2 = await seedFood("cmf-3", "Beans");
     const nowMs = Date.now();
 
-    await repos.customMealFood.insertCustomMealFood(
-      mealId as number,
-      foodId1 as number,
-      1,
-      100,
-      150,
-      12,
-      18,
-      6,
+    await repos.customMealFood.insertCustomMealFood({
+      customMealId: mealId as number,
+      foodId: foodId1 as number,
+      name: "Rice",
+      brand: "Test",
+      quantity: 1,
+      servingSize: 100,
+      energy: 150,
+      proteins: 12,
+      carbohydrates: 18,
+      fat: 6,
       nowMs,
-    );
-    await repos.customMealFood.insertCustomMealFood(
-      mealId as number,
-      foodId2 as number,
-      1.5,
-      80,
-      200,
-      15,
-      25,
-      8,
-      nowMs + 1,
-    );
+    });
+    await repos.customMealFood.insertCustomMealFood({
+      customMealId: mealId as number,
+      foodId: foodId2 as number,
+      name: "Beans",
+      brand: "Test",
+      quantity: 1.5,
+      servingSize: 80,
+      energy: 200,
+      proteins: 15,
+      carbohydrates: 25,
+      fat: 8,
+      nowMs: nowMs + 1,
+    });
 
     const foods = await repos.customMealFood.getFoodsByCustomMealId(
       mealId as number,
     );
     expect(foods?.length).toBe(2);
-    expect(foods?.[0]?.food?.name).toBe("Rice");
-    expect(foods?.[1]?.food?.name).toBe("Beans");
+    expect(foods?.[0]?.name).toBe("Rice");
+    expect(foods?.[1]?.name).toBe("Beans");
   });
 });

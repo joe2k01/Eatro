@@ -17,6 +17,8 @@ type CreateCustomMealArgs = {
 
 type CustomMealFoodInput = {
   foodId: number;
+  name: string;
+  brand: string | null;
   quantity: number;
   servingSize: number;
   energy: number;
@@ -133,23 +135,27 @@ export class CustomMealRepository extends BaseRepository {
         throw new Error("Failed to create custom meal");
       }
 
-      for (const food of foods) {
-        const inserted = await customMealFoodRepo.insertCustomMealFood(
-          mealId,
-          food.foodId,
-          food.quantity,
-          food.servingSize,
-          food.energy,
-          food.proteins,
-          food.carbohydrates,
-          food.fat,
-          meal.nowMs,
-        );
+      await Promise.all(
+        foods.map(async (food) => {
+          const insertedId = await customMealFoodRepo.insertCustomMealFood({
+            customMealId: mealId,
+            foodId: food.foodId,
+            name: food.name,
+            brand: food.brand,
+            quantity: food.quantity,
+            servingSize: food.servingSize,
+            energy: food.energy,
+            proteins: food.proteins,
+            carbohydrates: food.carbohydrates,
+            fat: food.fat,
+            nowMs: meal.nowMs,
+          });
 
-        if (!inserted) {
-          throw new Error("Failed to insert custom meal food");
-        }
-      }
+          if (insertedId === null) {
+            throw new Error("Failed to insert custom meal food");
+          }
+        }),
+      );
 
       return mealId;
     });

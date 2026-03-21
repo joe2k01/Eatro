@@ -1,11 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
-import {
-  Camera,
-  useCameraDevice,
-  useCameraPermission,
-  useCodeScanner,
-} from "react-native-vision-camera";
+import { StyleSheet } from "react-native";
+import { BarcodeCamera } from "@components/media/BarcodeCamera";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocales } from "expo-localization";
 import { useApiClient } from "@api/ApiClient";
@@ -34,9 +29,6 @@ const headerOptions = {
 } satisfies NativeStackNavigationOptions;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   camera: {
     flex: 1,
   },
@@ -69,9 +61,7 @@ export function MealR() {
   const totals = useMemo(() => computeSessionTotals(items), [items]);
 
   const processBarcode = useCallback(
-    async (barcode: string | undefined) => {
-      if (!barcode) return;
-
+    async (barcode: string) => {
       setScanning(false);
 
       try {
@@ -166,43 +156,12 @@ export function MealR() {
     setItems([]);
   }, []);
 
-  const { hasPermission } = useCameraPermission();
-  const device = useCameraDevice("back");
-
-  const codeScanner = useCodeScanner({
-    codeTypes: [
-      "ean-13",
-      "ean-8",
-      "code-128",
-      "code-39",
-      "code-93",
-      "gs1-data-bar",
-      "gs1-data-bar-expanded",
-      "gs1-data-bar-limited",
-      "codabar",
-      "itf",
-      "itf-14",
-      "upc-a",
-      "upc-e",
-      "pdf-417",
-    ],
-    onCodeScanned: (codes) => {
-      if (!codes.length) return;
-      processBarcode(codes[0].value);
-    },
-  });
-
-  if (!hasPermission || !device) {
-    return null;
-  }
-
   return (
-    <View style={styles.container}>
-      <Camera
-        device={device}
+    <VStack flex={1} backgroundColor="transparent">
+      <BarcodeCamera
         isActive={scanning}
+        onBarcodeScanned={processBarcode}
         style={styles.camera}
-        codeScanner={codeScanner}
       />
       <VStack style={styles.drawer} backgroundColor={theme.surface.secondary}>
         <MealRDrawer
@@ -237,7 +196,7 @@ export function MealR() {
           onDismiss={resumeScanning}
         />
       )}
-    </View>
+    </VStack>
   );
 }
 

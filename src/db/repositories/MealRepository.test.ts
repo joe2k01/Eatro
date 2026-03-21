@@ -10,6 +10,17 @@ import type { SQLiteDatabase } from "expo-sqlite";
 
 const DAY_UTC_SECONDS = new Date("2025-01-01T00:00:00Z").getTime() / 1000;
 
+const defaultFood = {
+  brand: "Test",
+  unit: "g",
+  serving_size: 100,
+  energy_per_serving: 165,
+  proteins_per_serving: 31,
+  carbohydrates_per_serving: 0,
+  fat_per_serving: 3.6,
+  source: FoodSource.Api,
+};
+
 describe("MealRepository", () => {
   let db: SQLiteDatabase;
   let repos: TestRepositories;
@@ -27,25 +38,14 @@ describe("MealRepository", () => {
   async function seedFood(
     barcode = "food-1",
     name = "Chicken Breast",
-    overrides?: Partial<{
-      energy_per_serving: number;
-      proteins_per_serving: number;
-      carbohydrates_per_serving: number;
-      fat_per_serving: number;
-    }>,
+    overrides?: Partial<typeof defaultFood>,
   ) {
     const now = Date.now();
     return repos.food.upsertFood({
+      ...defaultFood,
+      ...overrides,
       name,
-      brand: "Test",
-      unit: "g",
-      serving_size: 100,
-      energy_per_serving: overrides?.energy_per_serving ?? 165,
-      proteins_per_serving: overrides?.proteins_per_serving ?? 31,
-      carbohydrates_per_serving: overrides?.carbohydrates_per_serving ?? 0,
-      fat_per_serving: overrides?.fat_per_serving ?? 3.6,
       barcode,
-      source: FoodSource.Api,
       created_at: now,
       updated_at: now,
     });
@@ -169,6 +169,8 @@ describe("MealRepository", () => {
       [
         {
           foodId: riceId as number,
+          name: "Rice",
+          brand: "Test",
           quantity: 1,
           servingSize: 100,
           energy: 130,
@@ -178,6 +180,8 @@ describe("MealRepository", () => {
         },
         {
           foodId: chickenId as number,
+          name: "Chicken",
+          brand: "Test",
           quantity: 1,
           servingSize: 100,
           energy: 165,

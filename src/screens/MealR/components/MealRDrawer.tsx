@@ -28,15 +28,13 @@ const styles = StyleSheet.create({
   },
 });
 
-function MealRDrawerItem({
-  item,
-  onEdit,
-  onDelete,
-}: {
+type MealRDrawerItemProps = {
   item: MealRSessionItem;
   onEdit: () => void;
   onDelete: () => void;
-}) {
+};
+
+function MealRDrawerItem({ item, onEdit, onDelete }: MealRDrawerItemProps) {
   const theme = useTheme();
 
   return (

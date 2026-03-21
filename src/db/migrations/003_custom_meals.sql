@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS custom_meal_foods (
   id INTEGER PRIMARY KEY,
   custom_meal_id INTEGER NOT NULL,
   food_id INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  brand TEXT,
   quantity REAL NOT NULL,
   serving_size REAL NOT NULL,
 

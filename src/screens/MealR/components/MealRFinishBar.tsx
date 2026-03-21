@@ -1,5 +1,4 @@
 import { useCallback, useState } from "react";
-import { StyleSheet } from "react-native";
 import { HStack } from "@components/layout/HStack";
 import { VStack } from "@components/layout/VStack";
 import { Button } from "@components/buttons/Button";
@@ -8,11 +7,7 @@ import { useRepositories } from "@db/context/DatabaseProvider";
 import { SnackbarVariant, useSnackbar } from "@components/feedback";
 import type { MealRSessionItem, MealRSessionTotals } from "../types";
 
-const styles = StyleSheet.create({
-  flexButton: {
-    flex: 1,
-  },
-});
+const flexStyle = { flex: 1 } as const;
 
 type MealRFinishBarProps = {
   items: MealRSessionItem[];
@@ -51,6 +46,8 @@ export function MealRFinishBar({
         },
         items.map((item) => ({
           foodId: item.foodId,
+          name: item.name,
+          brand: item.brand,
           quantity: item.quantity,
           servingSize: item.servingSize,
           energy: item.energy,
@@ -113,7 +110,7 @@ export function MealRFinishBar({
             setMealName("");
           }}
           disabled={saving}
-          style={styles.flexButton}
+          style={flexStyle}
         >
           Cancel
         </Button>
@@ -121,7 +118,7 @@ export function MealRFinishBar({
           variant="primary"
           onPress={onSave}
           disabled={!mealName.trim() || saving}
-          style={styles.flexButton}
+          style={flexStyle}
         >
           Save
         </Button>

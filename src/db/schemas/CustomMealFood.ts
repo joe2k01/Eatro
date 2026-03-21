@@ -9,6 +9,8 @@ export const CustomMealFoodSchema = z.object({
   id: SqliteIdSchema,
   custom_meal_id: SqliteIdSchema,
   food_id: SqliteIdSchema,
+  name: z.string().min(1),
+  brand: z.string().nullable(),
   quantity: z.number(),
   serving_size: z.number(),
 
