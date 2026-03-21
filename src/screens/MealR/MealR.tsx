@@ -164,14 +164,15 @@ export function MealR() {
           style={styles.camera}
         />
       </View>
-      <MealRSessionSheet
-        items={items}
-        totals={totals}
-        onEditItem={onEditItem}
-        onDeleteItem={onDeleteItem}
-        onPressSaveMeal={openSaveMealTray}
-        productTrayOpen={pendingScan !== null || editingItem !== null}
-      />
+      {pendingScan === null && editingItem === null ? (
+        <MealRSessionSheet
+          items={items}
+          totals={totals}
+          onEditItem={onEditItem}
+          onDeleteItem={onDeleteItem}
+          onPressSaveMeal={openSaveMealTray}
+        />
+      ) : null}
 
       <Tray ref={saveTrayRef} lockDismiss>
         <MealRSaveMealForm
