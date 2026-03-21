@@ -5,6 +5,7 @@ import {
   useCameraPermission,
   useCodeScanner,
 } from "react-native-vision-camera";
+import { useIsFocused } from "@react-navigation/native";
 
 type BarcodeCameraProps = {
   isActive: boolean;
@@ -17,6 +18,7 @@ export function BarcodeCamera({
   onBarcodeScanned,
   style,
 }: BarcodeCameraProps) {
+  const isFocused = useIsFocused();
   const { hasPermission } = useCameraPermission();
   const device = useCameraDevice("back");
 
@@ -51,7 +53,7 @@ export function BarcodeCamera({
   return (
     <Camera
       device={device}
-      isActive={isActive}
+      isActive={isActive && isFocused}
       style={style ?? StyleSheet.absoluteFill}
       codeScanner={codeScanner}
     />
