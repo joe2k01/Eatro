@@ -57,6 +57,7 @@ export type ProductTrayProps = {
   servingSize?: number;
   servingsUnit?: string;
   onAccept?: (result: ProductTrayAcceptResult) => void;
+  onDismiss?: () => void;
 };
 
 const productTrayFormSchema = z.object({
@@ -114,6 +115,7 @@ export function ProductTray({
   servingSize,
   servingsUnit,
   onAccept,
+  onDismiss,
 }: ProductTrayProps) {
   const theme = useTheme();
   const showSnackbar = useSnackbar();
@@ -325,7 +327,7 @@ export function ProductTray({
   );
 
   return (
-    <Tray ref={trayRef}>
+    <Tray ref={trayRef} onDismiss={onDismiss}>
       <VStack gap={2} backgroundColor="transparent">
         <VStack backgroundColor="transparent">
           <Heading>{name}</Heading>
