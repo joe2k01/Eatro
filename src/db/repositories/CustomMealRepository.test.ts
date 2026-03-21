@@ -42,16 +42,14 @@ describe("CustomMealRepository", () => {
 
   it("creates a custom meal and retrieves it by id", async () => {
     const nowMs = Date.now();
-    const mealId = await repos.customMeal.createCustomMeal(
-      {
-        name: "My Supermarket Meal",
-        energy: 500,
-        proteins: 30,
-        carbohydrates: 50,
-        fat: 20,
-        nowMs,
-      },
-    );
+    const mealId = await repos.customMeal.createCustomMeal({
+      name: "My Supermarket Meal",
+      energy: 500,
+      proteins: 30,
+      carbohydrates: 50,
+      fat: 20,
+      nowMs,
+    });
 
     expect(mealId).toEqual(expect.any(Number));
 
