@@ -2,7 +2,6 @@ import { useCallback, useMemo } from "react";
 import { StyleSheet } from "react-native";
 import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import { useTheme } from "@contexts/ThemeProvider";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { spacing } from "@constants/theme";
 import { VStack } from "@components/layout/VStack";
 import { Button } from "@components/buttons/Button";
@@ -35,7 +34,6 @@ export function MealRSessionSheet({
   onPressSaveMeal,
 }: MealRSessionSheetProps) {
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
 
   const renderItem = useCallback(
     ({ item }: { item: MealRSessionItem }) => (
@@ -72,7 +70,6 @@ export function MealRSessionSheet({
       snapPoints={[...SNAP_POINTS]}
       enableDynamicSizing={false}
       enablePanDownToClose={false}
-      bottomInset={insets.bottom}
       backgroundStyle={{ backgroundColor: theme.surface.secondary }}
       handleIndicatorStyle={{
         backgroundColor: theme.text.muted,
