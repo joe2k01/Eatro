@@ -14,7 +14,7 @@ import { MealType } from "@db/schemas";
 import { utcStartOfTodaySeconds, addUtcDaysSeconds } from "@db/utils/utc";
 import { useRepositories } from "@db/context/DatabaseProvider";
 import { IconButton } from "@components/buttons/IconButton";
-import { PopupButtonOption } from "../../../modules/popup-button";
+import { mealOptions } from "@constants/mealOptions";
 import { parseNumber } from "../../utils/numberFormat";
 import { useTextInput } from "@components/forms/hooks/useTextInput";
 import { SnackbarVariant, useSnackbar } from "@components/feedback";
@@ -37,6 +37,16 @@ const styles = StyleSheet.create({
   },
 });
 
+export type ProductTrayAcceptResult = {
+  foodId: number;
+  servingsValue: number;
+  servingSizeValue: number;
+  energy: number;
+  proteins: number;
+  carbohydrates: number;
+  fat: number;
+};
+
 export type ProductTrayProps = {
   trayRef: RefObject<TrayApi | null>;
   foodId: number | null;
@@ -46,7 +56,8 @@ export type ProductTrayProps = {
   selectedUnit?: NutrimentsUnit;
   servingSize?: number;
   servingsUnit?: string;
-  hideLogControls?: boolean;
+  onAccept?: (result: ProductTrayAcceptResult) => void;
+  onDismiss?: () => void;
 };
 
 const productTrayFormSchema = z.object({
@@ -86,14 +97,6 @@ function computePerServingFromNutriments(
   };
 }
 
-const mealOptions: PopupButtonOption<MealType>[] = [
-  { label: "Breakfast", value: MealType.Breakfast },
-  { label: "Lunch", value: MealType.Lunch },
-  { label: "Dinner", value: MealType.Dinner },
-  { label: "Snack", value: MealType.Snack },
-  { label: "Custom", value: MealType.Custom },
-];
-
 export function ProductTray({
   trayRef,
   foodId,
@@ -103,7 +106,8 @@ export function ProductTray({
   selectedUnit,
   servingSize,
   servingsUnit,
-  hideLogControls = false,
+  onAccept,
+  onDismiss,
 }: ProductTrayProps) {
   const theme = useTheme();
   const showSnackbar = useSnackbar();
@@ -285,13 +289,37 @@ export function ProductTray({
     trayRef,
   ]);
 
+  const onConfirmAccept = useCallback(async () => {
+    if (!canConfirm || foodId === null || !onAccept) return;
+
+    onAccept({
+      foodId,
+      servingsValue,
+      servingSizeValue,
+      energy: computedNutriments.energy,
+      proteins: computedNutriments.proteins,
+      carbohydrates: computedNutriments.carbohydrates,
+      fat: computedNutriments.fat,
+    });
+
+    await trayRef.current?.closeTray();
+  }, [
+    canConfirm,
+    computedNutriments,
+    foodId,
+    onAccept,
+    servingSizeValue,
+    servingsValue,
+    trayRef,
+  ]);
+
   const inputRowStyle = useMemo(
     () => ({ backgroundColor: theme.surface.tertiary }),
     [theme.surface.tertiary],
   );
 
   return (
-    <Tray ref={trayRef}>
+    <Tray ref={trayRef} onDismiss={onDismiss}>
       <VStack gap={2} backgroundColor="transparent">
         <VStack backgroundColor="transparent">
           <Heading>{name}</Heading>
@@ -352,7 +380,15 @@ export function ProductTray({
           />
         </HStack>
 
-        {!hideLogControls ? (
+        {onAccept ? (
+          <Button
+            variant="primary"
+            onPress={onConfirmAccept}
+            disabled={!canConfirm}
+          >
+            Add to meal
+          </Button>
+        ) : (
           <VStack gap={2} backgroundColor="transparent">
             <HStack
               backgroundColor="transparent"
@@ -416,7 +452,7 @@ export function ProductTray({
               Confirm
             </Button>
           </VStack>
-        ) : null}
+        )}
       </VStack>
     </Tray>
   );

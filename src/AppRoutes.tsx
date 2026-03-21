@@ -2,6 +2,10 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import type { NavigatorScreenParams } from "@react-navigation/native";
 import { Product, ProductParams } from "@screens/Product";
 import { Scanner, ScannerParams } from "@screens/Scanner";
+import {
+  CustomMealDetail,
+  CustomMealDetailParams,
+} from "@screens/CustomMealDetail";
 import { nestedStackSharedOptions } from "@constants/navigation";
 import { useAppStackNavigationOptions } from "@hooks/useAppStackNavigationOptions";
 import { AppTabs, TabParamsList } from "./AppTabs";
@@ -12,6 +16,7 @@ export type RootStackParamsList = {
   AppTabs: NavigatorScreenParams<TabParamsList>;
   Scanner: ScannerParams;
   Product: ProductParams;
+  CustomMealDetail: CustomMealDetailParams;
 };
 
 export type RouteNames = keyof RootStackParamsList;
@@ -40,6 +45,7 @@ export function AppRoutes() {
       />
       <Stack.Screen name="Scanner" component={Scanner} />
       <Stack.Screen name="Product" component={Product} />
+      <Stack.Screen name="CustomMealDetail" component={CustomMealDetail} />
     </Stack.Navigator>
   );
 }

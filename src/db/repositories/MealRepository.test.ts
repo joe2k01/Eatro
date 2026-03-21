@@ -10,6 +10,17 @@ import type { SQLiteDatabase } from "expo-sqlite";
 
 const DAY_UTC_SECONDS = new Date("2025-01-01T00:00:00Z").getTime() / 1000;
 
+const defaultFood = {
+  brand: "Test",
+  unit: "g",
+  serving_size: 100,
+  energy_per_serving: 165,
+  proteins_per_serving: 31,
+  carbohydrates_per_serving: 0,
+  fat_per_serving: 3.6,
+  source: FoodSource.Api,
+};
+
 describe("MealRepository", () => {
   let db: SQLiteDatabase;
   let repos: TestRepositories;
@@ -24,19 +35,17 @@ describe("MealRepository", () => {
     await closeTestDb(db);
   });
 
-  async function seedFood() {
+  async function seedFood(
+    barcode = "food-1",
+    name = "Chicken Breast",
+    overrides?: Partial<typeof defaultFood>,
+  ) {
     const now = Date.now();
     return repos.food.upsertFood({
-      name: "Chicken Breast",
-      brand: "Test",
-      unit: "g",
-      serving_size: 100,
-      energy_per_serving: 165,
-      proteins_per_serving: 31,
-      carbohydrates_per_serving: 0,
-      fat_per_serving: 3.6,
-      barcode: "food-1",
-      source: FoodSource.Api,
+      ...defaultFood,
+      ...overrides,
+      name,
+      barcode,
       created_at: now,
       updated_at: now,
     });
@@ -130,5 +139,93 @@ describe("MealRepository", () => {
 
     const meals = await repos.meal.getMealsByDay(DAY_UTC_SECONDS);
     expect(meals?.length).toBe(1);
+  });
+
+  it("logCustomMealTx bulk-logs a saved custom meal into a diary meal", async () => {
+    const riceId = await seedFood("rice-1", "Rice", {
+      energy_per_serving: 130,
+      proteins_per_serving: 2.7,
+      carbohydrates_per_serving: 28,
+      fat_per_serving: 0.3,
+    });
+    const chickenId = await seedFood("chicken-1", "Chicken", {
+      energy_per_serving: 165,
+      proteins_per_serving: 31,
+      carbohydrates_per_serving: 0,
+      fat_per_serving: 3.6,
+    });
+
+    const nowMs = Date.now();
+
+    const customMealId = await repos.customMeal.createCustomMealWithFoodsTx(
+      {
+        name: "Rice & Chicken",
+        energy: 295,
+        proteins: 33.7,
+        carbohydrates: 28,
+        fat: 3.9,
+        nowMs,
+      },
+      [
+        {
+          foodId: riceId as number,
+          name: "Rice",
+          brand: "Test",
+          quantity: 1,
+          servingSize: 100,
+          energy: 130,
+          proteins: 2.7,
+          carbohydrates: 28,
+          fat: 0.3,
+        },
+        {
+          foodId: chickenId as number,
+          name: "Chicken",
+          brand: "Test",
+          quantity: 1,
+          servingSize: 100,
+          energy: 165,
+          proteins: 31,
+          carbohydrates: 0,
+          fat: 3.6,
+        },
+      ],
+      repos.customMealFood,
+    );
+
+    expect(customMealId).toEqual(expect.any(Number));
+
+    const mealId = await repos.meal.logCustomMealTx(
+      {
+        dayUtcSeconds: DAY_UTC_SECONDS,
+        type: MealType.Lunch,
+        customType: null,
+        customMealId: customMealId as number,
+        nowMs: nowMs + 1,
+      },
+      repos.customMeal,
+      repos.customMealFood,
+      repos.mealFood,
+    );
+
+    expect(mealId).toEqual(expect.any(Number));
+
+    const meal = await repos.meal.getMealByDayUtc(
+      DAY_UTC_SECONDS,
+      MealType.Lunch,
+      null,
+    );
+    expect(meal).not.toBeNull();
+    expect(meal?.energy).toBe(295);
+    expect(meal?.proteins).toBe(33.7);
+    expect(meal?.carbohydrates).toBe(28);
+    expect(meal?.fat).toBe(3.9);
+
+    const mealFoods = await repos.mealFood.getMealFoodsByMealId(
+      mealId as number,
+    );
+    expect(mealFoods?.length).toBe(2);
+    expect(mealFoods?.[0]?.food?.name).toBe("Rice");
+    expect(mealFoods?.[1]?.food?.name).toBe("Chicken");
   });
 });

@@ -12,6 +12,7 @@ import { spacing } from "@constants/theme";
 
 type TrayProps = {
   children: React.ReactNode;
+  onDismiss?: () => void;
 };
 
 export type TrayApi = {
@@ -20,7 +21,7 @@ export type TrayApi = {
 };
 
 export const Tray = forwardRef<TrayApi, TrayProps>(function Tray(
-  { children },
+  { children, onDismiss: onDismissProp },
   ref,
 ) {
   const sheetRef = useRef<BottomSheetModal>(null);
@@ -48,8 +49,9 @@ export const Tray = forwardRef<TrayApi, TrayProps>(function Tray(
       closePromiseRef.current.resolve();
       closePromiseRef.current = null;
     }
+    onDismissProp?.();
     sheetRef.current?.dismiss();
-  }, []);
+  }, [onDismissProp]);
 
   useImperativeHandle(
     ref,

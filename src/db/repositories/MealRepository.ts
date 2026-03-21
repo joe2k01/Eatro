@@ -8,8 +8,80 @@ import {
 } from "@db/schemas";
 import { BaseRepository, type QueryResult } from "./BaseRepository";
 import { MealFoodRepository } from "./MealFoodRepository";
+import { CustomMealRepository } from "./CustomMealRepository";
+import { CustomMealFoodRepository } from "./CustomMealFoodRepository";
 
 export class MealRepository extends BaseRepository {
+  /**
+   * Upsert a meal row (by day/type[/custom_type]) and atomically increment
+   * its macro totals. Returns the meal id. Must be called inside a transaction.
+   */
+  private async upsertMealRow(args: {
+    dayUtcSeconds: number;
+    type: MealType;
+    customType: string | null;
+    delta: {
+      energy: number;
+      proteins: number;
+      carbohydrates: number;
+      fat: number;
+    };
+    nowMs: number;
+  }): Promise<number> {
+    const { dayUtcSeconds, type, customType, delta, nowMs } = args;
+    const effectiveCustomType = type === MealType.Custom ? customType : null;
+
+    const upsertStatement = await this.prepareStatement(
+      `
+      INSERT INTO meals (day_utc, type, custom_type, energy, proteins, carbohydrates, fat, created_at, updated_at, deleted_at)
+      VALUES ($day_utc, $type, $custom_type, $energy, $proteins, $carbohydrates, $fat, $created_at, $updated_at, NULL)
+      ON CONFLICT(day_utc, type, custom_type) WHERE custom_type IS NOT NULL DO UPDATE SET
+        energy = energy + $energy,
+        proteins = proteins + $proteins,
+        carbohydrates = carbohydrates + $carbohydrates,
+        fat = fat + $fat,
+        updated_at = $updated_at
+      ON CONFLICT(day_utc, type) WHERE custom_type IS NULL DO UPDATE SET
+        energy = energy + $energy,
+        proteins = proteins + $proteins,
+        carbohydrates = carbohydrates + $carbohydrates,
+        fat = fat + $fat,
+        updated_at = $updated_at
+      RETURNING id;
+      `,
+      "upsertMeal",
+    );
+    if (!upsertStatement) throw new Error("Failed to prepare meal upsert");
+
+    const upsertResult = await this.executeStatement(upsertStatement, {
+      $day_utc: dayUtcSeconds,
+      $type: type,
+      $custom_type: effectiveCustomType,
+      $energy: delta.energy,
+      $proteins: delta.proteins,
+      $carbohydrates: delta.carbohydrates,
+      $fat: delta.fat,
+      $created_at: nowMs,
+      $updated_at: nowMs,
+    });
+
+    if (!upsertResult) throw new Error("Meal upsert failed to execute");
+
+    if (upsertResult.changes !== 1) {
+      throw new Error(
+        `Meal upsert unexpected changes: ${upsertResult.changes}`,
+      );
+    }
+
+    const upsertRows = await upsertResult.getAllAsync();
+    if (!upsertRows || upsertRows.length === 0) {
+      throw new Error("Meal upsert returned no row");
+    }
+
+    const { id: mealId } = await SqliteIdRowSchema.parseAsync(upsertRows[0]);
+    return mealId;
+  }
+
   /**
    * Upsert a meal (by day/type[/custom_type]) and apply all side effects
    * (insert `meal_foods`, increment meal totals) inside a single SQLite transaction.
@@ -42,63 +114,14 @@ export class MealRepository extends BaseRepository {
     } = args;
 
     return await this.withTransaction(async () => {
-      const effectiveCustomType = type === MealType.Custom ? customType : null;
-
-      // 1) Upsert the meal row and atomically increment totals.
-      const upsertStatement = await this.prepareStatement(
-        `
-        INSERT INTO meals (day_utc, type, custom_type, energy, proteins, carbohydrates, fat, created_at, updated_at, deleted_at)
-        VALUES ($day_utc, $type, $custom_type, $energy, $proteins, $carbohydrates, $fat, $created_at, $updated_at, NULL)
-        ON CONFLICT(day_utc, type, custom_type) WHERE custom_type IS NOT NULL DO UPDATE SET
-          energy = energy + $energy,
-          proteins = proteins + $proteins,
-          carbohydrates = carbohydrates + $carbohydrates,
-          fat = fat + $fat,
-          updated_at = $updated_at
-        ON CONFLICT(day_utc, type) WHERE custom_type IS NULL DO UPDATE SET
-          energy = energy + $energy,
-          proteins = proteins + $proteins,
-          carbohydrates = carbohydrates + $carbohydrates,
-          fat = fat + $fat,
-          updated_at = $updated_at
-        RETURNING id;
-        `,
-        "upsertMeal",
-      );
-      if (!upsertStatement) throw new Error("Failed to prepare meal upsert");
-
-      const upsertResult = await this.executeStatement(upsertStatement, {
-        $day_utc: dayUtcSeconds,
-        $type: type,
-        $custom_type: effectiveCustomType,
-        $energy: delta.energy,
-        $proteins: delta.proteins,
-        $carbohydrates: delta.carbohydrates,
-        $fat: delta.fat,
-        $created_at: nowMs,
-        $updated_at: nowMs,
+      const mealId = await this.upsertMealRow({
+        dayUtcSeconds,
+        type,
+        customType,
+        delta,
+        nowMs,
       });
 
-      if (!upsertResult) throw new Error("Meal upsert failed to execute");
-
-      // `changes` should be 1 for this insert-or-update to be considered successful.
-      if (upsertResult.changes !== 1) {
-        throw new Error(
-          `Meal upsert unexpected changes: ${upsertResult.changes}`,
-        );
-      }
-
-      // We rely on `RETURNING id` here. If the driver/build ever stops returning a row,
-      // we prefer to fail loudly (and rollback) rather than guessing via a follow-up SELECT.
-      // Use getAllAsync to fully consume the result set before proceeding
-      const upsertRows = await upsertResult.getAllAsync();
-      if (!upsertRows || upsertRows.length === 0) {
-        throw new Error("Meal upsert returned no row");
-      }
-
-      const { id: mealId } = await SqliteIdRowSchema.parseAsync(upsertRows[0]);
-
-      // 2) Record the food entry (quantity = servings).
       const mealFoodInserted = await mealFoodRepo.insertMealFood(
         mealId,
         foodId,
@@ -202,5 +225,63 @@ export class MealRepository extends BaseRepository {
 
     const rows = await result.getAllAsync();
     return rows.map((row) => MealSchema.parse(row));
+  }
+
+  /**
+   * Log an entire saved custom meal into the diary as a single transaction.
+   * Upserts the meal row with the custom meal's aggregate macros, then
+   * inserts one meal_foods row per custom meal ingredient.
+   */
+  public async logCustomMealTx(
+    args: {
+      dayUtcSeconds: number;
+      type: MealType;
+      customType: string | null;
+      customMealId: number;
+      nowMs: number;
+    },
+    customMealRepo: CustomMealRepository,
+    customMealFoodRepo: CustomMealFoodRepository,
+    mealFoodRepo: MealFoodRepository,
+  ): QueryResult<number> {
+    const { dayUtcSeconds, type, customType, customMealId, nowMs } = args;
+
+    return await this.withTransaction(async () => {
+      const customMeal = await customMealRepo.getCustomMealById(customMealId);
+      if (!customMeal) throw new Error("Custom meal not found");
+
+      const customFoods =
+        await customMealFoodRepo.getFoodsByCustomMealId(customMealId);
+      if (!customFoods || customFoods.length === 0) {
+        throw new Error("Custom meal has no foods");
+      }
+
+      const mealId = await this.upsertMealRow({
+        dayUtcSeconds,
+        type,
+        customType,
+        delta: {
+          energy: customMeal.energy,
+          proteins: customMeal.proteins,
+          carbohydrates: customMeal.carbohydrates,
+          fat: customMeal.fat,
+        },
+        nowMs,
+      });
+
+      for (const cmf of customFoods) {
+        const inserted = await mealFoodRepo.insertMealFood(
+          mealId,
+          cmf.food_id,
+          cmf.quantity,
+          nowMs,
+        );
+        if (!inserted) {
+          throw new Error("meal_foods insert failed for custom meal food");
+        }
+      }
+
+      return mealId;
+    });
   }
 }
