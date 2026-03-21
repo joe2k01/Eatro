@@ -7,7 +7,7 @@ import { VStack } from "@components/layout/VStack";
 import { Button } from "@components/buttons/Button";
 import type { MealRSessionItem, MealRSessionTotals } from "../types";
 import { MealRSummary } from "./MealRSummary";
-import { MealRDrawerItem } from "./MealRDrawer";
+import { MealRSessionItemRow } from "./MealRSessionItemRow";
 
 const SNAP_POINTS = ["26%", "62%"] as const;
 
@@ -37,7 +37,7 @@ export function MealRSessionSheet({
 
   const renderItem = useCallback(
     ({ item }: { item: MealRSessionItem }) => (
-      <MealRDrawerItem
+      <MealRSessionItemRow
         item={item}
         onEdit={() => onEditItem(item)}
         onDelete={() => onDeleteItem(item.id)}

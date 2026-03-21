@@ -16,17 +16,17 @@ const styles = StyleSheet.create({
   },
 });
 
-export type MealRDrawerItemProps = {
+export type MealRSessionItemRowProps = {
   item: MealRSessionItem;
   onEdit: () => void;
   onDelete: () => void;
 };
 
-export function MealRDrawerItem({
+export function MealRSessionItemRow({
   item,
   onEdit,
   onDelete,
-}: MealRDrawerItemProps) {
+}: MealRSessionItemRowProps) {
   const theme = useTheme();
 
   return (

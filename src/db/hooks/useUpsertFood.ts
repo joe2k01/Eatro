@@ -91,18 +91,13 @@ function apiDetailsToFood(
 }
 
 export function useUpsertFood(
-  data: GetProductDetails | OperatingFood | null,
+  data: GetProductDetails | OperatingFood,
   barcode?: string | null,
 ) {
   const { food: foodRepo } = useRepositories();
   const [foodId, setFoodId] = useState<number | null>(null);
 
   useEffect(() => {
-    if (data === null) {
-      setFoodId(null);
-      return;
-    }
-
     // Step 1: Normalize inputs into a single `Food` shape.
     let food: OperatingFood;
 

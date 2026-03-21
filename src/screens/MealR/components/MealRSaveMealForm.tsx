@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { HStack } from "@components/layout/HStack";
 import { VStack } from "@components/layout/VStack";
 import { Button } from "@components/buttons/Button";
@@ -11,8 +11,6 @@ import type { MealRSessionItem, MealRSessionTotals } from "../types";
 const flexStyle = { flex: 1 } as const;
 
 type MealRSaveMealFormProps = {
-  /** Increment when the save tray opens so the name field resets. */
-  saveSessionKey: number;
   items: MealRSessionItem[];
   totals: MealRSessionTotals;
   onSaved: () => void;
@@ -20,7 +18,6 @@ type MealRSaveMealFormProps = {
 };
 
 export function MealRSaveMealForm({
-  saveSessionKey,
   items,
   totals,
   onSaved,
@@ -31,10 +28,6 @@ export function MealRSaveMealForm({
 
   const [mealName, setMealName] = useState("");
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    setMealName("");
-  }, [saveSessionKey]);
 
   const onSave = useCallback(async () => {
     const trimmed = mealName.trim();
@@ -72,8 +65,8 @@ export function MealRSaveMealForm({
         variant: SnackbarVariant.Success,
       });
 
-      await onRequestClose();
       onSaved();
+      await onRequestClose();
     } catch {
       showSnackbar({
         message: "Could not save meal. Try again.",

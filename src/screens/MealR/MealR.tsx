@@ -12,9 +12,9 @@ import {
   ProductTrayContent,
   type ProductTrayAcceptResult,
 } from "@screens/Product/ProductTray";
-import { useUpsertFood } from "@db/hooks/useUpsertFood";
 import { MealRSessionSheet } from "./components/MealRSessionSheet";
 import { MealRSaveMealForm } from "./components/MealRSaveMealForm";
+import { MealRAddFlow } from "./components/MealRAddFlow";
 import { computeSessionTotals } from "./utils";
 import type { MealRSessionItem } from "./types";
 
@@ -24,7 +24,7 @@ type MealRModal =
   | { kind: "add"; barcode: string; product: GetProductDetails }
   | { kind: "edit"; item: MealRSessionItem };
 
-const initialModal: MealRModal = { kind: "none" };
+const MODAL_NONE: MealRModal = { kind: "none" };
 
 export function MealR() {
   const showSnackbar = useSnackbar();
@@ -34,29 +34,21 @@ export function MealR() {
 
   const [items, setItems] = useState<MealRSessionItem[]>([]);
   const [scanning, setScanning] = useState(true);
-  const [modal, setModal] = useState<MealRModal>(initialModal);
+  const [modal, setModal] = useState<MealRModal>(MODAL_NONE);
 
   const flowTrayRef = useRef<TrayApi>(null);
   const saveFormKeyRef = useRef(0);
 
   const totals = useMemo(() => computeSessionTotals(items), [items]);
 
-  const addFoodId = useUpsertFood(
-    modal.kind === "add" ? modal.product : null,
-    modal.kind === "add" ? modal.barcode : null,
-  );
-
-  const shouldPresentFlowTray =
-    modal.kind !== "none" && (modal.kind !== "add" || addFoodId !== null);
-
   useEffect(() => {
-    if (!shouldPresentFlowTray) return;
+    if (modal.kind === "none" || modal.kind === "add") return;
     const id = requestAnimationFrame(() => flowTrayRef.current?.openTray());
     return () => cancelAnimationFrame(id);
-  }, [shouldPresentFlowTray, modal]);
+  }, [modal]);
 
-  const handleFlowDismiss = useCallback(() => {
-    setModal(initialModal);
+  const dismissModal = useCallback(() => {
+    setModal(MODAL_NONE);
     setScanning(true);
   }, []);
 
@@ -89,10 +81,15 @@ export function MealR() {
     [client, locale.languageCode, queryClient, showSnackbar],
   );
 
-  const onNewItemAccepted = useCallback((result: ProductTrayAcceptResult) => {
-    setModal((current) => {
-      if (current.kind !== "add") return current;
-      const { barcode, product } = current;
+  const onAddFlowReady = useCallback(() => {
+    flowTrayRef.current?.openTray();
+  }, []);
+
+  const onNewItemAccepted = useCallback(
+    (result: ProductTrayAcceptResult) => {
+      if (modal.kind !== "add") return;
+
+      const { barcode, product } = modal;
       const newItem: MealRSessionItem = {
         id: `${barcode}-${Date.now()}`,
         foodId: result.foodId,
@@ -108,18 +105,20 @@ export function MealR() {
         carbohydrates: result.carbohydrates,
         fat: result.fat,
       };
-      setItems((prev) => [...prev, newItem]);
-      return current;
-    });
-  }, []);
 
-  const onEditAccepted = useCallback((result: ProductTrayAcceptResult) => {
-    setModal((current) => {
-      if (current.kind !== "edit") return current;
-      const { item } = current;
+      setItems((prev) => [...prev, newItem]);
+    },
+    [modal],
+  );
+
+  const onEditAccepted = useCallback(
+    (result: ProductTrayAcceptResult) => {
+      if (modal.kind !== "edit") return;
+
+      const editId = modal.item.id;
       setItems((prev) =>
         prev.map((i) =>
-          i.id === item.id
+          i.id === editId
             ? {
                 ...i,
                 quantity: result.servingsValue,
@@ -132,9 +131,9 @@ export function MealR() {
             : i,
         ),
       );
-      return current;
-    });
-  }, []);
+    },
+    [modal],
+  );
 
   const onEditItem = useCallback((item: MealRSessionItem) => {
     setScanning(false);
@@ -155,7 +154,6 @@ export function MealR() {
   }, []);
 
   const showSessionSheet = modal.kind !== "add" && modal.kind !== "edit";
-
   const cameraActive = scanning && modal.kind === "none";
 
   return (
@@ -167,6 +165,7 @@ export function MealR() {
           style={styles.camera}
         />
       </View>
+
       {showSessionSheet ? (
         <MealRSessionSheet
           items={items}
@@ -180,34 +179,29 @@ export function MealR() {
       <Tray
         ref={flowTrayRef}
         lockDismiss={modal.kind === "save"}
-        onDismiss={handleFlowDismiss}
+        onDismiss={dismissModal}
       >
         {modal.kind === "save" ? (
           <MealRSaveMealForm
             key={modal.formKey}
-            saveSessionKey={modal.formKey}
             items={items}
             totals={totals}
             onSaved={onMealSaved}
             onRequestClose={closeFlowTray}
           />
         ) : null}
-        {modal.kind === "add" && addFoodId !== null ? (
-          <ProductTrayContent
-            key={`${modal.barcode}-${addFoodId}`}
-            foodId={addFoodId}
-            name={modal.product.name}
-            brand={modal.product.brand}
-            nutriments={modal.product.nutriments}
-            selectedUnit={
-              modal.product.nutriments.per100g ? "per100g" : "perServing"
-            }
-            servingSize={modal.product.servingSize}
-            servingsUnit={modal.product.servingsUnit}
+
+        {modal.kind === "add" ? (
+          <MealRAddFlow
+            key={modal.barcode}
+            product={modal.product}
+            barcode={modal.barcode}
             onAccept={onNewItemAccepted}
             onClose={closeFlowTray}
+            onReady={onAddFlowReady}
           />
         ) : null}
+
         {modal.kind === "edit" ? (
           <ProductTrayContent
             key={modal.item.id}
