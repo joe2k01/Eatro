@@ -23,6 +23,7 @@ import {
   type ProductTrayAcceptResult,
 } from "@screens/Product/ProductTray";
 import { MealRDrawer } from "./components/MealRDrawer";
+import { MealRFinishBar } from "./components/MealRFinishBar";
 import { MealRProductTray } from "./components/MealRProductTray";
 import { computeSessionTotals } from "./utils";
 import type { MealRSessionItem } from "./types";
@@ -161,6 +162,10 @@ export function MealR() {
     setItems((prev) => prev.filter((item) => item.id !== itemId));
   }, []);
 
+  const onMealSaved = useCallback(() => {
+    setItems([]);
+  }, []);
+
   const { hasPermission } = useCameraPermission();
   const device = useCameraDevice("back");
 
@@ -206,6 +211,7 @@ export function MealR() {
           onEditItem={onEditItem}
           onDeleteItem={onDeleteItem}
         />
+        <MealRFinishBar items={items} totals={totals} onSaved={onMealSaved} />
       </VStack>
 
       {pendingScan && (
