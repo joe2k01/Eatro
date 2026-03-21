@@ -170,6 +170,7 @@ export function MealR() {
         onEditItem={onEditItem}
         onDeleteItem={onDeleteItem}
         onPressSaveMeal={openSaveMealTray}
+        productTrayOpen={pendingScan !== null || editingItem !== null}
       />
 
       <Tray ref={saveTrayRef} lockDismiss>

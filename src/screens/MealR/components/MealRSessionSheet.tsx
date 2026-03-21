@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { StyleSheet } from "react-native";
 import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import { useTheme } from "@contexts/ThemeProvider";
@@ -24,6 +24,8 @@ type MealRSessionSheetProps = {
   onEditItem: (item: MealRSessionItem) => void;
   onDeleteItem: (itemId: string) => void;
   onPressSaveMeal: () => void;
+  /** Collapse the sheet fully while a product tray (scan/edit) is presented. */
+  productTrayOpen: boolean;
 };
 
 export function MealRSessionSheet({
@@ -32,8 +34,18 @@ export function MealRSessionSheet({
   onEditItem,
   onDeleteItem,
   onPressSaveMeal,
+  productTrayOpen,
 }: MealRSessionSheetProps) {
   const theme = useTheme();
+  const [snapIndex, setSnapIndex] = useState(0);
+
+  const onSheetChange = useCallback((index: number) => {
+    if (index >= 0) {
+      setSnapIndex(index);
+    }
+  }, []);
+
+  const sheetIndex = productTrayOpen ? -1 : snapIndex;
 
   const renderItem = useCallback(
     ({ item }: { item: MealRSessionItem }) => (
@@ -66,7 +78,8 @@ export function MealRSessionSheet({
 
   return (
     <BottomSheet
-      index={0}
+      index={sheetIndex}
+      onChange={onSheetChange}
       snapPoints={[...SNAP_POINTS]}
       enableDynamicSizing={false}
       enablePanDownToClose={false}
