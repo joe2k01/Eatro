@@ -37,7 +37,6 @@ export function MealR() {
   const [modal, setModal] = useState<MealRModal>(MODAL_NONE);
 
   const flowTrayRef = useRef<TrayApi>(null);
-  const saveFormKeyRef = useRef(0);
 
   const totals = useMemo(() => computeSessionTotals(items), [items]);
 
@@ -149,8 +148,7 @@ export function MealR() {
   }, []);
 
   const openSaveMealTray = useCallback(() => {
-    saveFormKeyRef.current += 1;
-    setModal({ kind: "save", formKey: saveFormKeyRef.current });
+    setModal({ kind: "save", formKey: Date.now() });
   }, []);
 
   const showSessionSheet = modal.kind !== "add" && modal.kind !== "edit";
