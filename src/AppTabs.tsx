@@ -91,7 +91,11 @@ function MealRStack() {
       initialRouteName="MealR"
       screenOptions={stackOptions}
     >
-      <MealRStackNav.Screen name="MealR" component={MealR} />
+      <MealRStackNav.Screen
+        name="MealR"
+        component={MealR}
+        options={{ headerShown: false }}
+      />
     </MealRStackNav.Navigator>
   );
 }

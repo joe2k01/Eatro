@@ -1,42 +1,22 @@
-import { useCallback, useMemo, useRef, useState } from "react";
-import { StyleSheet } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import { BarcodeCamera } from "@components/media/BarcodeCamera";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocales } from "expo-localization";
 import { useApiClient } from "@api/ApiClient";
 import type { GetProductDetails } from "@api/validators/getProductDetails";
 import type { TrayApi } from "@components/layout/Tray";
-import { VStack } from "@components/layout/VStack";
-import { useTheme } from "@contexts/ThemeProvider";
+import { Tray } from "@components/layout/Tray";
 import { SnackbarVariant, useSnackbar } from "@components/feedback";
-import { useStaticNavigationOptions } from "@hooks/useStaticNavigationOptions";
-import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
-import { spacing } from "@constants/theme";
-import { Title } from "@components/typography/Text";
 import {
   ProductTray,
   type ProductTrayAcceptResult,
 } from "@screens/Product/ProductTray";
-import { MealRDrawer } from "./components/MealRDrawer";
-import { MealRFinishBar } from "./components/MealRFinishBar";
+import { MealRSessionSheet } from "./components/MealRSessionSheet";
+import { MealRSaveMealForm } from "./components/MealRSaveMealForm";
 import { MealRProductTray } from "./components/MealRProductTray";
 import { computeSessionTotals } from "./utils";
 import type { MealRSessionItem } from "./types";
-
-const headerOptions = {
-  headerTitle: () => <Title>MealR</Title>,
-  headerTransparent: true,
-} satisfies NativeStackNavigationOptions;
-
-const styles = StyleSheet.create({
-  camera: {
-    flex: 1,
-  },
-  drawer: {
-    paddingHorizontal: spacing(2),
-    paddingVertical: spacing(1.5),
-  },
-});
 
 type PendingScan = {
   barcode: string;
@@ -44,8 +24,6 @@ type PendingScan = {
 };
 
 export function MealR() {
-  useStaticNavigationOptions(headerOptions);
-  const theme = useTheme();
   const showSnackbar = useSnackbar();
   const { client } = useApiClient();
   const [locale] = useLocales();
@@ -55,8 +33,10 @@ export function MealR() {
   const [scanning, setScanning] = useState(true);
   const [pendingScan, setPendingScan] = useState<PendingScan | null>(null);
   const [editingItem, setEditingItem] = useState<MealRSessionItem | null>(null);
+  const [saveSessionKey, setSaveSessionKey] = useState(0);
 
   const editTrayRef = useRef<TrayApi>(null);
+  const saveTrayRef = useRef<TrayApi>(null);
 
   const totals = useMemo(() => computeSessionTotals(items), [items]);
 
@@ -145,8 +125,13 @@ export function MealR() {
   const onEditItem = useCallback((item: MealRSessionItem) => {
     setScanning(false);
     setEditingItem(item);
-    setTimeout(() => editTrayRef.current?.openTray(), 100);
   }, []);
+
+  useEffect(() => {
+    if (!editingItem) return;
+    const id = requestAnimationFrame(() => editTrayRef.current?.openTray());
+    return () => cancelAnimationFrame(id);
+  }, [editingItem]);
 
   const onDeleteItem = useCallback((itemId: string) => {
     setItems((prev) => prev.filter((item) => item.id !== itemId));
@@ -156,22 +141,46 @@ export function MealR() {
     setItems([]);
   }, []);
 
+  const openSaveMealTray = useCallback(() => {
+    setSaveSessionKey((k) => k + 1);
+  }, []);
+
+  useEffect(() => {
+    if (saveSessionKey === 0) return;
+    const id = requestAnimationFrame(() => saveTrayRef.current?.openTray());
+    return () => cancelAnimationFrame(id);
+  }, [saveSessionKey]);
+
+  const closeSaveTray = useCallback(async () => {
+    await saveTrayRef.current?.closeTray();
+  }, []);
+
   return (
-    <VStack flex={1} backgroundColor="transparent">
-      <BarcodeCamera
-        isActive={scanning}
-        onBarcodeScanned={processBarcode}
-        style={styles.camera}
+    <View style={styles.root}>
+      <View style={StyleSheet.absoluteFill}>
+        <BarcodeCamera
+          isActive={scanning}
+          onBarcodeScanned={processBarcode}
+          style={styles.camera}
+        />
+      </View>
+      <MealRSessionSheet
+        items={items}
+        totals={totals}
+        onEditItem={onEditItem}
+        onDeleteItem={onDeleteItem}
+        onPressSaveMeal={openSaveMealTray}
       />
-      <VStack style={styles.drawer} backgroundColor={theme.surface.secondary}>
-        <MealRDrawer
+
+      <Tray ref={saveTrayRef} lockDismiss>
+        <MealRSaveMealForm
+          saveSessionKey={saveSessionKey}
           items={items}
           totals={totals}
-          onEditItem={onEditItem}
-          onDeleteItem={onDeleteItem}
+          onSaved={onMealSaved}
+          onRequestClose={closeSaveTray}
         />
-        <MealRFinishBar items={items} totals={totals} onSaved={onMealSaved} />
-      </VStack>
+      </Tray>
 
       {pendingScan && (
         <MealRProductTray
@@ -196,8 +205,17 @@ export function MealR() {
           onDismiss={resumeScanning}
         />
       )}
-    </VStack>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  camera: {
+    flex: 1,
+  },
+});
 
 export type MealRParams = undefined;
