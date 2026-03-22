@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { HStack } from "@components/layout/HStack";
 import { VStack } from "@components/layout/VStack";
 import { Button } from "@components/buttons/Button";
@@ -6,28 +6,28 @@ import { TextInput } from "@components/forms";
 import { Heading } from "@components/typography/Text";
 import { useRepositories } from "@db/context/DatabaseProvider";
 import { SnackbarVariant, useSnackbar } from "@components/feedback";
-import type { MealRSessionItem, MealRSessionTotals } from "../types";
+import type { TrayApi } from "@components/layout/Tray";
+import { Tray } from "@components/layout/Tray";
+import { useMealRSession } from "../MealRSessionProvider";
 
 const flexStyle = { flex: 1 } as const;
 
-type MealRSaveMealFormProps = {
-  items: MealRSessionItem[];
-  totals: MealRSessionTotals;
-  onSaved: () => void;
-  onRequestClose: () => Promise<void>;
-};
-
-export function MealRSaveMealForm({
-  items,
-  totals,
-  onSaved,
-  onRequestClose,
-}: MealRSaveMealFormProps) {
+export function MealRSaveMealForm() {
+  const { items, totals, clearItems, returnToSession } = useMealRSession();
   const { customMeal, customMealFood } = useRepositories();
   const showSnackbar = useSnackbar();
+  const trayRef = useRef<TrayApi>(null);
 
   const [mealName, setMealName] = useState("");
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    trayRef.current?.openTray();
+  }, []);
+
+  const closeTray = useCallback(async () => {
+    await trayRef.current?.closeTray();
+  }, []);
 
   const onSave = useCallback(async () => {
     const trimmed = mealName.trim();
@@ -65,8 +65,8 @@ export function MealRSaveMealForm({
         variant: SnackbarVariant.Success,
       });
 
-      onSaved();
-      await onRequestClose();
+      clearItems();
+      await closeTray();
     } catch {
       showSnackbar({
         message: "Could not save meal. Try again.",
@@ -76,48 +76,46 @@ export function MealRSaveMealForm({
       setSaving(false);
     }
   }, [
+    closeTray,
+    clearItems,
     customMeal,
     customMealFood,
     items,
     mealName,
-    onRequestClose,
-    onSaved,
     showSnackbar,
     totals,
   ]);
 
-  const onCancel = useCallback(async () => {
-    await onRequestClose();
-  }, [onRequestClose]);
-
   return (
-    <VStack gap={2} backgroundColor="transparent">
-      <Heading>Name this meal</Heading>
-      <TextInput
-        value={mealName}
-        onChangeText={setMealName}
-        placeholder="Meal name"
-        autoFocus
-        inBottomSheet
-      />
-      <HStack gap={1} backgroundColor="transparent">
-        <Button
-          variant="tertiary"
-          onPress={onCancel}
-          disabled={saving}
-          style={flexStyle}
-        >
-          Cancel
-        </Button>
-        <Button
-          variant="primary"
-          onPress={onSave}
-          disabled={!mealName.trim() || saving}
-          style={flexStyle}
-        >
-          Save
-        </Button>
-      </HStack>
-    </VStack>
+    <Tray ref={trayRef} lockDismiss onDismiss={returnToSession}>
+      <VStack gap={2} backgroundColor="transparent">
+        <Heading>Name this meal</Heading>
+        <TextInput
+          value={mealName}
+          onChangeText={setMealName}
+          placeholder="Meal name"
+          autoFocus
+          inBottomSheet
+        />
+        <HStack gap={1} backgroundColor="transparent">
+          <Button
+            variant="tertiary"
+            onPress={closeTray}
+            disabled={saving}
+            style={flexStyle}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onPress={onSave}
+            disabled={!mealName.trim() || saving}
+            style={flexStyle}
+          >
+            Save
+          </Button>
+        </HStack>
+      </VStack>
+    </Tray>
   );
 }
