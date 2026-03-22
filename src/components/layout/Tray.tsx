@@ -4,8 +4,13 @@ import {
   useImperativeHandle,
   useMemo,
   useRef,
+  type ComponentProps,
 } from "react";
-import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
+import {
+  BottomSheetBackdrop,
+  BottomSheetModal,
+  BottomSheetView,
+} from "@gorhom/bottom-sheet";
 import { useTheme } from "@contexts/ThemeProvider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { spacing } from "@constants/theme";
@@ -13,6 +18,10 @@ import { spacing } from "@constants/theme";
 type TrayProps = {
   children: React.ReactNode;
   onDismiss?: () => void;
+  /**
+   * When true, pan-down and backdrop tap do not dismiss; use explicit actions + closeTray().
+   */
+  lockDismiss?: boolean;
 };
 
 export type TrayApi = {
@@ -21,7 +30,7 @@ export type TrayApi = {
 };
 
 export const Tray = forwardRef<TrayApi, TrayProps>(function Tray(
-  { children, onDismiss: onDismissProp },
+  { children, onDismiss: onDismissProp, lockDismiss = false },
   ref,
 ) {
   const sheetRef = useRef<BottomSheetModal>(null);
@@ -78,13 +87,28 @@ export const Tray = forwardRef<TrayApi, TrayProps>(function Tray(
     [insets.bottom],
   );
 
+  const renderBackdrop = useCallback(
+    (props: ComponentProps<typeof BottomSheetBackdrop>) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        pressBehavior={lockDismiss ? "none" : "close"}
+      />
+    ),
+    [lockDismiss],
+  );
+
   return (
     <BottomSheetModal
       ref={sheetRef}
       onDismiss={onDismiss}
       backgroundStyle={backgroundStyle}
-      enablePanDownToClose
+      backdropComponent={lockDismiss ? renderBackdrop : undefined}
+      enablePanDownToClose={!lockDismiss}
       enableDynamicSizing
+      keyboardBehavior="interactive"
+      keyboardBlurBehavior="restore"
     >
       <BottomSheetView style={viewStyle}>{children}</BottomSheetView>
     </BottomSheetModal>

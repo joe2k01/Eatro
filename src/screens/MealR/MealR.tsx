@@ -1,69 +1,25 @@
-import { useCallback, useMemo, useRef, useState } from "react";
-import { StyleSheet } from "react-native";
+import { useCallback, useMemo } from "react";
+import { StyleSheet, View } from "react-native";
 import { BarcodeCamera } from "@components/media/BarcodeCamera";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocales } from "expo-localization";
 import { useApiClient } from "@api/ApiClient";
-import type { GetProductDetails } from "@api/validators/getProductDetails";
-import type { TrayApi } from "@components/layout/Tray";
-import { VStack } from "@components/layout/VStack";
-import { useTheme } from "@contexts/ThemeProvider";
 import { SnackbarVariant, useSnackbar } from "@components/feedback";
-import { useStaticNavigationOptions } from "@hooks/useStaticNavigationOptions";
-import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
-import { spacing } from "@constants/theme";
-import { Title } from "@components/typography/Text";
-import {
-  ProductTray,
-  type ProductTrayAcceptResult,
-} from "@screens/Product/ProductTray";
-import { MealRDrawer } from "./components/MealRDrawer";
-import { MealRFinishBar } from "./components/MealRFinishBar";
-import { MealRProductTray } from "./components/MealRProductTray";
-import { computeSessionTotals } from "./utils";
-import type { MealRSessionItem } from "./types";
+import { MealRSessionSheet } from "./components/MealRSessionSheet";
+import { MealRAddFlow } from "./components/MealRAddFlow";
+import { MealREditFlow } from "./components/MealREditFlow";
+import { MealRSaveMealForm } from "./components/MealRSaveMealForm";
+import { MealRSessionProvider, useMealRSession } from "./MealRSessionProvider";
 
-const headerOptions = {
-  headerTitle: () => <Title>MealR</Title>,
-  headerTransparent: true,
-} satisfies NativeStackNavigationOptions;
-
-const styles = StyleSheet.create({
-  camera: {
-    flex: 1,
-  },
-  drawer: {
-    paddingHorizontal: spacing(2),
-    paddingVertical: spacing(1.5),
-  },
-});
-
-type PendingScan = {
-  barcode: string;
-  product: GetProductDetails;
-};
-
-export function MealR() {
-  useStaticNavigationOptions(headerOptions);
-  const theme = useTheme();
+function MealRContent() {
+  const { flow, scanning, setFlow } = useMealRSession();
   const showSnackbar = useSnackbar();
   const { client } = useApiClient();
   const [locale] = useLocales();
   const queryClient = useQueryClient();
 
-  const [items, setItems] = useState<MealRSessionItem[]>([]);
-  const [scanning, setScanning] = useState(true);
-  const [pendingScan, setPendingScan] = useState<PendingScan | null>(null);
-  const [editingItem, setEditingItem] = useState<MealRSessionItem | null>(null);
-
-  const editTrayRef = useRef<TrayApi>(null);
-
-  const totals = useMemo(() => computeSessionTotals(items), [items]);
-
   const processBarcode = useCallback(
     async (barcode: string) => {
-      setScanning(false);
-
       try {
         const data = await queryClient.fetchQuery({
           queryKey: ["product", barcode, locale.languageCode ?? "en"],
@@ -73,131 +29,62 @@ export function MealR() {
             }),
         });
 
-        setPendingScan({ barcode, product: data });
+        setFlow({ kind: "add", barcode, product: data });
       } catch {
         showSnackbar({
           message: "Could not load product. Try again.",
           variant: SnackbarVariant.Error,
         });
-        setScanning(true);
       }
     },
-    [client, locale.languageCode, queryClient, showSnackbar],
+    [client, locale.languageCode, queryClient, setFlow, showSnackbar],
   );
 
-  const resumeScanning = useCallback(() => {
-    setPendingScan(null);
-    setEditingItem(null);
-    setScanning(true);
-  }, []);
+  const content = useMemo(() => {
+    switch (flow.kind) {
+      case "session":
+        return <MealRSessionSheet />;
+      case "add":
+        return <MealRAddFlow />;
+      case "edit":
+        return <MealREditFlow />;
+      case "save":
+        return <MealRSaveMealForm />;
+    }
+  }, [flow]);
 
-  const onNewItemAccepted = useCallback(
-    (result: ProductTrayAcceptResult) => {
-      if (!pendingScan) return;
-
-      const { barcode, product } = pendingScan;
-      const newItem: MealRSessionItem = {
-        id: `${barcode}-${Date.now()}`,
-        foodId: result.foodId,
-        name: product.name,
-        brand: product.brand,
-        nutriments: product.nutriments,
-        selectedUnit: product.nutriments.per100g ? "per100g" : "perServing",
-        servingSize: result.servingSizeValue,
-        servingsUnit: product.servingsUnit,
-        quantity: result.servingsValue,
-        energy: result.energy,
-        proteins: result.proteins,
-        carbohydrates: result.carbohydrates,
-        fat: result.fat,
-      };
-
-      setItems((prev) => [...prev, newItem]);
-      resumeScanning();
-    },
-    [pendingScan, resumeScanning],
-  );
-
-  const onEditAccepted = useCallback(
-    (result: ProductTrayAcceptResult) => {
-      if (!editingItem) return;
-
-      setItems((prev) =>
-        prev.map((item) =>
-          item.id === editingItem.id
-            ? {
-                ...item,
-                quantity: result.servingsValue,
-                servingSize: result.servingSizeValue,
-                energy: result.energy,
-                proteins: result.proteins,
-                carbohydrates: result.carbohydrates,
-                fat: result.fat,
-              }
-            : item,
-        ),
-      );
-      resumeScanning();
-    },
-    [editingItem, resumeScanning],
-  );
-
-  const onEditItem = useCallback((item: MealRSessionItem) => {
-    setScanning(false);
-    setEditingItem(item);
-    setTimeout(() => editTrayRef.current?.openTray(), 100);
-  }, []);
-
-  const onDeleteItem = useCallback((itemId: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== itemId));
-  }, []);
-
-  const onMealSaved = useCallback(() => {
-    setItems([]);
-  }, []);
+  const cameraActive = scanning && flow.kind === "session";
 
   return (
-    <VStack flex={1} backgroundColor="transparent">
-      <BarcodeCamera
-        isActive={scanning}
-        onBarcodeScanned={processBarcode}
-        style={styles.camera}
-      />
-      <VStack style={styles.drawer} backgroundColor={theme.surface.secondary}>
-        <MealRDrawer
-          items={items}
-          totals={totals}
-          onEditItem={onEditItem}
-          onDeleteItem={onDeleteItem}
+    <View style={styles.root}>
+      <View style={StyleSheet.absoluteFill}>
+        <BarcodeCamera
+          isActive={cameraActive}
+          onBarcodeScanned={processBarcode}
+          style={styles.camera}
         />
-        <MealRFinishBar items={items} totals={totals} onSaved={onMealSaved} />
-      </VStack>
+      </View>
 
-      {pendingScan && (
-        <MealRProductTray
-          product={pendingScan.product}
-          barcode={pendingScan.barcode}
-          onAccept={onNewItemAccepted}
-          onDismiss={resumeScanning}
-        />
-      )}
-
-      {editingItem && (
-        <ProductTray
-          trayRef={editTrayRef}
-          foodId={editingItem.foodId}
-          name={editingItem.name}
-          brand={editingItem.brand}
-          nutriments={editingItem.nutriments}
-          selectedUnit={editingItem.selectedUnit}
-          servingSize={editingItem.servingSize}
-          servingsUnit={editingItem.servingsUnit}
-          onAccept={onEditAccepted}
-          onDismiss={resumeScanning}
-        />
-      )}
-    </VStack>
+      {content}
+    </View>
   );
 }
+
+export function MealR() {
+  return (
+    <MealRSessionProvider>
+      <MealRContent />
+    </MealRSessionProvider>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  camera: {
+    flex: 1,
+  },
+});
 
 export type MealRParams = undefined;
