@@ -26,24 +26,30 @@ import { Button } from "@components/buttons/Button";
 import { IconButton } from "@components/buttons/IconButton";
 import { useTheme } from "@contexts/ThemeProvider";
 import { useDynamicNavigationOptions } from "@hooks/useDynamicNavigationOptions";
-import { spacing, Typography } from "@constants/theme";
+import { BorderRadius, spacing, Typography } from "@constants/theme";
 import type { Food, CustomMeal } from "@db/schemas";
 import { SearchResultItem } from "@screens/Search/components/SearchResultItem";
 import { useManualFoods } from "./hooks/useManualFoods";
 import { useCustomMeals } from "./hooks/useCustomMeals";
 import type { MyFoodsStackParamsList } from "../../AppTabs";
 
-const MY_FOODS_ROUTES: Route[] = [
-  { key: "foods", title: "Foods" },
-  { key: "meals", title: "Meals" },
-];
+const MY_FOODS_ROUTE_FOODS: Route = { key: "foods", title: "Foods" };
+const MY_FOODS_ROUTE_MEALS: Route = { key: "meals", title: "Meals" };
+const MY_FOODS_ROUTES: Route[] = [MY_FOODS_ROUTE_FOODS, MY_FOODS_ROUTE_MEALS];
 
 const styles = StyleSheet.create({
   list: {
     flex: 1,
   },
-  emptyCard: {
-    alignItems: "center",
+  tabView: {
+    flex: 1,
+  },
+  tabBarContent: {
+    paddingHorizontal: spacing(2),
+  },
+  tabBarLabel: {
+    ...Typography.label,
+    textTransform: "none",
   },
   bottomButton: {
     paddingHorizontal: spacing(2),
@@ -56,6 +62,26 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
 });
+
+const TAB_VIEW_COMMON_OPTIONS = {
+  labelStyle: styles.tabBarLabel,
+};
+
+function useEmptyStateCardStyle() {
+  const theme = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
+        card: {
+          alignItems: "center",
+          borderRadius: BorderRadius.md,
+          backgroundColor: theme.surface.secondary,
+          padding: spacing(2),
+        },
+      }),
+    [theme.surface.secondary],
+  );
+}
 
 function CustomMealRow({ item }: { item: CustomMeal }) {
   const theme = useTheme();
@@ -99,6 +125,7 @@ const MyFoodsFoodsScene = memo(function MyFoodsFoodsScene({
   onAddFirstFood,
 }: FoodsSceneProps) {
   const theme = useTheme();
+  const emptyCardStyles = useEmptyStateCardStyle();
   const foods = useManualFoods(filterQuery);
 
   const renderFoodItem = useCallback(
@@ -116,12 +143,7 @@ const MyFoodsFoodsScene = memo(function MyFoodsFoodsScene({
     return (
       <VStack flex={1} justifyContent="space-between">
         <VStack paddingHorizontal={2}>
-          <VStack
-            borderRadius={8}
-            backgroundColor={theme.surface.secondary}
-            padding={2}
-            style={styles.emptyCard}
-          >
+          <VStack style={emptyCardStyles.card}>
             <Caption color={theme.text.muted}>
               Your custom foods will appear here
             </Caption>
@@ -164,6 +186,7 @@ const MyFoodsMealsScene = memo(function MyFoodsMealsScene({
   onFilterQueryChange,
 }: MealsSceneProps) {
   const theme = useTheme();
+  const emptyCardStyles = useEmptyStateCardStyle();
   const meals = useCustomMeals(filterQuery);
 
   const renderMealItem = useCallback(
@@ -182,12 +205,7 @@ const MyFoodsMealsScene = memo(function MyFoodsMealsScene({
     return (
       <VStack flex={1}>
         <VStack paddingHorizontal={2}>
-          <VStack
-            borderRadius={8}
-            backgroundColor={theme.surface.secondary}
-            padding={2}
-            style={styles.emptyCard}
-          >
+          <VStack style={emptyCardStyles.card}>
             <Caption color={theme.text.muted}>
               Your saved meals will appear here. Use MealR to create one!
             </Caption>
@@ -227,6 +245,35 @@ export function MyFoods() {
   const navigateToCreateFood = useCallback(() => {
     navigation.navigate("CreateFood");
   }, [navigation]);
+
+  const tabBarTheme = useMemo(() => {
+    const tabBarStyles = StyleSheet.create({
+      bar: {
+        backgroundColor: theme.surface.primary,
+      },
+      indicator: {
+        backgroundColor: theme.semantic.primary,
+      },
+    });
+    const androidRipple = { color: theme.semantic.secondary };
+    return {
+      styles: tabBarStyles,
+      activeColor: theme.text.primary,
+      inactiveColor: theme.text.muted,
+      pressColor: theme.semantic.secondary,
+      androidRipple,
+    };
+  }, [theme]);
+
+  const navigationState = useMemo(
+    () => ({ index, routes: MY_FOODS_ROUTES }),
+    [index],
+  );
+
+  const initialLayout = useMemo(
+    () => ({ width: layout.width }),
+    [layout.width],
+  );
 
   const headerOptions = useMemo<NativeStackNavigationOptions>(
     () => ({
@@ -273,31 +320,29 @@ export function MyFoods() {
     (props: TabBarProps<Route>) => (
       <TabBar
         {...props}
-        style={{ backgroundColor: theme.surface.primary }}
-        indicatorStyle={{ backgroundColor: theme.semantic.primary }}
-        activeColor={theme.text.primary}
-        inactiveColor={theme.text.muted}
-        pressColor={theme.semantic.secondary}
-        contentContainerStyle={{ paddingHorizontal: spacing(2) }}
-        android_ripple={{ color: theme.semantic.secondary }}
+        style={tabBarTheme.styles.bar}
+        indicatorStyle={tabBarTheme.styles.indicator}
+        activeColor={tabBarTheme.activeColor}
+        inactiveColor={tabBarTheme.inactiveColor}
+        pressColor={tabBarTheme.pressColor}
+        contentContainerStyle={styles.tabBarContent}
+        android_ripple={tabBarTheme.androidRipple}
       />
     ),
-    [theme],
+    [tabBarTheme],
   );
 
   return (
     <SafeVStack guard="bottom" flex={1} paddingTop={1}>
       <TabView
-        navigationState={{ index, routes: MY_FOODS_ROUTES }}
+        navigationState={navigationState}
         renderScene={renderScene}
         onIndexChange={setIndex}
-        initialLayout={{ width: layout.width }}
+        initialLayout={initialLayout}
         renderTabBar={renderTabBar}
-        style={{ flex: 1 }}
+        style={styles.tabView}
         keyboardDismissMode="on-drag"
-        commonOptions={{
-          labelStyle: [Typography.label, { textTransform: "none" }],
-        }}
+        commonOptions={TAB_VIEW_COMMON_OPTIONS}
       />
     </SafeVStack>
   );
