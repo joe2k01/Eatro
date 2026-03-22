@@ -5,7 +5,6 @@ import {
   Pressable,
   StyleSheet,
   useWindowDimensions,
-  View,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type {
@@ -40,15 +39,8 @@ const MY_FOODS_ROUTES: Route[] = [
 ];
 
 const styles = StyleSheet.create({
-  scene: {
-    flex: 1,
-  },
   list: {
     flex: 1,
-  },
-  emptyOuter: {
-    flex: 1,
-    justifyContent: "space-between",
   },
   emptyCard: {
     alignItems: "center",
@@ -122,47 +114,43 @@ const MyFoodsFoodsScene = memo(function MyFoodsFoodsScene({
 
   if (isFoodsEmpty) {
     return (
-      <View style={styles.scene}>
-        <VStack style={styles.emptyOuter} flex={1}>
-          <VStack paddingHorizontal={2}>
-            <VStack
-              borderRadius={8}
-              backgroundColor={theme.surface.secondary}
-              padding={2}
-              style={styles.emptyCard}
-            >
-              <Caption color={theme.text.muted}>
-                Your custom foods will appear here
-              </Caption>
-            </VStack>
-          </VStack>
-          <VStack style={styles.bottomButton}>
-            <Button variant="primary" onPress={onAddFirstFood}>
-              Add your first food
-            </Button>
+      <VStack flex={1} justifyContent="space-between">
+        <VStack paddingHorizontal={2}>
+          <VStack
+            borderRadius={8}
+            backgroundColor={theme.surface.secondary}
+            padding={2}
+            style={styles.emptyCard}
+          >
+            <Caption color={theme.text.muted}>
+              Your custom foods will appear here
+            </Caption>
           </VStack>
         </VStack>
-      </View>
+        <VStack style={styles.bottomButton}>
+          <Button variant="primary" onPress={onAddFirstFood}>
+            Add your first food
+          </Button>
+        </VStack>
+      </VStack>
     );
   }
 
   return (
-    <View style={styles.scene}>
-      <VStack flex={1} gap={1} paddingHorizontal={2}>
-        <TextInput
-          value={filterQuery}
-          onChangeText={onFilterQueryChange}
-          placeholder="Search my foods..."
-        />
-        <FlatList
-          style={styles.list}
-          data={foods}
-          renderItem={renderFoodItem}
-          keyExtractor={foodKeyExtractor}
-          keyboardShouldPersistTaps="handled"
-        />
-      </VStack>
-    </View>
+    <VStack flex={1} gap={1} paddingHorizontal={2}>
+      <TextInput
+        value={filterQuery}
+        onChangeText={onFilterQueryChange}
+        placeholder="Search my foods..."
+      />
+      <FlatList
+        style={styles.list}
+        data={foods}
+        renderItem={renderFoodItem}
+        keyExtractor={foodKeyExtractor}
+        keyboardShouldPersistTaps="handled"
+      />
+    </VStack>
   );
 });
 
@@ -192,42 +180,38 @@ const MyFoodsMealsScene = memo(function MyFoodsMealsScene({
 
   if (isMealsEmpty) {
     return (
-      <View style={styles.scene}>
-        <VStack style={styles.emptyOuter} flex={1}>
-          <VStack paddingHorizontal={2}>
-            <VStack
-              borderRadius={8}
-              backgroundColor={theme.surface.secondary}
-              padding={2}
-              style={styles.emptyCard}
-            >
-              <Caption color={theme.text.muted}>
-                Your saved meals will appear here. Use MealR to create one!
-              </Caption>
-            </VStack>
+      <VStack flex={1}>
+        <VStack paddingHorizontal={2}>
+          <VStack
+            borderRadius={8}
+            backgroundColor={theme.surface.secondary}
+            padding={2}
+            style={styles.emptyCard}
+          >
+            <Caption color={theme.text.muted}>
+              Your saved meals will appear here. Use MealR to create one!
+            </Caption>
           </VStack>
         </VStack>
-      </View>
+      </VStack>
     );
   }
 
   return (
-    <View style={styles.scene}>
-      <VStack flex={1} gap={1} paddingHorizontal={2}>
-        <TextInput
-          value={filterQuery}
-          onChangeText={onFilterQueryChange}
-          placeholder="Search my meals..."
-        />
-        <FlatList
-          style={styles.list}
-          data={meals}
-          renderItem={renderMealItem}
-          keyExtractor={mealKeyExtractor}
-          keyboardShouldPersistTaps="handled"
-        />
-      </VStack>
-    </View>
+    <VStack flex={1} gap={1} paddingHorizontal={2}>
+      <TextInput
+        value={filterQuery}
+        onChangeText={onFilterQueryChange}
+        placeholder="Search my meals..."
+      />
+      <FlatList
+        style={styles.list}
+        data={meals}
+        renderItem={renderMealItem}
+        keyExtractor={mealKeyExtractor}
+        keyboardShouldPersistTaps="handled"
+      />
+    </VStack>
   );
 });
 
