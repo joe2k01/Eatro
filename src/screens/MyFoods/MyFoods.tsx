@@ -161,7 +161,7 @@ const MyFoodsFoodsScene = memo(function MyFoodsFoodsScene({
   }
 
   return (
-    <VStack flex={1} gap={1} paddingHorizontal={2}>
+    <VStack flex={1} gap={1} paddingHorizontal={2} paddingTop={1}>
       <TextInput
         value={filterQuery}
         onChangeText={onFilterQueryChange}
@@ -218,7 +218,7 @@ const MyFoodsMealsScene = memo(function MyFoodsMealsScene({
   }
 
   return (
-    <VStack flex={1} gap={1} paddingHorizontal={2}>
+    <VStack flex={1} gap={1} paddingHorizontal={2} paddingTop={1}>
       <TextInput
         value={filterQuery}
         onChangeText={onFilterQueryChange}
