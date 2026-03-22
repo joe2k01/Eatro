@@ -67,6 +67,8 @@ const TAB_VIEW_COMMON_OPTIONS = {
   labelStyle: styles.tabBarLabel,
 };
 
+const myFoodsHeaderAddNoop = () => undefined;
+
 function useEmptyStateCardStyle() {
   const theme = useTheme();
   return useMemo(
@@ -278,14 +280,13 @@ export function MyFoods() {
   const headerOptions = useMemo<NativeStackNavigationOptions>(
     () => ({
       headerTitle: () => <Title>My Foods</Title>,
-      headerRight: () =>
-        index === 0 ? (
-          <IconButton
-            name="add"
-            variant="tertiary"
-            onPress={navigateToCreateFood}
-          />
-        ) : null,
+      headerRight: () => (
+        <IconButton
+          name="add"
+          variant="tertiary"
+          onPress={index === 0 ? navigateToCreateFood : myFoodsHeaderAddNoop}
+        />
+      ),
     }),
     [index, navigateToCreateFood],
   );
