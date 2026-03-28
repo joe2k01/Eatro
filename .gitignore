@@ -45,5 +45,5 @@ yarn-error.*
 # yarn
 .yarn/*
 
-# plans (design/implementation notes)
-docs/plans/
+# superpowers docs are local by default; force-add only when intentionally versioning them
+docs/superpowers/
