@@ -32,7 +32,7 @@ The following behaviors are **explicit expectations** for agent and human contri
 
 - **Avoid** `useRef`, `ref` props, and callback refs **except** when the use case is **imperative** or an established escape hatch:
   - **Imperative APIs**: focus management, scrolling, layout measurement, or integration with libraries that require a ref handle.
-  - **Promises / async boundaries**: use refs only where holding a stable reference is the **idiomatic** pattern for that scenario in this codebase (not as a default substitute for state).
+  - **Promises / async boundaries**: use refs only where holding a stable reference is the **idiomatic** pattern for that scenario in this codebase (not as a default substitute for state). If no such pattern exists yet, prefer **state and effects** over refs.
 - **Default** data and UI flow: **props, state, and hooks**.
 
 ## 6. Testing policy
@@ -62,5 +62,5 @@ Tone: **concise, imperative, actionable**—suitable for agents that read the fi
 
 ## 9. Success criteria
 
-- `AGENTS.md` exists at the **repository root** and reflects sections 2–6 above without internal contradiction.
+- `AGENTS.md` exists at the **repository root** and reflects the **full outline in Section 7** (title, one-sentence purpose, and condensed content from sections 2–6) without internal contradiction.
 - A new contributor (human or agent) can infer **product intent**, **engineering bar**, **refs rules**, and **testing obligations** without opening other files first—except `package.json` for exact commands and versions.
