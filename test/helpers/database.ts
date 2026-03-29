@@ -12,6 +12,7 @@ const migrationFiles = [
   resolve(__dirname, "../../src/db/migrations/002_manual_foods_index.sql"),
   resolve(__dirname, "../../src/db/migrations/003_custom_meals.sql"),
   resolve(__dirname, "../../src/db/migrations/004_meal_foods_serving_size.sql"),
+  resolve(__dirname, "../../src/db/migrations/005_repair_meal_totals.sql"),
 ];
 
 let dbCounter = 0;

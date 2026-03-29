@@ -12,6 +12,7 @@ const migrations = [
   require("./002_manual_foods_index.sql"),
   require("./003_custom_meals.sql"),
   require("./004_meal_foods_serving_size.sql"),
+  require("./005_repair_meal_totals.sql"),
 ];
 
 export async function migrateDbIfNeeded(db: SQLiteDatabase) {

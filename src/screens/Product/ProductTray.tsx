@@ -97,26 +97,6 @@ type NutrimentsForCalc = {
   energy?: number;
 };
 
-function computePerServingFromNutriments(
-  nutrimentsForCalc: NutrimentsForCalc,
-  servingSize: number,
-) {
-  const {
-    base,
-    carbohydrates = 0,
-    fat = 0,
-    proteins = 0,
-    energy = 0,
-  } = nutrimentsForCalc;
-
-  return {
-    carbohydrates: (carbohydrates * servingSize) / base,
-    fat: (fat * servingSize) / base,
-    proteins: (proteins * servingSize) / base,
-    energy: (energy * servingSize) / base,
-  };
-}
-
 export function ProductTrayContent({
   foodId,
   name,
@@ -264,20 +244,8 @@ export function ProductTrayContent({
     setSaving(true);
 
     try {
-      const perServing = computePerServingFromNutriments(
-        nutrimentsForCalc,
-        servingSizeValue,
-      );
-
       const normalizedCustomType =
         mealType?.value === MealType.Custom ? customMealType.trim() : null;
-
-      const delta = {
-        energy: perServing.energy * servingsValue,
-        proteins: perServing.proteins * servingsValue,
-        carbohydrates: perServing.carbohydrates * servingsValue,
-        fat: perServing.fat * servingsValue,
-      };
 
       const nowMs = Date.now();
       const mealId = await mealRepo.upsertMealAndLogFoodTx(
@@ -288,7 +256,6 @@ export function ProductTrayContent({
           foodId,
           quantityServings: servingsValue,
           lineServingSize: servingSizeValue,
-          delta,
           nowMs,
         },
         mealFoodRepo,
@@ -325,7 +292,6 @@ export function ProductTrayContent({
     mealFoodRepo,
     mealRepo,
     mealType,
-    nutrimentsForCalc,
     saving,
     servingSizeValue,
     servingsValue,
