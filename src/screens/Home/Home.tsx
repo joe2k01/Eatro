@@ -1,4 +1,5 @@
 import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
+import type { GetProductDetails } from "@api/validators/getProductDetails";
 import { format } from "date-fns";
 import { StyleSheet } from "react-native";
 import { AvatarButton } from "./components/AvatarButton";
@@ -10,9 +11,9 @@ import { VStack } from "@components/layout/VStack";
 import { HStack } from "@components/layout/HStack";
 import { DonutChart, useDonut } from "@components/charts";
 import { MacroProgress } from "./components/MacroProgress";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import type { LayoutChangeEvent } from "react-native";
-import { useGetDay } from "@db/hooks/useGetDay";
+import { useGetDay, type MealWithFoods } from "@db/hooks/useGetDay";
 import { utcStartOfTodaySeconds } from "@db/utils/utc";
 import { MealItem } from "./components/MealItem";
 import { useDynamicNavigationOptions } from "@hooks/useDynamicNavigationOptions";
@@ -23,6 +24,41 @@ import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
 } from "react-native-reanimated";
+import type { TrayApi } from "@components/layout/Tray";
+import {
+  ProductTray,
+  type ProductTrayAcceptResult,
+} from "@screens/Product/ProductTray";
+import {
+  ConfirmDeleteTray,
+  SnackbarVariant,
+  useSnackbar,
+} from "@components/feedback";
+import { useRepositories } from "@db/context/DatabaseProvider";
+import type { MealFoodWithFood } from "@db/repositories/MealFoodRepository";
+import type { Food } from "@db/schemas";
+
+function nutrimentsFromLoggedFood(food: Food): GetProductDetails["nutriments"] {
+  return {
+    per100g: undefined,
+    perServing: {
+      energy: food.energy_per_serving,
+      proteins: food.proteins_per_serving,
+      carbohydrates: food.carbohydrates_per_serving,
+      fat: food.fat_per_serving,
+    },
+  };
+}
+
+const IDLE_EDIT_NUTRIMENTS: GetProductDetails["nutriments"] = {
+  per100g: undefined,
+  perServing: {
+    energy: 0,
+    proteins: 0,
+    carbohydrates: 0,
+    fat: 0,
+  },
+};
 
 const styles = StyleSheet.create({
   scrollContent: {
@@ -51,6 +87,15 @@ const macroKeys: Exclude<keyof Goals, "calories">[] = [
 ];
 
 export function Home() {
+  const { meal: mealRepo, mealFood: mealFoodRepo } = useRepositories();
+  const showSnackbar = useSnackbar();
+  const deleteTrayRef = useRef<TrayApi>(null);
+  const editTrayRef = useRef<TrayApi>(null);
+  const [deleteTarget, setDeleteTarget] = useState<MealFoodWithFood | null>(
+    null,
+  );
+  const [editTarget, setEditTarget] = useState<MealFoodWithFood | null>(null);
+
   const [dayUtcSeconds, setDayUtcSeconds] = useState(utcStartOfTodaySeconds());
   const headerOptions = useMemo(() => {
     return {
@@ -65,7 +110,115 @@ export function Home() {
   }, [dayUtcSeconds]);
   useDynamicNavigationOptions(headerOptions);
 
-  const { macros, meals } = useGetDay(dayUtcSeconds);
+  const { macros, meals, reload } = useGetDay(dayUtcSeconds);
+
+  const handleDeleteFood = useCallback(
+    (_meal: MealWithFoods, mealFood: MealFoodWithFood) => {
+      setDeleteTarget(mealFood);
+      deleteTrayRef.current?.openTray();
+    },
+    [],
+  );
+
+  const handleEditFood = useCallback(
+    (_meal: MealWithFoods, mealFood: MealFoodWithFood) => {
+      setEditTarget(mealFood);
+      editTrayRef.current?.openTray();
+    },
+    [],
+  );
+
+  const handleCancelDelete = useCallback(() => {
+    setDeleteTarget(null);
+  }, []);
+
+  const handleDismissEditTray = useCallback(async () => {
+    setEditTarget(null);
+    await editTrayRef.current?.closeTray();
+  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!deleteTarget) return;
+    const target = deleteTarget;
+    const ok = await mealRepo.deleteMealFoodTx(
+      { mealFoodId: target.id, nowMs: Date.now() },
+      mealFoodRepo,
+    );
+    if (!ok) {
+      showSnackbar({
+        message: "Could not remove food. Try again.",
+        variant: SnackbarVariant.Error,
+      });
+      return;
+    }
+    showSnackbar({
+      message: "Food removed",
+      variant: SnackbarVariant.Success,
+    });
+    setDeleteTarget(null);
+    reload();
+  }, [deleteTarget, mealRepo, mealFoodRepo, reload, showSnackbar]);
+
+  const handleAcceptEdit = useCallback(
+    async (result: ProductTrayAcceptResult) => {
+      if (!editTarget) return;
+      const target = editTarget;
+      const ok = await mealRepo.updateMealFoodTx(
+        {
+          mealFoodId: target.id,
+          newQuantityServings: result.servingsValue,
+          newLineMacros: {
+            energy: result.energy,
+            proteins: result.proteins,
+            carbohydrates: result.carbohydrates,
+            fat: result.fat,
+          },
+          nowMs: Date.now(),
+        },
+        mealFoodRepo,
+      );
+      if (!ok) {
+        showSnackbar({
+          message: "Could not update food. Try again.",
+          variant: SnackbarVariant.Error,
+        });
+        return;
+      }
+      showSnackbar({
+        message: "Food updated",
+        variant: SnackbarVariant.Success,
+      });
+      setEditTarget(null);
+      reload();
+    },
+    [editTarget, mealRepo, mealFoodRepo, reload, showSnackbar],
+  );
+
+  const memoizedEditTrayProps = useMemo(() => {
+    if (!editTarget) {
+      return {
+        foodId: null as number | null,
+        name: "",
+        brand: "",
+        nutriments: IDLE_EDIT_NUTRIMENTS,
+        servingSize: 100,
+        servingsUnit: "",
+        initialServings: 1,
+        initialServingSize: 100,
+      };
+    }
+    const { food, food_id, quantity } = editTarget;
+    return {
+      foodId: food_id,
+      name: food.name,
+      brand: food.brand ?? "",
+      nutriments: nutrimentsFromLoggedFood(food),
+      servingSize: food.serving_size,
+      servingsUnit: food.unit,
+      initialServings: quantity,
+      initialServingSize: food.serving_size,
+    };
+  }, [editTarget]);
 
   const day = useMemo(
     () => ({
@@ -183,7 +336,12 @@ export function Home() {
           {meals && meals.length > 0 ? (
             <VStack gap={1.5}>
               {meals.map((meal) => (
-                <MealItem key={meal.id} meal={meal} />
+                <MealItem
+                  key={meal.id}
+                  meal={meal}
+                  onEditFood={handleEditFood}
+                  onDeleteFood={handleDeleteFood}
+                />
               ))}
             </VStack>
           ) : (
@@ -200,6 +358,21 @@ export function Home() {
       </Animated.ScrollView>
 
       <LogFoodFAB visible={fabVisible} onLayout={handleFabLayout} />
+
+      <ConfirmDeleteTray
+        trayRef={deleteTrayRef}
+        foodName={deleteTarget?.food.name ?? ""}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
+
+      <ProductTray
+        trayRef={editTrayRef}
+        {...memoizedEditTrayProps}
+        mode="update"
+        onAccept={handleAcceptEdit}
+        onDismiss={handleDismissEditTray}
+      />
     </VStack>
   );
 }

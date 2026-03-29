@@ -1,4 +1,10 @@
-import { useMemo, useState, type RefObject, useCallback } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type RefObject,
+  useCallback,
+} from "react";
 import { useForm } from "@hooks/useForm";
 import { Tray, type TrayApi } from "@components/layout/Tray";
 import { VStack } from "@components/layout/VStack";
@@ -56,7 +62,13 @@ export type ProductTrayProps = {
   selectedUnit?: NutrimentsUnit;
   servingSize?: number;
   servingsUnit?: string;
-  onAccept?: (result: ProductTrayAcceptResult) => void;
+  /** When `update`, primary CTA label is "Update" instead of "Add to meal". */
+  mode?: "add" | "update";
+  /** Pre-fill servings (e.g. editing a logged line). */
+  initialServings?: number;
+  /** Pre-fill serving size amount (e.g. food.serving_size). */
+  initialServingSize?: number;
+  onAccept?: (result: ProductTrayAcceptResult) => void | Promise<void>;
   onDismiss?: () => void;
 };
 
@@ -113,6 +125,9 @@ export function ProductTrayContent({
   selectedUnit,
   servingSize,
   servingsUnit,
+  mode = "add",
+  initialServings,
+  initialServingSize,
   onAccept,
   onClose,
 }: ProductTrayContentProps) {
@@ -134,6 +149,10 @@ export function ProductTrayContent({
     if (servingSize !== undefined) return servingSize;
     return 0;
   }, [selectedUnit, servingSize]);
+
+  const resolvedInitialServings = initialServings ?? 1;
+  const resolvedInitialServingSize =
+    initialServingSize ?? (defaultServingSize || 100);
 
   const unit = useMemo(
     () => (selectedUnit === "per100g" ? "g" : (servingsUnit ?? "")),
@@ -159,17 +178,17 @@ export function ProductTrayContent({
     typeof productTrayFormSchema
   >({
     initialValues: {
-      servings: 1,
-      servingSize: defaultServingSize || 100,
+      servings: resolvedInitialServings,
+      servingSize: resolvedInitialServingSize,
       servingUnit: unit,
       customMealType: "",
     },
     schema: productTrayFormSchema,
   });
 
-  const [servingsValue, setServingsValue] = useState(1);
+  const [servingsValue, setServingsValue] = useState(resolvedInitialServings);
   const [servingSizeValue, setServingSizeValue] = useState(
-    defaultServingSize ?? 100,
+    resolvedInitialServingSize,
   );
 
   const updateServingsValue = useCallback((text: string) => {
@@ -184,15 +203,30 @@ export function ProductTrayContent({
 
   const { value: servingsValueText, onChange: setServingsValueText } =
     useTextInput({
-      defaultValue: "1",
+      defaultValue: String(resolvedInitialServings),
       onChange: updateServingsValue,
     });
 
   const { value: servingSizeValueText, onChange: setServingSizeValueText } =
     useTextInput({
-      defaultValue: String(defaultServingSize ?? 100),
+      defaultValue: String(resolvedInitialServingSize),
       onChange: updateServingSizeValue,
     });
+
+  useEffect(() => {
+    const s = resolvedInitialServings;
+    const sz = resolvedInitialServingSize;
+    setServingsValue(s);
+    setServingSizeValue(sz);
+    setServingsValueText(String(s));
+    setServingSizeValueText(String(sz));
+  }, [
+    foodId,
+    resolvedInitialServings,
+    resolvedInitialServingSize,
+    setServingsValueText,
+    setServingSizeValueText,
+  ]);
 
   const computedNutriments = useMemo(() => {
     const {
@@ -301,7 +335,7 @@ export function ProductTrayContent({
   const onConfirmAccept = useCallback(async () => {
     if (!canConfirm || foodId === null || !onAccept) return;
 
-    onAccept({
+    await onAccept({
       foodId,
       servingsValue,
       servingSizeValue,
@@ -394,7 +428,7 @@ export function ProductTrayContent({
           onPress={onConfirmAccept}
           disabled={!canConfirm}
         >
-          Add to meal
+          {mode === "update" ? "Update" : "Add to meal"}
         </Button>
       ) : (
         <VStack gap={2} backgroundColor="transparent">

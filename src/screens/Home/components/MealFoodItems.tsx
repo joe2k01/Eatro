@@ -20,6 +20,8 @@ type MealFoodItemsProps = {
   foods: MealFoodWithFood[];
   onLayout?: (event: LayoutChangeEvent) => void;
   meal: MealType;
+  onEdit: (mealFood: MealFoodWithFood) => void;
+  onDelete: (mealFood: MealFoodWithFood) => void;
 };
 
 const styles = StyleSheet.create({
@@ -42,7 +44,19 @@ const styles = StyleSheet.create({
   },
 });
 
-function ItemActions(prog: SharedValue<number>, drag: SharedValue<number>) {
+type SwipeRowActionsProps = {
+  prog: SharedValue<number>;
+  drag: SharedValue<number>;
+  onEditPress: () => void;
+  onDeletePress: () => void;
+};
+
+function SwipeRowActions({
+  prog,
+  drag,
+  onEditPress,
+  onDeletePress,
+}: SwipeRowActionsProps) {
   const iconSize = useSharedValue(0);
   const offsetStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: drag.value + 2 * iconSize.value }],
@@ -74,79 +88,86 @@ function ItemActions(prog: SharedValue<number>, drag: SharedValue<number>) {
       <Pressable
         onLayout={onLayout}
         style={[styles.actionStyle, positiveStyle]}
+        onPress={onEditPress}
       >
         <Icon name="edit" size="m" variant="secondary" inverted />
       </Pressable>
-      <Pressable style={[styles.actionStyle, negativeStyle]}>
+      <Pressable
+        style={[styles.actionStyle, negativeStyle]}
+        onPress={onDeletePress}
+      >
         <Icon name="delete" size="m" variant="destructive" inverted />
       </Pressable>
     </Animated.View>
   );
 }
 
-export function MealFoodItems({ foods, onLayout, meal }: MealFoodItemsProps) {
+export function MealFoodItems({
+  foods,
+  onLayout,
+  meal,
+  onEdit,
+  onDelete,
+}: MealFoodItemsProps) {
   const theme = useTheme();
-
-  const foodData = useMemo(
-    () =>
-      foods.map((mealFood) => {
-        const servingsText =
-          mealFood.quantity === 1
-            ? "1 serving"
-            : `${mealFood.quantity} servings`;
-        const foodCalories = Math.round(
-          mealFood.quantity * mealFood.food.energy_per_serving,
-        );
-        const foodName = mealFood.food.name;
-        const brandText = mealFood.food.brand
-          ? ` • ${mealFood.food.brand}`
-          : "";
-
-        return {
-          id: mealFood.id,
-          servingsText,
-          foodCalories,
-          foodName,
-          brandText,
-        };
-      }),
-    [foods],
-  );
 
   // We have this position relative / absolute set up to force children to render and be measured properly for the animation.
   return (
     <View style={styles.container}>
       <View style={styles.measurableView} onLayout={onLayout}>
-        {foodData.map((data, i) => (
-          <Swipeable
-            key={`${meal}_${data.id}_${i}`}
-            renderRightActions={ItemActions}
-            childrenContainerStyle={styles.swipeableItemStyle}
-          >
-            <VStack backgroundColor="transparent" paddingVertical={1} gap={0.5}>
-              <HStack
-                justifyContent="space-between"
-                alignItems="flex-start"
+        {foods.map((mealFood, i) => {
+          const servingsText =
+            mealFood.quantity === 1
+              ? "1 serving"
+              : `${mealFood.quantity} servings`;
+          const foodCalories = Math.round(
+            mealFood.quantity * mealFood.food.energy_per_serving,
+          );
+          const foodName = mealFood.food.name;
+          const brandText = mealFood.food.brand
+            ? ` • ${mealFood.food.brand}`
+            : "";
+
+          return (
+            <Swipeable
+              key={`${meal}_${mealFood.id}_${i}`}
+              renderRightActions={(prog, drag) => (
+                <SwipeRowActions
+                  prog={prog}
+                  drag={drag}
+                  onEditPress={() => onEdit(mealFood)}
+                  onDeletePress={() => onDelete(mealFood)}
+                />
+              )}
+              childrenContainerStyle={styles.swipeableItemStyle}
+            >
+              <VStack
                 backgroundColor="transparent"
+                paddingVertical={1}
+                gap={0.5}
               >
-                <VStack flex={1} backgroundColor="transparent">
-                  <Body>{data.foodName}</Body>
-                  {data.brandText && (
-                    <Caption color={theme.text.muted}>
-                      {data.brandText.replace(" • ", "")}
-                    </Caption>
-                  )}
-                </VStack>
-                <VStack alignItems="flex-end" backgroundColor="transparent">
-                  <Body>{data.foodCalories} kcal</Body>
-                  <Caption color={theme.text.muted}>
-                    {data.servingsText}
-                  </Caption>
-                </VStack>
-              </HStack>
-            </VStack>
-          </Swipeable>
-        ))}
+                <HStack
+                  justifyContent="space-between"
+                  alignItems="flex-start"
+                  backgroundColor="transparent"
+                >
+                  <VStack flex={1} backgroundColor="transparent">
+                    <Body>{foodName}</Body>
+                    {brandText ? (
+                      <Caption color={theme.text.muted}>
+                        {brandText.replace(" • ", "")}
+                      </Caption>
+                    ) : null}
+                  </VStack>
+                  <VStack alignItems="flex-end" backgroundColor="transparent">
+                    <Body>{foodCalories} kcal</Body>
+                    <Caption color={theme.text.muted}>{servingsText}</Caption>
+                  </VStack>
+                </HStack>
+              </VStack>
+            </Swipeable>
+          );
+        })}
       </View>
     </View>
   );
