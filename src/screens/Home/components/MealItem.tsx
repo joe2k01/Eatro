@@ -6,6 +6,7 @@ import { useTheme } from "@contexts/ThemeProvider";
 import { MealType } from "@db/schemas";
 import { format } from "date-fns";
 import type { MealWithFoods } from "@db/hooks/useGetDay";
+import type { MealFoodWithFood } from "@db/repositories/MealFoodRepository";
 import { Icon } from "@components/media/Icon";
 import Animated, {
   useAnimatedStyle,
@@ -23,6 +24,8 @@ import { semiTransparent } from "@utils/colorUtils";
 
 type MealItemProps = {
   meal: MealWithFoods;
+  onEditFood: (meal: MealWithFoods, mealFood: MealFoodWithFood) => void;
+  onDeleteFood: (meal: MealWithFoods, mealFood: MealFoodWithFood) => void;
 };
 
 const mealTypeLabels: Record<MealType, string> = {
@@ -53,7 +56,7 @@ const ANIMATION_TIMING_CONFIG = {
   easing: Easing.out(Easing.ease),
 };
 
-export function MealItem({ meal }: MealItemProps) {
+export function MealItem({ meal, onEditFood, onDeleteFood }: MealItemProps) {
   const theme = useTheme();
   const isExpanded = useSharedValue(false);
 
@@ -132,6 +135,20 @@ export function MealItem({ meal }: MealItemProps) {
     );
   }, [isExpanded, chevronRotation]);
 
+  const handleEditMealFood = useCallback(
+    (mealFood: MealFoodWithFood) => {
+      onEditFood(meal, mealFood);
+    },
+    [meal, onEditFood],
+  );
+
+  const handleDeleteMealFood = useCallback(
+    (mealFood: MealFoodWithFood) => {
+      onDeleteFood(meal, mealFood);
+    },
+    [meal, onDeleteFood],
+  );
+
   const iconBackgroundColor = useMemo(() => {
     const primaryColor = theme.semantic.primary;
     if (primaryColor.startsWith("#")) {
@@ -201,6 +218,8 @@ export function MealItem({ meal }: MealItemProps) {
             foods={meal.foods}
             onLayout={onContentLayout}
             meal={meal.type}
+            onEdit={handleEditMealFood}
+            onDelete={handleDeleteMealFood}
           />
         </Animated.View>
       )}

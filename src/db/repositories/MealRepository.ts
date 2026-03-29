@@ -1,5 +1,6 @@
 import {
   type DayTotals,
+  type Food,
   Meal,
   MealSchema,
   MealType,
@@ -8,8 +9,48 @@ import {
 } from "@db/schemas";
 import { BaseRepository, type QueryResult } from "./BaseRepository";
 import { MealFoodRepository } from "./MealFoodRepository";
+import type { MealFoodWithFood } from "./MealFoodRepository";
 import { CustomMealRepository } from "./CustomMealRepository";
 import { CustomMealFoodRepository } from "./CustomMealFoodRepository";
+
+export type MealMacroDelta = {
+  energy: number;
+  proteins: number;
+  carbohydrates: number;
+  fat: number;
+};
+
+type FoodMacroBasis = Pick<
+  Food,
+  | "serving_size"
+  | "energy_per_serving"
+  | "proteins_per_serving"
+  | "carbohydrates_per_serving"
+  | "fat_per_serving"
+>;
+
+/**
+ * Macros contributed by one logged meal line: quantity × per-serving macros scaled by
+ * (line serving size ÷ catalogue serving size).
+ */
+export function lineMacrosForLoggedLine(
+  quantity: number,
+  lineServingSize: number,
+  food: FoodMacroBasis,
+): MealMacroDelta {
+  const catalogueServing = food.serving_size > 0 ? food.serving_size : 1;
+  const scale = lineServingSize / catalogueServing;
+  return {
+    energy: quantity * food.energy_per_serving * scale,
+    proteins: quantity * food.proteins_per_serving * scale,
+    carbohydrates: quantity * food.carbohydrates_per_serving * scale,
+    fat: quantity * food.fat_per_serving * scale,
+  };
+}
+
+function lineMacrosFromMealFood(row: MealFoodWithFood): MealMacroDelta {
+  return lineMacrosForLoggedLine(row.quantity, row.serving_size, row.food);
+}
 
 export class MealRepository extends BaseRepository {
   /**
@@ -93,6 +134,8 @@ export class MealRepository extends BaseRepository {
       customType: string | null;
       foodId: number;
       quantityServings: number;
+      /** Per-line serving size (g or food unit); persisted on `meal_foods`. */
+      lineServingSize: number;
       delta: {
         energy: number;
         proteins: number;
@@ -109,6 +152,7 @@ export class MealRepository extends BaseRepository {
       customType,
       foodId,
       quantityServings,
+      lineServingSize,
       delta,
       nowMs,
     } = args;
@@ -126,6 +170,7 @@ export class MealRepository extends BaseRepository {
         mealId,
         foodId,
         quantityServings,
+        lineServingSize,
         nowMs,
       );
 
@@ -134,6 +179,138 @@ export class MealRepository extends BaseRepository {
       }
 
       return mealId;
+    });
+  }
+
+  /**
+   * Increment or decrement a meal's rolled-up macro totals (e.g. after editing or removing a line).
+   */
+  public async adjustMealMacros(
+    mealId: number,
+    delta: MealMacroDelta,
+    nowMs: number,
+  ): QueryResult<boolean> {
+    const statement = await this.prepareStatement(
+      `
+      UPDATE meals
+      SET
+        energy = energy + $energy,
+        proteins = proteins + $proteins,
+        carbohydrates = carbohydrates + $carbohydrates,
+        fat = fat + $fat,
+        updated_at = $updated_at
+      WHERE id = $id AND deleted_at IS NULL;
+      `,
+      "adjustMealMacros",
+    );
+
+    if (!statement) return null;
+
+    const result = await this.executeStatement(statement, {
+      $id: mealId,
+      $energy: delta.energy,
+      $proteins: delta.proteins,
+      $carbohydrates: delta.carbohydrates,
+      $fat: delta.fat,
+      $updated_at: nowMs,
+    });
+
+    if (!result) return null;
+
+    if (result.changes !== 1) {
+      throw new Error(`adjustMealMacros unexpected changes: ${result.changes}`);
+    }
+
+    return true;
+  }
+
+  /**
+   * Soft-delete a logged food line and subtract its macros from the parent meal.
+   */
+  public async deleteMealFoodTx(
+    args: { mealFoodId: number; nowMs: number },
+    mealFoodRepo: MealFoodRepository,
+  ): QueryResult<boolean> {
+    const { mealFoodId, nowMs } = args;
+
+    return await this.withTransaction(async () => {
+      const row = await mealFoodRepo.getMealFoodWithFoodById(mealFoodId);
+      if (!row) {
+        throw new Error("Meal food not found");
+      }
+
+      const line = lineMacrosFromMealFood(row);
+      const negated: MealMacroDelta = {
+        energy: -line.energy,
+        proteins: -line.proteins,
+        carbohydrates: -line.carbohydrates,
+        fat: -line.fat,
+      };
+
+      const deleted = await mealFoodRepo.softDeleteMealFood(mealFoodId, nowMs);
+      if (!deleted) {
+        throw new Error("meal_foods soft delete failed");
+      }
+
+      const adjusted = await this.adjustMealMacros(row.meal_id, negated, nowMs);
+      if (!adjusted) {
+        throw new Error("adjust meal macros failed");
+      }
+
+      return true;
+    });
+  }
+
+  /**
+   * Update a line's quantity and per-line serving size; adjust meal totals by
+   * (new line macros − old line macros) using the same formula as display and delete.
+   */
+  public async updateMealFoodTx(
+    args: {
+      mealFoodId: number;
+      newQuantityServings: number;
+      newServingSize: number;
+      nowMs: number;
+    },
+    mealFoodRepo: MealFoodRepository,
+  ): QueryResult<boolean> {
+    const { mealFoodId, newQuantityServings, newServingSize, nowMs } = args;
+
+    return await this.withTransaction(async () => {
+      const row = await mealFoodRepo.getMealFoodWithFoodById(mealFoodId);
+      if (!row) {
+        throw new Error("Meal food not found");
+      }
+
+      const oldLine = lineMacrosFromMealFood(row);
+      const newLine = lineMacrosForLoggedLine(
+        newQuantityServings,
+        newServingSize,
+        row.food,
+      );
+      const delta: MealMacroDelta = {
+        energy: newLine.energy - oldLine.energy,
+        proteins: newLine.proteins - oldLine.proteins,
+        carbohydrates: newLine.carbohydrates - oldLine.carbohydrates,
+        fat: newLine.fat - oldLine.fat,
+      };
+
+      const updated = await mealFoodRepo.updateMealFoodLine(
+        mealFoodId,
+        newQuantityServings,
+        newServingSize,
+        nowMs,
+      );
+      if (!updated) {
+        throw new Error("meal_foods line update failed");
+      }
+
+      const adjusted = await this.adjustMealMacros(row.meal_id, delta, nowMs);
+      if (!adjusted) {
+        throw new Error("adjust meal macros failed");
+      }
+
+      return true;
     });
   }
 
@@ -274,6 +451,7 @@ export class MealRepository extends BaseRepository {
           mealId,
           cmf.food_id,
           cmf.quantity,
+          cmf.serving_size,
           nowMs,
         );
         if (!inserted) {

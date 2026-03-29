@@ -8,9 +8,16 @@ export type MealWithFoods = Meal & {
   foods: MealFoodWithFood[];
 };
 
+type DaySnapshot = {
+  totalsResult: DayTotals | null;
+  mealsWithFoods: MealWithFoods[];
+};
+
 type UseGetDayResult = {
   macros: DayTotals | null;
   meals: MealWithFoods[] | null;
+  /** Re-fetch day totals and meals (e.g. after mutating logged items while this screen stays focused). */
+  reload: () => void;
 };
 
 /**
@@ -22,17 +29,15 @@ export function useGetDay(dayUtcSeconds: number): UseGetDayResult {
   const [macros, setMacros] = useState<DayTotals | null>(null);
   const [meals, setMeals] = useState<MealWithFoods[] | null>(null);
 
-  const reload = useCallback(() => {
-    let active = true;
-
-    async function load() {
+  const fetchDaySnapshot =
+    useCallback(async (): Promise<DaySnapshot | null> => {
       const [totalsResult, mealsResult] = await Promise.all([
         mealRepo.getDayTotals(dayUtcSeconds),
         mealRepo.getMealsByDay(dayUtcSeconds),
       ]);
 
       if (!mealsResult) {
-        return;
+        return null;
       }
 
       const mealsWithFoods: MealWithFoods[] = await Promise.all(
@@ -45,20 +50,30 @@ export function useGetDay(dayUtcSeconds: number): UseGetDayResult {
         }),
       );
 
-      if (!active) return;
+      return { totalsResult: totalsResult ?? null, mealsWithFoods };
+    }, [dayUtcSeconds, mealRepo, mealFoodRepo]);
 
-      setMacros(totalsResult ?? null);
-      setMeals(mealsWithFoods);
-    }
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      fetchDaySnapshot().then((data) => {
+        if (!active || !data) return;
+        setMacros(data.totalsResult);
+        setMeals(data.mealsWithFoods);
+      });
+      return () => {
+        active = false;
+      };
+    }, [fetchDaySnapshot]),
+  );
 
-    load();
+  const reload = useCallback(() => {
+    fetchDaySnapshot().then((data) => {
+      if (!data) return;
+      setMacros(data.totalsResult);
+      setMeals(data.mealsWithFoods);
+    });
+  }, [fetchDaySnapshot]);
 
-    return () => {
-      active = false;
-    };
-  }, [dayUtcSeconds, mealRepo, mealFoodRepo]);
-
-  useFocusEffect(reload);
-
-  return { macros, meals };
+  return { macros, meals, reload };
 }
