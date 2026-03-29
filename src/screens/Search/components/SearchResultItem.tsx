@@ -44,11 +44,10 @@ export const SearchResultItem = memo(function SearchResultItem(
       })
       .with({ source: "local" }, ({ item }) => {
         const code = item.barcode?.trim();
-        if (code) {
-          navigation.navigate("Product", { barcode: code });
-        } else {
-          navigation.navigate("Product", { foodId: item.id });
-        }
+        navigation.navigate("Product", {
+          foodId: item.id,
+          ...(code ? { barcode: code } : {}),
+        });
       })
       .exhaustive();
   }, [navigation, props]);
