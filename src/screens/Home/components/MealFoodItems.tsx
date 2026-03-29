@@ -102,6 +102,61 @@ function SwipeRowActions({
   );
 }
 
+type MealFoodItemProps = {
+  mealFood: MealFoodWithFood;
+  onEdit: (mealFood: MealFoodWithFood) => void;
+  onDelete: (mealFood: MealFoodWithFood) => void;
+};
+
+function MealFoodItem({ mealFood, onEdit, onDelete }: MealFoodItemProps) {
+  const theme = useTheme();
+  const servingsText =
+    mealFood.quantity === 1 ? "1 serving" : `${mealFood.quantity} servings`;
+  const catalogueServing =
+    mealFood.food.serving_size > 0 ? mealFood.food.serving_size : 1;
+  const scale = mealFood.serving_size / catalogueServing;
+  const foodCalories = Math.round(
+    mealFood.quantity * mealFood.food.energy_per_serving * scale,
+  );
+  const foodName = mealFood.food.name;
+  const brandText = mealFood.food.brand ? ` • ${mealFood.food.brand}` : "";
+
+  return (
+    <Swipeable
+      renderRightActions={(prog, drag) => (
+        <SwipeRowActions
+          prog={prog}
+          drag={drag}
+          onEditPress={() => onEdit(mealFood)}
+          onDeletePress={() => onDelete(mealFood)}
+        />
+      )}
+      childrenContainerStyle={styles.swipeableItemStyle}
+    >
+      <VStack backgroundColor="transparent" paddingVertical={1} gap={0.5}>
+        <HStack
+          justifyContent="space-between"
+          alignItems="flex-start"
+          backgroundColor="transparent"
+        >
+          <VStack flex={1} backgroundColor="transparent">
+            <Body>{foodName}</Body>
+            {brandText ? (
+              <Caption color={theme.text.muted}>
+                {brandText.replace(" • ", "")}
+              </Caption>
+            ) : null}
+          </VStack>
+          <VStack alignItems="flex-end" backgroundColor="transparent">
+            <Body>{foodCalories} kcal</Body>
+            <Caption color={theme.text.muted}>{servingsText}</Caption>
+          </VStack>
+        </HStack>
+      </VStack>
+    </Swipeable>
+  );
+}
+
 export function MealFoodItems({
   foods,
   onLayout,
@@ -109,68 +164,18 @@ export function MealFoodItems({
   onEdit,
   onDelete,
 }: MealFoodItemsProps) {
-  const theme = useTheme();
-
   // We have this position relative / absolute set up to force children to render and be measured properly for the animation.
   return (
     <View style={styles.container}>
       <View style={styles.measurableView} onLayout={onLayout}>
-        {foods.map((mealFood, i) => {
-          const servingsText =
-            mealFood.quantity === 1
-              ? "1 serving"
-              : `${mealFood.quantity} servings`;
-          const catalogueServing =
-            mealFood.food.serving_size > 0 ? mealFood.food.serving_size : 1;
-          const scale = mealFood.serving_size / catalogueServing;
-          const foodCalories = Math.round(
-            mealFood.quantity * mealFood.food.energy_per_serving * scale,
-          );
-          const foodName = mealFood.food.name;
-          const brandText = mealFood.food.brand
-            ? ` • ${mealFood.food.brand}`
-            : "";
-
-          return (
-            <Swipeable
-              key={`${meal}_${mealFood.id}_${i}`}
-              renderRightActions={(prog, drag) => (
-                <SwipeRowActions
-                  prog={prog}
-                  drag={drag}
-                  onEditPress={() => onEdit(mealFood)}
-                  onDeletePress={() => onDelete(mealFood)}
-                />
-              )}
-              childrenContainerStyle={styles.swipeableItemStyle}
-            >
-              <VStack
-                backgroundColor="transparent"
-                paddingVertical={1}
-                gap={0.5}
-              >
-                <HStack
-                  justifyContent="space-between"
-                  alignItems="flex-start"
-                  backgroundColor="transparent"
-                >
-                  <VStack flex={1} backgroundColor="transparent">
-                    <Body>{foodName}</Body>
-                    {brandText ? (
-                      <Caption color={theme.text.muted}>
-                        {brandText.replace(" • ", "")}
-                      </Caption>
-                    ) : null}
-                  </VStack>
-                  <VStack alignItems="flex-end" backgroundColor="transparent">
-                    <Body>{foodCalories} kcal</Body>
-                    <Caption color={theme.text.muted}>{servingsText}</Caption>
-                  </VStack>
-                </HStack>
-              </VStack>
-            </Swipeable>
-          );
-        })}
+        {foods.map((mealFood, i) => (
+          <MealFoodItem
+            key={`${meal}_${mealFood.id}_${i}`}
+            mealFood={mealFood}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
+        ))}
       </View>
     </View>
   );
