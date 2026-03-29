@@ -135,27 +135,27 @@ export class CustomMealRepository extends BaseRepository {
         throw new Error("Failed to create custom meal");
       }
 
-      await Promise.all(
-        foods.map(async (food) => {
-          const insertedId = await customMealFoodRepo.insertCustomMealFood({
-            customMealId: mealId,
-            foodId: food.foodId,
-            name: food.name,
-            brand: food.brand,
-            quantity: food.quantity,
-            servingSize: food.servingSize,
-            energy: food.energy,
-            proteins: food.proteins,
-            carbohydrates: food.carbohydrates,
-            fat: food.fat,
-            nowMs: meal.nowMs,
-          });
+      // Serialize inserts: `insertCustomMealFood` reuses one prepared statement per
+      // repo; overlapping executeAsync on that statement is unsafe (see useGetDay).
+      for (const food of foods) {
+        const insertedId = await customMealFoodRepo.insertCustomMealFood({
+          customMealId: mealId,
+          foodId: food.foodId,
+          name: food.name,
+          brand: food.brand,
+          quantity: food.quantity,
+          servingSize: food.servingSize,
+          energy: food.energy,
+          proteins: food.proteins,
+          carbohydrates: food.carbohydrates,
+          fat: food.fat,
+          nowMs: meal.nowMs,
+        });
 
-          if (insertedId === null) {
-            throw new Error("Failed to insert custom meal food");
-          }
-        }),
-      );
+        if (insertedId === null) {
+          throw new Error("Failed to insert custom meal food");
+        }
+      }
 
       return mealId;
     });
