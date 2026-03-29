@@ -40,15 +40,18 @@ export function useGetDay(dayUtcSeconds: number): UseGetDayResult {
         return null;
       }
 
-      const mealsWithFoods: MealWithFoods[] = await Promise.all(
-        mealsResult.map(async (meal) => {
-          const foods = await mealFoodRepo.getMealFoodsByMealId(meal.id);
-          return {
-            ...meal,
-            foods: foods ?? [],
-          };
-        }),
-      );
+      // Serialize per-meal loads: repositories cache one prepared statement per
+      // query name (`getMealFoodsByMealId`). Parallel `executeAsync` on that same
+      // statement interleaves bindings/results and can attach the wrong foods to
+      // each meal until the next full reload.
+      const mealsWithFoods: MealWithFoods[] = [];
+      for (const meal of mealsResult) {
+        const foods = await mealFoodRepo.getMealFoodsByMealId(meal.id);
+        mealsWithFoods.push({
+          ...meal,
+          foods: foods ?? [],
+        });
+      }
 
       return { totalsResult: totalsResult ?? null, mealsWithFoods };
     }, [dayUtcSeconds, mealRepo, mealFoodRepo]);

@@ -21,15 +21,6 @@ const SEED_FOOD = {
   source: FoodSource.Api,
 } as const;
 
-function lineDeltaForSeedFood(quantityServings: number) {
-  return {
-    energy: quantityServings * SEED_FOOD.energy_per_serving,
-    proteins: quantityServings * SEED_FOOD.proteins_per_serving,
-    carbohydrates: quantityServings * SEED_FOOD.carbohydrates_per_serving,
-    fat: quantityServings * SEED_FOOD.fat_per_serving,
-  };
-}
-
 const QUANTITY_OATS_LOGGED = 1.5;
 const QUANTITY_AFTER_UPDATE = 2.25;
 const QUANTITY_BEANS_LINE = 2;
@@ -72,7 +63,6 @@ describe("MealFoodRepository", () => {
         foodId: firstFoodId as number,
         quantityServings: 1,
         lineServingSize: SEED_FOOD.serving_size,
-        delta: lineDeltaForSeedFood(1),
         nowMs,
       },
       repos.mealFood,
@@ -107,7 +97,6 @@ describe("MealFoodRepository", () => {
         foodId: foodId as number,
         quantityServings: QUANTITY_OATS_LOGGED,
         lineServingSize: SEED_FOOD.serving_size,
-        delta: lineDeltaForSeedFood(QUANTITY_OATS_LOGGED),
         nowMs,
       },
       repos.mealFood,
@@ -154,7 +143,6 @@ describe("MealFoodRepository", () => {
         foodId: foodId as number,
         quantityServings: 1,
         lineServingSize: SEED_FOOD.serving_size,
-        delta: lineDeltaForSeedFood(1),
         nowMs,
       },
       repos.mealFood,

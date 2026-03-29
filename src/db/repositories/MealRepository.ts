@@ -54,39 +54,30 @@ function lineMacrosFromMealFood(row: MealFoodWithFood): MealMacroDelta {
 
 export class MealRepository extends BaseRepository {
   /**
-   * Upsert a meal row (by day/type[/custom_type]) and atomically increment
-   * its macro totals. Returns the meal id. Must be called inside a transaction.
+   * Upsert a meal row (by day/type[/custom_type]). New rows start at zero macros.
+   * On conflict, bumps `updated_at` and clears `deleted_at` so a slot that was
+   * soft-deleted after removing all lines can be logged into again (unique index
+   * still references the old row). Call {@link rebuildMealMacros} after line
+   * changes to set rolled-up totals. Must run inside a transaction.
    */
   private async upsertMealRow(args: {
     dayUtcSeconds: number;
     type: MealType;
     customType: string | null;
-    delta: {
-      energy: number;
-      proteins: number;
-      carbohydrates: number;
-      fat: number;
-    };
     nowMs: number;
   }): Promise<number> {
-    const { dayUtcSeconds, type, customType, delta, nowMs } = args;
+    const { dayUtcSeconds, type, customType, nowMs } = args;
     const effectiveCustomType = type === MealType.Custom ? customType : null;
 
     const upsertStatement = await this.prepareStatement(
       `
       INSERT INTO meals (day_utc, type, custom_type, energy, proteins, carbohydrates, fat, created_at, updated_at, deleted_at)
-      VALUES ($day_utc, $type, $custom_type, $energy, $proteins, $carbohydrates, $fat, $created_at, $updated_at, NULL)
+      VALUES ($day_utc, $type, $custom_type, 0, 0, 0, 0, $created_at, $updated_at, NULL)
       ON CONFLICT(day_utc, type, custom_type) WHERE custom_type IS NOT NULL DO UPDATE SET
-        energy = energy + $energy,
-        proteins = proteins + $proteins,
-        carbohydrates = carbohydrates + $carbohydrates,
-        fat = fat + $fat,
+        deleted_at = NULL,
         updated_at = $updated_at
       ON CONFLICT(day_utc, type) WHERE custom_type IS NULL DO UPDATE SET
-        energy = energy + $energy,
-        proteins = proteins + $proteins,
-        carbohydrates = carbohydrates + $carbohydrates,
-        fat = fat + $fat,
+        deleted_at = NULL,
         updated_at = $updated_at
       RETURNING id;
       `,
@@ -98,10 +89,6 @@ export class MealRepository extends BaseRepository {
       $day_utc: dayUtcSeconds,
       $type: type,
       $custom_type: effectiveCustomType,
-      $energy: delta.energy,
-      $proteins: delta.proteins,
-      $carbohydrates: delta.carbohydrates,
-      $fat: delta.fat,
       $created_at: nowMs,
       $updated_at: nowMs,
     });
@@ -123,9 +110,104 @@ export class MealRepository extends BaseRepository {
     return mealId;
   }
 
+  private async setMealMacros(
+    mealId: number,
+    totals: MealMacroDelta,
+    nowMs: number,
+  ): Promise<void> {
+    const statement = await this.prepareStatement(
+      `
+      UPDATE meals
+      SET
+        energy = $energy,
+        proteins = $proteins,
+        carbohydrates = $carbohydrates,
+        fat = $fat,
+        updated_at = $updated_at
+      WHERE id = $id AND deleted_at IS NULL;
+      `,
+      "setMealMacros",
+    );
+
+    if (!statement) throw new Error("Failed to prepare setMealMacros");
+
+    const result = await this.executeStatement(statement, {
+      $id: mealId,
+      $energy: totals.energy,
+      $proteins: totals.proteins,
+      $carbohydrates: totals.carbohydrates,
+      $fat: totals.fat,
+      $updated_at: nowMs,
+    });
+
+    if (!result) throw new Error("setMealMacros failed to execute");
+
+    if (result.changes !== 1) {
+      throw new Error(`setMealMacros unexpected changes: ${result.changes}`);
+    }
+  }
+
+  private async softDeleteMeal(mealId: number, nowMs: number): Promise<void> {
+    const statement = await this.prepareStatement(
+      `
+      UPDATE meals
+      SET deleted_at = $deleted_at, updated_at = $updated_at
+      WHERE id = $id AND deleted_at IS NULL;
+      `,
+      "softDeleteMeal",
+    );
+
+    if (!statement) throw new Error("Failed to prepare softDeleteMeal");
+
+    const result = await this.executeStatement(statement, {
+      $id: mealId,
+      $deleted_at: nowMs,
+      $updated_at: nowMs,
+    });
+
+    if (!result) throw new Error("softDeleteMeal failed to execute");
+
+    if (result.changes !== 1) {
+      throw new Error(`softDeleteMeal unexpected changes: ${result.changes}`);
+    }
+  }
+
+  /**
+   * Recompute `meals.*` macros from active lines. If there are no countable lines,
+   * soft-deletes the meal (empty shells are removed from the diary).
+   */
+  private async rebuildMealMacros(
+    mealId: number,
+    mealFoodRepo: MealFoodRepository,
+    nowMs: number,
+  ): Promise<void> {
+    const lines = await mealFoodRepo.getMealFoodsByMealId(mealId);
+    if (!lines || lines.length === 0) {
+      await this.softDeleteMeal(mealId, nowMs);
+      return;
+    }
+
+    const totals: MealMacroDelta = {
+      energy: 0,
+      proteins: 0,
+      carbohydrates: 0,
+      fat: 0,
+    };
+
+    for (const row of lines) {
+      const m = lineMacrosFromMealFood(row);
+      totals.energy += m.energy;
+      totals.proteins += m.proteins;
+      totals.carbohydrates += m.carbohydrates;
+      totals.fat += m.fat;
+    }
+
+    await this.setMealMacros(mealId, totals, nowMs);
+  }
+
   /**
    * Upsert a meal (by day/type[/custom_type]) and apply all side effects
-   * (insert `meal_foods`, increment meal totals) inside a single SQLite transaction.
+   * (insert `meal_foods`, rebuild meal totals) inside a single SQLite transaction.
    */
   public async upsertMealAndLogFoodTx(
     args: {
@@ -136,12 +218,6 @@ export class MealRepository extends BaseRepository {
       quantityServings: number;
       /** Per-line serving size (g or food unit); persisted on `meal_foods`. */
       lineServingSize: number;
-      delta: {
-        energy: number;
-        proteins: number;
-        carbohydrates: number;
-        fat: number;
-      };
       nowMs: number;
     },
     mealFoodRepo: MealFoodRepository,
@@ -153,7 +229,6 @@ export class MealRepository extends BaseRepository {
       foodId,
       quantityServings,
       lineServingSize,
-      delta,
       nowMs,
     } = args;
 
@@ -162,7 +237,6 @@ export class MealRepository extends BaseRepository {
         dayUtcSeconds,
         type,
         customType,
-        delta,
         nowMs,
       });
 
@@ -178,54 +252,15 @@ export class MealRepository extends BaseRepository {
         throw new Error("meal_foods insert failed");
       }
 
+      await this.rebuildMealMacros(mealId, mealFoodRepo, nowMs);
+
       return mealId;
     });
   }
 
   /**
-   * Increment or decrement a meal's rolled-up macro totals (e.g. after editing or removing a line).
-   */
-  public async adjustMealMacros(
-    mealId: number,
-    delta: MealMacroDelta,
-    nowMs: number,
-  ): QueryResult<boolean> {
-    const statement = await this.prepareStatement(
-      `
-      UPDATE meals
-      SET
-        energy = energy + $energy,
-        proteins = proteins + $proteins,
-        carbohydrates = carbohydrates + $carbohydrates,
-        fat = fat + $fat,
-        updated_at = $updated_at
-      WHERE id = $id AND deleted_at IS NULL;
-      `,
-      "adjustMealMacros",
-    );
-
-    if (!statement) return null;
-
-    const result = await this.executeStatement(statement, {
-      $id: mealId,
-      $energy: delta.energy,
-      $proteins: delta.proteins,
-      $carbohydrates: delta.carbohydrates,
-      $fat: delta.fat,
-      $updated_at: nowMs,
-    });
-
-    if (!result) return null;
-
-    if (result.changes !== 1) {
-      throw new Error(`adjustMealMacros unexpected changes: ${result.changes}`);
-    }
-
-    return true;
-  }
-
-  /**
-   * Soft-delete a logged food line and subtract its macros from the parent meal.
+   * Soft-delete a logged food line and rebuild the parent meal's macros (or remove
+   * the meal when no active lines remain).
    */
   public async deleteMealFoodTx(
     args: { mealFoodId: number; nowMs: number },
@@ -239,31 +274,21 @@ export class MealRepository extends BaseRepository {
         throw new Error("Meal food not found");
       }
 
-      const line = lineMacrosFromMealFood(row);
-      const negated: MealMacroDelta = {
-        energy: -line.energy,
-        proteins: -line.proteins,
-        carbohydrates: -line.carbohydrates,
-        fat: -line.fat,
-      };
+      const mealId = row.meal_id;
 
       const deleted = await mealFoodRepo.softDeleteMealFood(mealFoodId, nowMs);
       if (!deleted) {
         throw new Error("meal_foods soft delete failed");
       }
 
-      const adjusted = await this.adjustMealMacros(row.meal_id, negated, nowMs);
-      if (!adjusted) {
-        throw new Error("adjust meal macros failed");
-      }
+      await this.rebuildMealMacros(mealId, mealFoodRepo, nowMs);
 
       return true;
     });
   }
 
   /**
-   * Update a line's quantity and per-line serving size; adjust meal totals by
-   * (new line macros − old line macros) using the same formula as display and delete.
+   * Update a line's quantity and per-line serving size; meal totals are rebuilt from lines.
    */
   public async updateMealFoodTx(
     args: {
@@ -282,19 +307,6 @@ export class MealRepository extends BaseRepository {
         throw new Error("Meal food not found");
       }
 
-      const oldLine = lineMacrosFromMealFood(row);
-      const newLine = lineMacrosForLoggedLine(
-        newQuantityServings,
-        newServingSize,
-        row.food,
-      );
-      const delta: MealMacroDelta = {
-        energy: newLine.energy - oldLine.energy,
-        proteins: newLine.proteins - oldLine.proteins,
-        carbohydrates: newLine.carbohydrates - oldLine.carbohydrates,
-        fat: newLine.fat - oldLine.fat,
-      };
-
       const updated = await mealFoodRepo.updateMealFoodLine(
         mealFoodId,
         newQuantityServings,
@@ -305,10 +317,7 @@ export class MealRepository extends BaseRepository {
         throw new Error("meal_foods line update failed");
       }
 
-      const adjusted = await this.adjustMealMacros(row.meal_id, delta, nowMs);
-      if (!adjusted) {
-        throw new Error("adjust meal macros failed");
-      }
+      await this.rebuildMealMacros(row.meal_id, mealFoodRepo, nowMs);
 
       return true;
     });
@@ -325,6 +334,7 @@ export class MealRepository extends BaseRepository {
       WHERE
         day_utc = $day_utc
         AND type = $type
+        AND deleted_at IS NULL
         AND (
           ($custom_type IS NULL AND custom_type IS NULL)
           OR
@@ -406,8 +416,7 @@ export class MealRepository extends BaseRepository {
 
   /**
    * Log an entire saved custom meal into the diary as a single transaction.
-   * Upserts the meal row with the custom meal's aggregate macros, then
-   * inserts one meal_foods row per custom meal ingredient.
+   * Upserts the meal row, inserts one meal_foods row per ingredient, then rebuilds totals.
    */
   public async logCustomMealTx(
     args: {
@@ -437,12 +446,6 @@ export class MealRepository extends BaseRepository {
         dayUtcSeconds,
         type,
         customType,
-        delta: {
-          energy: customMeal.energy,
-          proteins: customMeal.proteins,
-          carbohydrates: customMeal.carbohydrates,
-          fat: customMeal.fat,
-        },
         nowMs,
       });
 
@@ -458,6 +461,8 @@ export class MealRepository extends BaseRepository {
           throw new Error("meal_foods insert failed for custom meal food");
         }
       }
+
+      await this.rebuildMealMacros(mealId, mealFoodRepo, nowMs);
 
       return mealId;
     });
