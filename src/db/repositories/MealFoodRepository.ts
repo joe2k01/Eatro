@@ -15,6 +15,7 @@ export class MealFoodRepository extends BaseRepository {
       meal_id: rowData.meal_id,
       food_id: rowData.food_id,
       quantity: rowData.quantity,
+      serving_size: rowData.line_serving_size,
       created_at: rowData.created_at,
       updated_at: rowData.updated_at,
       deleted_at: rowData.deleted_at,
@@ -50,12 +51,13 @@ export class MealFoodRepository extends BaseRepository {
     mealId: number,
     foodId: number,
     quantityServings: number,
+    servingSize: number,
     nowMs: number,
   ): QueryResult<boolean> {
     const statement = await this.prepareStatement(
       `
-      INSERT INTO meal_foods (meal_id, food_id, quantity, created_at, updated_at, deleted_at)
-      VALUES ($meal_id, $food_id, $quantity, $created_at, $updated_at, NULL);
+      INSERT INTO meal_foods (meal_id, food_id, quantity, serving_size, created_at, updated_at, deleted_at)
+      VALUES ($meal_id, $food_id, $quantity, $serving_size, $created_at, $updated_at, NULL);
     `,
       "insertMealFood",
     );
@@ -66,6 +68,7 @@ export class MealFoodRepository extends BaseRepository {
       $meal_id: mealId,
       $food_id: foodId,
       $quantity: quantityServings,
+      $serving_size: servingSize,
       $created_at: nowMs,
       $updated_at: nowMs,
     });
@@ -94,6 +97,7 @@ export class MealFoodRepository extends BaseRepository {
         mf.meal_id,
         mf.food_id,
         mf.quantity,
+        mf.serving_size as line_serving_size,
         mf.created_at,
         mf.updated_at,
         mf.deleted_at,
@@ -143,6 +147,7 @@ export class MealFoodRepository extends BaseRepository {
         mf.meal_id,
         mf.food_id,
         mf.quantity,
+        mf.serving_size as line_serving_size,
         mf.created_at,
         mf.updated_at,
         mf.deleted_at,
@@ -214,20 +219,21 @@ export class MealFoodRepository extends BaseRepository {
   }
 
   /**
-   * Update logged quantity (servings) for a meal_food row.
+   * Update logged quantity (servings) and per-line serving size for a meal_food row.
    */
-  public async updateMealFoodQuantity(
+  public async updateMealFoodLine(
     mealFoodId: number,
     quantityServings: number,
+    servingSize: number,
     nowMs: number,
   ): QueryResult<boolean> {
     const statement = await this.prepareStatement(
       `
       UPDATE meal_foods
-      SET quantity = $quantity, updated_at = $updated_at
+      SET quantity = $quantity, serving_size = $serving_size, updated_at = $updated_at
       WHERE id = $id AND deleted_at IS NULL;
       `,
-      "updateMealFoodQuantity",
+      "updateMealFoodLine",
     );
 
     if (!statement) return null;
@@ -235,6 +241,7 @@ export class MealFoodRepository extends BaseRepository {
     const result = await this.executeStatement(statement, {
       $id: mealFoodId,
       $quantity: quantityServings,
+      $serving_size: servingSize,
       $updated_at: nowMs,
     });
 
@@ -242,7 +249,7 @@ export class MealFoodRepository extends BaseRepository {
 
     if (result.changes !== 1) {
       throw new Error(
-        `meal_foods quantity update unexpected changes: ${result.changes}`,
+        `meal_foods line update unexpected changes: ${result.changes}`,
       );
     }
 

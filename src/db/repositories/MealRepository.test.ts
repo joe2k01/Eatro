@@ -7,6 +7,7 @@ import {
   type TestRepositories,
 } from "../../../test/helpers/database";
 import type { SQLiteDatabase } from "expo-sqlite";
+import { lineMacrosForLoggedLine } from "./MealRepository";
 
 const DAY_UTC_SECONDS = new Date("2025-01-01T00:00:00Z").getTime() / 1000;
 
@@ -21,18 +22,9 @@ const defaultFood = {
   source: FoodSource.Api,
 };
 
-/** Mirrors `lineMacrosFromMealFood` in MealRepository (quantity × per-serving). */
-function lineDeltaForQuantity(
-  food: typeof defaultFood,
-  quantityServings: number,
-) {
-  return {
-    energy: quantityServings * food.energy_per_serving,
-    proteins: quantityServings * food.proteins_per_serving,
-    carbohydrates: quantityServings * food.carbohydrates_per_serving,
-    fat: quantityServings * food.fat_per_serving,
-  };
-}
+/** Half / double catalogue serving — used when tests need a line size different from `defaultFood.serving_size`. */
+const halfCatalogueServing = defaultFood.serving_size / 2;
+const doubleCatalogueServing = defaultFood.serving_size * 2;
 
 /** Jest `toBeCloseTo` second argument: decimal places checked after the decimal point. */
 const EXPECT_CLOSE_TO_DECIMALS = 5;
@@ -67,10 +59,11 @@ describe("MealRepository", () => {
     });
   }
 
-  it("upsertMealAndLogFoodTx inserts meal and logs meal food", async () => {
+  it("upsertMealAndLogFoodTx inserts meal and logs meal food with line serving_size", async () => {
     const foodId = await seedFood();
     expect(foodId).not.toBeNull();
 
+    const lineServing = defaultFood.serving_size;
     const nowMs = Date.now();
     const mealId = await repos.meal.upsertMealAndLogFoodTx(
       {
@@ -79,7 +72,8 @@ describe("MealRepository", () => {
         customType: null,
         foodId: foodId as number,
         quantityServings: 1.5,
-        delta: { energy: 247.5, proteins: 46.5, carbohydrates: 0, fat: 5.4 },
+        lineServingSize: lineServing,
+        delta: lineMacrosForLoggedLine(1.5, lineServing, defaultFood),
         nowMs,
       },
       repos.mealFood,
@@ -101,11 +95,16 @@ describe("MealRepository", () => {
     expect(mealFoods?.length).toBe(1);
     expect(mealFoods?.[0]?.food_id).toBe(foodId);
     expect(mealFoods?.[0]?.food?.name).toBe("Chicken Breast");
+    expect(mealFoods?.[0]?.serving_size).toBe(lineServing);
   });
 
   it("upsertMealAndLogFoodTx accumulates totals on repeated upsert", async () => {
-    const foodId = await seedFood();
+    const accumFood = { ...defaultFood, carbohydrates_per_serving: 5 };
+    const foodId = await seedFood("accum-1", "AccumFood", {
+      carbohydrates_per_serving: 5,
+    });
     const nowMs = Date.now();
+    const lineServing = accumFood.serving_size;
 
     await repos.meal.upsertMealAndLogFoodTx(
       {
@@ -114,7 +113,8 @@ describe("MealRepository", () => {
         customType: null,
         foodId: foodId as number,
         quantityServings: 1,
-        delta: { energy: 100, proteins: 10, carbohydrates: 5, fat: 2 },
+        lineServingSize: lineServing,
+        delta: lineMacrosForLoggedLine(1, lineServing, accumFood),
         nowMs,
       },
       repos.mealFood,
@@ -133,7 +133,8 @@ describe("MealRepository", () => {
         customType: null,
         foodId: foodId as number,
         quantityServings: 2,
-        delta: { energy: 200, proteins: 20, carbohydrates: 10, fat: 4 },
+        lineServingSize: lineServing,
+        delta: lineMacrosForLoggedLine(2, lineServing, accumFood),
         nowMs: nowMs + 1,
       },
       repos.mealFood,
@@ -188,7 +189,7 @@ describe("MealRepository", () => {
           name: "Rice",
           brand: "Test",
           quantity: 1,
-          servingSize: 100,
+          servingSize: defaultFood.serving_size,
           energy: 130,
           proteins: 2.7,
           carbohydrates: 28,
@@ -199,7 +200,7 @@ describe("MealRepository", () => {
           name: "Chicken",
           brand: "Test",
           quantity: 1,
-          servingSize: 100,
+          servingSize: defaultFood.serving_size,
           energy: 165,
           proteins: 31,
           carbohydrates: 0,
@@ -243,13 +244,16 @@ describe("MealRepository", () => {
     expect(mealFoods?.length).toBe(2);
     expect(mealFoods?.[0]?.food?.name).toBe("Rice");
     expect(mealFoods?.[1]?.food?.name).toBe("Chicken");
+    expect(mealFoods?.[0]?.serving_size).toBe(defaultFood.serving_size);
+    expect(mealFoods?.[1]?.serving_size).toBe(defaultFood.serving_size);
   });
 
   it("deleteMealFoodTx removes the line and subtracts meal macros", async () => {
     const foodId = await seedFood("del-1", "Apple");
     const nowMs = Date.now();
     const q = 2;
-    const lineDelta = lineDeltaForQuantity(defaultFood, q);
+    const lineServing = defaultFood.serving_size;
+    const lineDelta = lineMacrosForLoggedLine(q, lineServing, defaultFood);
     const mealId = await repos.meal.upsertMealAndLogFoodTx(
       {
         dayUtcSeconds: DAY_UTC_SECONDS,
@@ -257,6 +261,7 @@ describe("MealRepository", () => {
         customType: null,
         foodId: foodId as number,
         quantityServings: q,
+        lineServingSize: lineServing,
         delta: lineDelta,
         nowMs,
       },
@@ -297,9 +302,10 @@ describe("MealRepository", () => {
     expect(foodsAfter?.length).toBe(0);
   });
 
-  it("updateMealFoodTx changes quantity and adjusts meal macros", async () => {
+  it("updateMealFoodTx changes quantity only and adjusts meal macros", async () => {
     const foodId = await seedFood("upd-1", "Banana");
     const nowMs = Date.now();
+    const lineServing = defaultFood.serving_size;
     const mealId = await repos.meal.upsertMealAndLogFoodTx(
       {
         dayUtcSeconds: DAY_UTC_SECONDS,
@@ -307,7 +313,8 @@ describe("MealRepository", () => {
         customType: null,
         foodId: foodId as number,
         quantityServings: 1,
-        delta: lineDeltaForQuantity(defaultFood, 1),
+        lineServingSize: lineServing,
+        delta: lineMacrosForLoggedLine(1, lineServing, defaultFood),
         nowMs,
       },
       repos.mealFood,
@@ -324,13 +331,13 @@ describe("MealRepository", () => {
     const mealFoodId = listed?.[0]?.id as number;
 
     const newQty = 2;
-    const newLine = lineDeltaForQuantity(defaultFood, newQty);
+    const newLine = lineMacrosForLoggedLine(newQty, lineServing, defaultFood);
 
     const ok = await repos.meal.updateMealFoodTx(
       {
         mealFoodId,
         newQuantityServings: newQty,
-        newLineMacros: newLine,
+        newServingSize: lineServing,
         nowMs: nowMs + 1,
       },
       repos.mealFood,
@@ -342,7 +349,7 @@ describe("MealRepository", () => {
       MealType.Dinner,
       null,
     );
-    const oldLine = lineDeltaForQuantity(defaultFood, 1);
+    const oldLine = lineMacrosForLoggedLine(1, lineServing, defaultFood);
     expect(mealAfter?.energy).toBeCloseTo(
       (mealBefore?.energy ?? 0) + newLine.energy - oldLine.energy,
       EXPECT_CLOSE_TO_DECIMALS,
@@ -350,5 +357,250 @@ describe("MealRepository", () => {
 
     const row = await repos.mealFood.getMealFoodWithFoodById(mealFoodId);
     expect(row?.quantity).toBe(2);
+    expect(row?.serving_size).toBe(lineServing);
+  });
+
+  it("updateMealFoodTx changes serving size and persists line contribution", async () => {
+    const foodId = await seedFood("srv-1", "Oats");
+    const nowMs = Date.now();
+    const catalogueServing = defaultFood.serving_size;
+    const mealId = await repos.meal.upsertMealAndLogFoodTx(
+      {
+        dayUtcSeconds: DAY_UTC_SECONDS,
+        type: MealType.Breakfast,
+        customType: null,
+        foodId: foodId as number,
+        quantityServings: 1,
+        lineServingSize: catalogueServing,
+        delta: lineMacrosForLoggedLine(1, catalogueServing, defaultFood),
+        nowMs,
+      },
+      repos.mealFood,
+    );
+    expect(mealId).not.toBeNull();
+
+    const mealBefore = await repos.meal.getMealByDayUtc(
+      DAY_UTC_SECONDS,
+      MealType.Breakfast,
+      null,
+    );
+
+    const listed = await repos.mealFood.getMealFoodsByMealId(mealId as number);
+    const mealFoodId = listed?.[0]?.id as number;
+
+    const newLineServing = halfCatalogueServing;
+    const ok = await repos.meal.updateMealFoodTx(
+      {
+        mealFoodId,
+        newQuantityServings: 1,
+        newServingSize: newLineServing,
+        nowMs: nowMs + 1,
+      },
+      repos.mealFood,
+    );
+    expect(ok).toBe(true);
+
+    const mealAfter = await repos.meal.getMealByDayUtc(
+      DAY_UTC_SECONDS,
+      MealType.Breakfast,
+      null,
+    );
+    const oldLine = lineMacrosForLoggedLine(1, catalogueServing, defaultFood);
+    const newLine = lineMacrosForLoggedLine(1, newLineServing, defaultFood);
+    expect(mealAfter?.energy).toBeCloseTo(
+      (mealBefore?.energy ?? 0) + newLine.energy - oldLine.energy,
+      EXPECT_CLOSE_TO_DECIMALS,
+    );
+
+    const row = await repos.mealFood.getMealFoodWithFoodById(mealFoodId);
+    expect(row?.serving_size).toBe(newLineServing);
+  });
+
+  it("delete after serving-size edit subtracts the updated line contribution", async () => {
+    const foodId = await seedFood("del2-1", "Bar");
+    const nowMs = Date.now();
+    const catalogueServing = defaultFood.serving_size;
+    const mealId = await repos.meal.upsertMealAndLogFoodTx(
+      {
+        dayUtcSeconds: DAY_UTC_SECONDS,
+        type: MealType.Snack,
+        customType: null,
+        foodId: foodId as number,
+        quantityServings: 1,
+        lineServingSize: catalogueServing,
+        delta: lineMacrosForLoggedLine(1, catalogueServing, defaultFood),
+        nowMs,
+      },
+      repos.mealFood,
+    );
+    expect(mealId).not.toBeNull();
+
+    const listed = await repos.mealFood.getMealFoodsByMealId(mealId as number);
+    const mealFoodId = listed?.[0]?.id as number;
+
+    await repos.meal.updateMealFoodTx(
+      {
+        mealFoodId,
+        newQuantityServings: 1,
+        newServingSize: doubleCatalogueServing,
+        nowMs: nowMs + 1,
+      },
+      repos.mealFood,
+    );
+
+    const mealBeforeDelete = await repos.meal.getMealByDayUtc(
+      DAY_UTC_SECONDS,
+      MealType.Snack,
+      null,
+    );
+
+    const expectedLine = lineMacrosForLoggedLine(
+      1,
+      doubleCatalogueServing,
+      defaultFood,
+    );
+
+    await repos.meal.deleteMealFoodTx(
+      { mealFoodId, nowMs: nowMs + 2 },
+      repos.mealFood,
+    );
+
+    const mealAfter = await repos.meal.getMealByDayUtc(
+      DAY_UTC_SECONDS,
+      MealType.Snack,
+      null,
+    );
+    expect(mealAfter?.energy).toBeCloseTo(
+      (mealBeforeDelete?.energy ?? 0) - expectedLine.energy,
+      EXPECT_CLOSE_TO_DECIMALS,
+    );
+  });
+
+  it("repeated edits do not drift from formula-based totals", async () => {
+    const foodId = await seedFood("drift-1", "Yogurt");
+    const nowMs = Date.now();
+    const mealId = await repos.meal.upsertMealAndLogFoodTx(
+      {
+        dayUtcSeconds: DAY_UTC_SECONDS,
+        type: MealType.Lunch,
+        customType: null,
+        foodId: foodId as number,
+        quantityServings: 1,
+        lineServingSize: defaultFood.serving_size,
+        delta: lineMacrosForLoggedLine(
+          1,
+          defaultFood.serving_size,
+          defaultFood,
+        ),
+        nowMs,
+      },
+      repos.mealFood,
+    );
+    expect(mealId).not.toBeNull();
+
+    const listed = await repos.mealFood.getMealFoodsByMealId(mealId as number);
+    const mealFoodId = listed?.[0]?.id as number;
+
+    await repos.meal.updateMealFoodTx(
+      {
+        mealFoodId,
+        newQuantityServings: 2,
+        newServingSize: defaultFood.serving_size,
+        nowMs: nowMs + 1,
+      },
+      repos.mealFood,
+    );
+    await repos.meal.updateMealFoodTx(
+      {
+        mealFoodId,
+        newQuantityServings: 2,
+        newServingSize: halfCatalogueServing,
+        nowMs: nowMs + 2,
+      },
+      repos.mealFood,
+    );
+    await repos.meal.updateMealFoodTx(
+      {
+        mealFoodId,
+        newQuantityServings: 1,
+        newServingSize: defaultFood.serving_size,
+        nowMs: nowMs + 3,
+      },
+      repos.mealFood,
+    );
+
+    const meal = await repos.meal.getMealByDayUtc(
+      DAY_UTC_SECONDS,
+      MealType.Lunch,
+      null,
+    );
+    const expected = lineMacrosForLoggedLine(
+      1,
+      defaultFood.serving_size,
+      defaultFood,
+    );
+    expect(meal?.energy).toBeCloseTo(expected.energy, EXPECT_CLOSE_TO_DECIMALS);
+    expect(meal?.proteins).toBeCloseTo(
+      expected.proteins,
+      EXPECT_CLOSE_TO_DECIMALS,
+    );
+  });
+
+  it("regression: legacy quantity-only line math disagrees when line serving_size differs from catalogue", async () => {
+    const foodId = await seedFood("reg-1", "Muffin");
+    const nowMs = Date.now();
+    const lineServing = doubleCatalogueServing;
+    const qty = 1;
+    const trueLine = lineMacrosForLoggedLine(qty, lineServing, defaultFood);
+    const wrongCatalogueOnly = {
+      energy: qty * defaultFood.energy_per_serving,
+      proteins: qty * defaultFood.proteins_per_serving,
+      carbohydrates: qty * defaultFood.carbohydrates_per_serving,
+      fat: qty * defaultFood.fat_per_serving,
+    };
+
+    expect(trueLine.energy).not.toBeCloseTo(
+      wrongCatalogueOnly.energy,
+      EXPECT_CLOSE_TO_DECIMALS,
+    );
+
+    const mealId = await repos.meal.upsertMealAndLogFoodTx(
+      {
+        dayUtcSeconds: DAY_UTC_SECONDS,
+        type: MealType.Dinner,
+        customType: null,
+        foodId: foodId as number,
+        quantityServings: qty,
+        lineServingSize: lineServing,
+        delta: trueLine,
+        nowMs,
+      },
+      repos.mealFood,
+    );
+    expect(mealId).not.toBeNull();
+
+    const rows = await repos.mealFood.getMealFoodsByMealId(mealId as number);
+    const mealFoodId = rows?.[0]?.id as number;
+
+    const mealBefore = await repos.meal.getMealByDayUtc(
+      DAY_UTC_SECONDS,
+      MealType.Dinner,
+      null,
+    );
+
+    await repos.meal.deleteMealFoodTx(
+      { mealFoodId, nowMs: nowMs + 1 },
+      repos.mealFood,
+    );
+
+    const mealAfter = await repos.meal.getMealByDayUtc(
+      DAY_UTC_SECONDS,
+      MealType.Dinner,
+      null,
+    );
+    expect(mealAfter?.energy).toBeCloseTo(
+      (mealBefore?.energy ?? 0) - trueLine.energy,
+      EXPECT_CLOSE_TO_DECIMALS,
+    );
   });
 });

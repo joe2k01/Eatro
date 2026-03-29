@@ -1,5 +1,6 @@
 import {
   type DayTotals,
+  type Food,
   Meal,
   MealSchema,
   MealType,
@@ -19,14 +20,36 @@ export type MealMacroDelta = {
   fat: number;
 };
 
-function lineMacrosFromMealFood(row: MealFoodWithFood): MealMacroDelta {
-  const q = row.quantity;
+type FoodMacroBasis = Pick<
+  Food,
+  | "serving_size"
+  | "energy_per_serving"
+  | "proteins_per_serving"
+  | "carbohydrates_per_serving"
+  | "fat_per_serving"
+>;
+
+/**
+ * Macros contributed by one logged meal line: quantity × per-serving macros scaled by
+ * (line serving size ÷ catalogue serving size).
+ */
+export function lineMacrosForLoggedLine(
+  quantity: number,
+  lineServingSize: number,
+  food: FoodMacroBasis,
+): MealMacroDelta {
+  const catalogueServing = food.serving_size > 0 ? food.serving_size : 1;
+  const scale = lineServingSize / catalogueServing;
   return {
-    energy: q * row.food.energy_per_serving,
-    proteins: q * row.food.proteins_per_serving,
-    carbohydrates: q * row.food.carbohydrates_per_serving,
-    fat: q * row.food.fat_per_serving,
+    energy: quantity * food.energy_per_serving * scale,
+    proteins: quantity * food.proteins_per_serving * scale,
+    carbohydrates: quantity * food.carbohydrates_per_serving * scale,
+    fat: quantity * food.fat_per_serving * scale,
   };
+}
+
+function lineMacrosFromMealFood(row: MealFoodWithFood): MealMacroDelta {
+  return lineMacrosForLoggedLine(row.quantity, row.serving_size, row.food);
 }
 
 export class MealRepository extends BaseRepository {
@@ -111,6 +134,8 @@ export class MealRepository extends BaseRepository {
       customType: string | null;
       foodId: number;
       quantityServings: number;
+      /** Per-line serving size (g or food unit); persisted on `meal_foods`. */
+      lineServingSize: number;
       delta: {
         energy: number;
         proteins: number;
@@ -127,6 +152,7 @@ export class MealRepository extends BaseRepository {
       customType,
       foodId,
       quantityServings,
+      lineServingSize,
       delta,
       nowMs,
     } = args;
@@ -144,6 +170,7 @@ export class MealRepository extends BaseRepository {
         mealId,
         foodId,
         quantityServings,
+        lineServingSize,
         nowMs,
       );
 
@@ -235,19 +262,19 @@ export class MealRepository extends BaseRepository {
   }
 
   /**
-   * Update a line's quantity and adjust the parent meal totals by (new line macros − old line macros).
-   * Old line macros are derived from the stored food row and quantity before update.
+   * Update a line's quantity and per-line serving size; adjust meal totals by
+   * (new line macros − old line macros) using the same formula as display and delete.
    */
   public async updateMealFoodTx(
     args: {
       mealFoodId: number;
       newQuantityServings: number;
-      newLineMacros: MealMacroDelta;
+      newServingSize: number;
       nowMs: number;
     },
     mealFoodRepo: MealFoodRepository,
   ): QueryResult<boolean> {
-    const { mealFoodId, newQuantityServings, newLineMacros, nowMs } = args;
+    const { mealFoodId, newQuantityServings, newServingSize, nowMs } = args;
 
     return await this.withTransaction(async () => {
       const row = await mealFoodRepo.getMealFoodWithFoodById(mealFoodId);
@@ -256,20 +283,26 @@ export class MealRepository extends BaseRepository {
       }
 
       const oldLine = lineMacrosFromMealFood(row);
+      const newLine = lineMacrosForLoggedLine(
+        newQuantityServings,
+        newServingSize,
+        row.food,
+      );
       const delta: MealMacroDelta = {
-        energy: newLineMacros.energy - oldLine.energy,
-        proteins: newLineMacros.proteins - oldLine.proteins,
-        carbohydrates: newLineMacros.carbohydrates - oldLine.carbohydrates,
-        fat: newLineMacros.fat - oldLine.fat,
+        energy: newLine.energy - oldLine.energy,
+        proteins: newLine.proteins - oldLine.proteins,
+        carbohydrates: newLine.carbohydrates - oldLine.carbohydrates,
+        fat: newLine.fat - oldLine.fat,
       };
 
-      const updated = await mealFoodRepo.updateMealFoodQuantity(
+      const updated = await mealFoodRepo.updateMealFoodLine(
         mealFoodId,
         newQuantityServings,
+        newServingSize,
         nowMs,
       );
       if (!updated) {
-        throw new Error("meal_foods quantity update failed");
+        throw new Error("meal_foods line update failed");
       }
 
       const adjusted = await this.adjustMealMacros(row.meal_id, delta, nowMs);
@@ -418,6 +451,7 @@ export class MealRepository extends BaseRepository {
           mealId,
           cmf.food_id,
           cmf.quantity,
+          cmf.serving_size,
           nowMs,
         );
         if (!inserted) {

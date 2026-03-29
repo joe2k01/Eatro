@@ -287,6 +287,7 @@ export function ProductTrayContent({
           customType: normalizedCustomType,
           foodId,
           quantityServings: servingsValue,
+          lineServingSize: servingSizeValue,
           delta,
           nowMs,
         },

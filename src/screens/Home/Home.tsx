@@ -167,12 +167,7 @@ export function Home() {
         {
           mealFoodId: target.id,
           newQuantityServings: result.servingsValue,
-          newLineMacros: {
-            energy: result.energy,
-            proteins: result.proteins,
-            carbohydrates: result.carbohydrates,
-            fat: result.fat,
-          },
+          newServingSize: result.servingSizeValue,
           nowMs: Date.now(),
         },
         mealFoodRepo,
@@ -216,7 +211,7 @@ export function Home() {
       servingSize: food.serving_size,
       servingsUnit: food.unit,
       initialServings: quantity,
-      initialServingSize: food.serving_size,
+      initialServingSize: editTarget.serving_size,
     };
   }, [editTarget]);
 

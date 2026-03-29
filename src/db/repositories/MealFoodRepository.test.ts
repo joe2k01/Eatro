@@ -71,6 +71,7 @@ describe("MealFoodRepository", () => {
         customType: null,
         foodId: firstFoodId as number,
         quantityServings: 1,
+        lineServingSize: SEED_FOOD.serving_size,
         delta: lineDeltaForSeedFood(1),
         nowMs,
       },
@@ -83,6 +84,7 @@ describe("MealFoodRepository", () => {
       mealId as number,
       secondFoodId as number,
       QUANTITY_BEANS_LINE,
+      SEED_FOOD.serving_size,
       nowMs + 1,
     );
 
@@ -104,6 +106,7 @@ describe("MealFoodRepository", () => {
         customType: null,
         foodId: foodId as number,
         quantityServings: QUANTITY_OATS_LOGGED,
+        lineServingSize: SEED_FOOD.serving_size,
         delta: lineDeltaForSeedFood(QUANTITY_OATS_LOGGED),
         nowMs,
       },
@@ -121,6 +124,7 @@ describe("MealFoodRepository", () => {
     expect(byId).not.toBeNull();
     expect(byId?.food.name).toBe("Oats");
     expect(byId?.quantity).toBe(QUANTITY_OATS_LOGGED);
+    expect(byId?.serving_size).toBe(SEED_FOOD.serving_size);
 
     const deleted = await repos.mealFood.softDeleteMealFood(
       mealFoodId as number,
@@ -139,7 +143,7 @@ describe("MealFoodRepository", () => {
     expect(listedAfter?.length).toBe(0);
   });
 
-  it("updateMealFoodQuantity updates quantity", async () => {
+  it("updateMealFoodLine updates quantity and serving_size", async () => {
     const foodId = await seedFood("mf-qty", "Yogurt");
     const nowMs = Date.now();
     const mealId = await repos.meal.upsertMealAndLogFoodTx(
@@ -149,6 +153,7 @@ describe("MealFoodRepository", () => {
         customType: null,
         foodId: foodId as number,
         quantityServings: 1,
+        lineServingSize: SEED_FOOD.serving_size,
         delta: lineDeltaForSeedFood(1),
         nowMs,
       },
@@ -159,14 +164,16 @@ describe("MealFoodRepository", () => {
     const listed = await repos.mealFood.getMealFoodsByMealId(mealId as number);
     const mealFoodId = listed?.[0]?.id as number;
 
-    const updated = await repos.mealFood.updateMealFoodQuantity(
+    const updated = await repos.mealFood.updateMealFoodLine(
       mealFoodId,
       QUANTITY_AFTER_UPDATE,
+      SEED_FOOD.serving_size,
       nowMs + 1,
     );
     expect(updated).toBe(true);
 
     const again = await repos.mealFood.getMealFoodWithFoodById(mealFoodId);
     expect(again?.quantity).toBe(QUANTITY_AFTER_UPDATE);
+    expect(again?.serving_size).toBe(SEED_FOOD.serving_size);
   });
 });

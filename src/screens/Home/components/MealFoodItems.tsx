@@ -120,8 +120,11 @@ export function MealFoodItems({
             mealFood.quantity === 1
               ? "1 serving"
               : `${mealFood.quantity} servings`;
+          const catalogueServing =
+            mealFood.food.serving_size > 0 ? mealFood.food.serving_size : 1;
+          const scale = mealFood.serving_size / catalogueServing;
           const foodCalories = Math.round(
-            mealFood.quantity * mealFood.food.energy_per_serving,
+            mealFood.quantity * mealFood.food.energy_per_serving * scale,
           );
           const foodName = mealFood.food.name;
           const brandText = mealFood.food.brand
