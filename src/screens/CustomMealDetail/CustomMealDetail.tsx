@@ -56,8 +56,13 @@ function FoodRow({ item }: { item: CustomMealFoodWithBarcode }) {
   const navigation = useNavigation();
 
   const onPress = useCallback(() => {
-    navigation.navigate("Product", { foodId: item.food_id });
-  }, [item.food_id, navigation]);
+    const code = item.barcode?.trim();
+    if (code) {
+      navigation.navigate("Product", { barcode: code });
+    } else {
+      navigation.navigate("Product", { foodId: item.food_id });
+    }
+  }, [item.barcode, item.food_id, navigation]);
 
   return (
     <Pressable

@@ -43,7 +43,12 @@ export const SearchResultItem = memo(function SearchResultItem(
         navigation.navigate("Product", { barcode: item.code });
       })
       .with({ source: "local" }, ({ item }) => {
-        navigation.navigate("Product", { foodId: item.id });
+        const code = item.barcode?.trim();
+        if (code) {
+          navigation.navigate("Product", { barcode: code });
+        } else {
+          navigation.navigate("Product", { foodId: item.id });
+        }
       })
       .exhaustive();
   }, [navigation, props]);
