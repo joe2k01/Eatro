@@ -2,30 +2,40 @@
 # Rebuild the Yarn patch for ts-pattern from source (fork with P.string.notEmpty).
 #
 # The published npm package only ships dist/, so yarn patch cannot compile TS in place.
-# This clones joe2k01/ts-pattern (PR https://github.com/gvergnaud/ts-pattern/pull/348),
-# runs the upstream build, copies dist/ into the patch workspace, then yarn patch-commit.
+# This clones the upstream repo (https://github.com/gvergnaud/ts-pattern), merges your
+# fork branch on top (PR https://github.com/gvergnaud/ts-pattern/pull/348), runs the
+# build, copies dist/ into the patch workspace, then yarn patch-commit.
 #
 # Usage (from repo root): bash scripts/rebuild-ts-pattern-patch.sh
 # Optional env:
 #   TS_PATTERN_VERSION=5.9.0
+#   TS_PATTERN_UPSTREAM=https://github.com/gvergnaud/ts-pattern.git
+#   TS_PATTERN_UPSTREAM_REF=main
+#   TS_PATTERN_FORK=https://github.com/joe2k01/ts-pattern.git  (fallback: TS_PATTERN_REMOTE)
 #   TS_PATTERN_BRANCH=feature/p-string-not-empty
-#   TS_PATTERN_REMOTE=https://github.com/joe2k01/ts-pattern.git
 
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERSION="${TS_PATTERN_VERSION:-5.9.0}"
+UPSTREAM="${TS_PATTERN_UPSTREAM:-https://github.com/gvergnaud/ts-pattern.git}"
+UPSTREAM_REF="${TS_PATTERN_UPSTREAM_REF:-main}"
+FORK="${TS_PATTERN_FORK:-${TS_PATTERN_REMOTE:-https://github.com/joe2k01/ts-pattern.git}}"
 BRANCH="${TS_PATTERN_BRANCH:-feature/p-string-not-empty}"
-REMOTE="${TS_PATTERN_REMOTE:-https://github.com/joe2k01/ts-pattern.git}"
 CACHE="${REPO_ROOT}/node_modules/.cache/ts-pattern-not-empty-src"
 
-echo ">> Cloning ${REMOTE}#${BRANCH} -> ${CACHE}"
+echo ">> Clone upstream ${UPSTREAM} (${UPSTREAM_REF}) -> ${CACHE}"
 rm -rf "${CACHE}"
 mkdir -p "$(dirname "${CACHE}")"
-git clone --depth 1 --branch "${BRANCH}" "${REMOTE}" "${CACHE}"
+git clone --branch "${UPSTREAM_REF}" "${UPSTREAM}" "${CACHE}"
+
+cd "${CACHE}"
+echo ">> Fetch fork ${FORK} (${BRANCH}) and merge onto ${UPSTREAM_REF}"
+git remote add fork "${FORK}"
+git fetch fork "${BRANCH}"
+git merge "fork/${BRANCH}" --no-edit -m "Merge ${BRANCH} for Eatro Yarn patch rebuild"
 
 echo ">> Install & build ts-pattern"
-cd "${CACHE}"
 npm install
 npm run build
 
