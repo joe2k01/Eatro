@@ -11,7 +11,7 @@ import { spacing } from "@constants/theme";
 import type { SearchProductItem } from "@api/validators/searchProducts";
 import type { Food } from "@db/schemas";
 
-const THUMBNAIL_SIZE = 48;
+export const SEARCH_RESULT_THUMBNAIL_SIZE = 48;
 
 const styles = StyleSheet.create({
   row: {
@@ -22,8 +22,8 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   thumbnail: {
-    width: THUMBNAIL_SIZE,
-    height: THUMBNAIL_SIZE,
+    width: SEARCH_RESULT_THUMBNAIL_SIZE,
+    height: SEARCH_RESULT_THUMBNAIL_SIZE,
   },
 });
 

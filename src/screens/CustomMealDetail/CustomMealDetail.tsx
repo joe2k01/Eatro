@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FlatList, ListRenderItemInfo, StyleSheet } from "react-native";
+import {
+  FlatList,
+  ListRenderItemInfo,
+  Pressable,
+  StyleSheet,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { useParams } from "@hooks/useParams";
 import { useStaticNavigationOptions } from "@hooks/useStaticNavigationOptions";
 import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
@@ -11,14 +17,17 @@ import { Button } from "@components/buttons/Button";
 import { IconButton } from "@components/buttons/IconButton";
 import { Tray, type TrayApi } from "@components/layout/Tray";
 import { Picker, TextInput } from "@components/forms";
+import { BarcodeProductThumbnail } from "@components/media/BarcodeProductThumbnail";
 import { useTheme } from "@contexts/ThemeProvider";
 import { SnackbarVariant, useSnackbar } from "@components/feedback";
 import { useRepositories } from "@db/context/DatabaseProvider";
-import type { CustomMeal, CustomMealFood } from "@db/schemas";
+import type { CustomMeal } from "@db/schemas";
+import type { CustomMealFoodWithBarcode } from "@db/schemas/CustomMealFood";
 import { MealType } from "@db/schemas";
 import { utcStartOfTodaySeconds, addUtcDaysSeconds } from "@db/utils/utc";
-import { spacing } from "@constants/theme";
+import { BorderRadius, spacing } from "@constants/theme";
 import { mealOptions } from "@constants/mealOptions";
+import { SEARCH_RESULT_THUMBNAIL_SIZE } from "@screens/Search/components/SearchResultItem";
 
 export type CustomMealDetailParams = { customMealId: number };
 
@@ -33,25 +42,48 @@ const styles = StyleSheet.create({
   foodRow: {
     paddingVertical: spacing(1),
   },
+  thumbnail: {
+    width: SEARCH_RESULT_THUMBNAIL_SIZE,
+    height: SEARCH_RESULT_THUMBNAIL_SIZE,
+  },
+  pressed: {
+    opacity: 0.7,
+  },
 });
 
-function FoodRow({ item }: { item: CustomMealFood }) {
+function FoodRow({ item }: { item: CustomMealFoodWithBarcode }) {
   const theme = useTheme();
+  const navigation = useNavigation();
+
+  const onPress = useCallback(() => {
+    navigation.navigate("Product", { foodId: item.food_id });
+  }, [item.food_id, navigation]);
 
   return (
-    <HStack
-      style={styles.foodRow}
-      justifyContent="space-between"
-      alignItems="center"
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => (pressed ? styles.pressed : undefined)}
     >
-      <VStack flex={1} backgroundColor="transparent">
-        <Body numberOfLines={1}>{item.name}</Body>
-        <Caption color={theme.text.muted}>
-          {item.quantity} × {item.serving_size}g · {Math.round(item.energy)}{" "}
-          kcal
-        </Caption>
-      </VStack>
-    </HStack>
+      <HStack style={styles.foodRow} gap={1.5} alignItems="center">
+        <BarcodeProductThumbnail
+          barcode={item.barcode}
+          shape="squircle"
+          style={styles.thumbnail}
+        />
+        <VStack flex={1} backgroundColor="transparent" gap={0.25}>
+          <Body numberOfLines={1}>{item.name}</Body>
+          {item.brand ? (
+            <Caption color={theme.text.muted} numberOfLines={1}>
+              {item.brand}
+            </Caption>
+          ) : null}
+          <Caption color={theme.text.muted}>
+            {item.quantity} × {item.serving_size}g · {Math.round(item.energy)}{" "}
+            kcal
+          </Caption>
+        </VStack>
+      </HStack>
+    </Pressable>
   );
 }
 
@@ -68,7 +100,7 @@ export function CustomMealDetail() {
   } = useRepositories();
 
   const [mealData, setMealData] = useState<CustomMeal | null>(null);
-  const [foods, setFoods] = useState<CustomMealFood[]>([]);
+  const [foods, setFoods] = useState<CustomMealFoodWithBarcode[]>([]);
   const [saving, setSaving] = useState(false);
 
   const trayRef = useRef<TrayApi>(null);
@@ -110,6 +142,14 @@ export function CustomMealDetail() {
       timeZone: "UTC",
     }).format(new Date(dayUtcSeconds * 1000));
   }, [dayUtcSeconds]);
+
+  const macroCardStyle = useMemo(
+    () => ({
+      borderRadius: BorderRadius.lg,
+      backgroundColor: theme.surface.secondary,
+    }),
+    [theme.surface.secondary],
+  );
 
   const openLogTray = useCallback(() => {
     trayRef.current?.openTray();
@@ -174,12 +214,14 @@ export function CustomMealDetail() {
   ]);
 
   const renderItem = useCallback(
-    ({ item }: ListRenderItemInfo<CustomMealFood>) => <FoodRow item={item} />,
+    ({ item }: ListRenderItemInfo<CustomMealFoodWithBarcode>) => (
+      <FoodRow item={item} />
+    ),
     [],
   );
 
   const keyExtractor = useCallback(
-    (item: CustomMealFood) => String(item.id),
+    (item: CustomMealFoodWithBarcode) => String(item.id),
     [],
   );
 
@@ -189,43 +231,57 @@ export function CustomMealDetail() {
 
   return (
     <SafeVStack guard="bottom" flex={1} paddingHorizontal={2} paddingTop={1}>
-      <VStack gap={1}>
+      <VStack gap={1.5} backgroundColor="transparent">
         <Heading>{mealData.name}</Heading>
-        <HStack
-          backgroundColor="transparent"
-          justifyContent="space-between"
-          flex={1}
-        >
-          <VStack backgroundColor="transparent" flex={1}>
-            <Body textAlign="center">{Math.round(mealData.energy)}</Body>
-            <Caption textAlign="center">calories</Caption>
-          </VStack>
-          <VStack backgroundColor="transparent" flex={1}>
-            <Body textAlign="center">{Math.round(mealData.proteins)}g</Body>
-            <Caption textAlign="center">proteins</Caption>
-          </VStack>
-          <VStack backgroundColor="transparent" flex={1}>
-            <Body textAlign="center">
-              {Math.round(mealData.carbohydrates)}g
-            </Body>
-            <Caption textAlign="center">carbs</Caption>
-          </VStack>
-          <VStack backgroundColor="transparent" flex={1}>
-            <Body textAlign="center">{Math.round(mealData.fat)}g</Body>
-            <Caption textAlign="center">fat</Caption>
-          </VStack>
-        </HStack>
+        <VStack gap={1.5} padding={2} style={macroCardStyle}>
+          <HStack
+            backgroundColor="transparent"
+            justifyContent="space-between"
+            alignItems="stretch"
+          >
+            <VStack backgroundColor="transparent" flex={1} alignItems="center">
+              <Body textAlign="center">{Math.round(mealData.energy)}</Body>
+              <Caption textAlign="center" color={theme.text.muted}>
+                calories
+              </Caption>
+            </VStack>
+            <VStack backgroundColor="transparent" flex={1} alignItems="center">
+              <Body textAlign="center">{Math.round(mealData.proteins)}g</Body>
+              <Caption textAlign="center" color={theme.text.muted}>
+                protein
+              </Caption>
+            </VStack>
+            <VStack backgroundColor="transparent" flex={1} alignItems="center">
+              <Body textAlign="center">
+                {Math.round(mealData.carbohydrates)}g
+              </Body>
+              <Caption textAlign="center" color={theme.text.muted}>
+                carbs
+              </Caption>
+            </VStack>
+            <VStack backgroundColor="transparent" flex={1} alignItems="center">
+              <Body textAlign="center">{Math.round(mealData.fat)}g</Body>
+              <Caption textAlign="center" color={theme.text.muted}>
+                fat
+              </Caption>
+            </VStack>
+          </HStack>
+        </VStack>
       </VStack>
 
-      <Caption color={theme.text.muted}>
-        {foods.length} {foods.length === 1 ? "item" : "items"}
-      </Caption>
+      <VStack gap={0.25} paddingTop={1} backgroundColor="transparent">
+        <Body>Foods</Body>
+        <Caption color={theme.text.muted}>
+          {foods.length} {foods.length === 1 ? "item" : "items"}
+        </Caption>
+      </VStack>
 
       <FlatList
         style={styles.list}
         data={foods}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
+        keyboardShouldPersistTaps="handled"
       />
 
       <Button variant="primary" onPress={openLogTray}>

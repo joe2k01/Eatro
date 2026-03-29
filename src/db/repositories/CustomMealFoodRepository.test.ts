@@ -91,6 +91,7 @@ describe("CustomMealFoodRepository", () => {
     expect(first.proteins).toBe(24);
     expect(first.carbohydrates).toBe(36);
     expect(first.fat).toBe(12);
+    expect(first.barcode).toBe("cmf-1");
   });
 
   it("retrieves multiple foods for a custom meal in creation order", async () => {
@@ -132,5 +133,7 @@ describe("CustomMealFoodRepository", () => {
     expect(foods?.length).toBe(2);
     expect(foods?.[0]?.name).toBe("Rice");
     expect(foods?.[1]?.name).toBe("Beans");
+    expect(foods?.[0]?.barcode).toBe("cmf-2");
+    expect(foods?.[1]?.barcode).toBe("cmf-3");
   });
 });

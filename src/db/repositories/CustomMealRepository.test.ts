@@ -169,5 +169,7 @@ describe("CustomMealRepository", () => {
     expect(foods?.[1]?.name).toBe("Chicken");
     expect(foods?.[0]?.quantity).toBe(1.5);
     expect(foods?.[0]?.serving_size).toBe(100);
+    expect(foods?.[0]?.barcode).toBe("cm-1");
+    expect(foods?.[1]?.barcode).toBe("cm-2");
   });
 });
