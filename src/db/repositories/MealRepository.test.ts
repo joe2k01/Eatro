@@ -412,6 +412,58 @@ describe("MealRepository", () => {
     expect(totals?.energy).toBe(0);
   });
 
+  it("logging again after soft-deleted empty meal reactivates the row and sets macros", async () => {
+    const foodId = await seedFood("relog-1", "Pear");
+    const nowMs = Date.now();
+    const lineServing = defaultFood.serving_size;
+    const mealId = await repos.meal.upsertMealAndLogFoodTx(
+      {
+        dayUtcSeconds: DAY_UTC_SECONDS,
+        type: MealType.Lunch,
+        customType: null,
+        foodId: foodId as number,
+        quantityServings: 1,
+        lineServingSize: lineServing,
+        nowMs,
+      },
+      repos.mealFood,
+    );
+    expect(mealId).not.toBeNull();
+
+    const listed = await repos.mealFood.getMealFoodsByMealId(mealId as number);
+    await repos.meal.deleteMealFoodTx(
+      { mealFoodId: listed?.[0]?.id as number, nowMs: nowMs + 1 },
+      repos.mealFood,
+    );
+    expect(
+      await repos.meal.getMealByDayUtc(DAY_UTC_SECONDS, MealType.Lunch, null),
+    ).toBeNull();
+
+    await repos.meal.upsertMealAndLogFoodTx(
+      {
+        dayUtcSeconds: DAY_UTC_SECONDS,
+        type: MealType.Lunch,
+        customType: null,
+        foodId: foodId as number,
+        quantityServings: 2,
+        lineServingSize: lineServing,
+        nowMs: nowMs + 2,
+      },
+      repos.mealFood,
+    );
+
+    const meal = await repos.meal.getMealByDayUtc(
+      DAY_UTC_SECONDS,
+      MealType.Lunch,
+      null,
+    );
+    expect(meal).not.toBeNull();
+    expect(meal?.id).toBe(mealId);
+    expectMealMatchesLines(meal as NonNullable<typeof meal>, [
+      lineMacrosForLoggedLine(2, lineServing, defaultFood),
+    ]);
+  });
+
   it("deleteMealFoodTx removes one of two lines and rebuilds meal totals", async () => {
     const aId = await seedFood("del-a", "FoodA");
     const bId = await seedFood("del-b", "FoodB");

@@ -54,9 +54,11 @@ function lineMacrosFromMealFood(row: MealFoodWithFood): MealMacroDelta {
 
 export class MealRepository extends BaseRepository {
   /**
-   * Upsert a meal row (by day/type[/custom_type]). New rows start at zero macros;
-   * on conflict only `updated_at` is touched. Call {@link rebuildMealMacros} after
-   * line changes to set rolled-up totals. Must run inside a transaction.
+   * Upsert a meal row (by day/type[/custom_type]). New rows start at zero macros.
+   * On conflict, bumps `updated_at` and clears `deleted_at` so a slot that was
+   * soft-deleted after removing all lines can be logged into again (unique index
+   * still references the old row). Call {@link rebuildMealMacros} after line
+   * changes to set rolled-up totals. Must run inside a transaction.
    */
   private async upsertMealRow(args: {
     dayUtcSeconds: number;
@@ -72,8 +74,10 @@ export class MealRepository extends BaseRepository {
       INSERT INTO meals (day_utc, type, custom_type, energy, proteins, carbohydrates, fat, created_at, updated_at, deleted_at)
       VALUES ($day_utc, $type, $custom_type, 0, 0, 0, 0, $created_at, $updated_at, NULL)
       ON CONFLICT(day_utc, type, custom_type) WHERE custom_type IS NOT NULL DO UPDATE SET
+        deleted_at = NULL,
         updated_at = $updated_at
       ON CONFLICT(day_utc, type) WHERE custom_type IS NULL DO UPDATE SET
+        deleted_at = NULL,
         updated_at = $updated_at
       RETURNING id;
       `,
