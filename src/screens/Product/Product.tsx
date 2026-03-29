@@ -1,5 +1,6 @@
 import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { Suspense, useMemo } from "react";
+import { match, P } from "ts-pattern";
 import { useNavigation } from "@react-navigation/native";
 import { useParams } from "@hooks/useParams";
 import { ErrorBoundary } from "@components/feedback";
@@ -18,19 +19,19 @@ export type ProductParams = {
 export function Product() {
   const params = useParams<ProductParams>();
   const navigation = useNavigation();
-  const trimmedBarcode = params.barcode?.trim() ?? "";
-  const hasBarcode = trimmedBarcode.length > 0;
-  const foodId = params.foodId;
 
-  const content = useMemo(() => {
-    if (hasBarcode) {
-      return <ApiProductLoader barcode={trimmedBarcode} />;
-    }
-    if (foodId != null) {
-      return <DbProductLoader foodId={foodId} />;
-    }
-    return null;
-  }, [foodId, hasBarcode, trimmedBarcode]);
+  const content = useMemo(
+    () =>
+      match(params)
+        .with({ barcode: P.string.notEmpty() }, ({ barcode }) => (
+          <ApiProductLoader barcode={barcode.trim()} />
+        ))
+        .with({ foodId: P.number }, ({ foodId }) => (
+          <DbProductLoader foodId={foodId} />
+        ))
+        .otherwise(() => null),
+    [params],
+  );
 
   if (!content) {
     return (
