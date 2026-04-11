@@ -1,5 +1,14 @@
 require("react-native-reanimated").setUpTests();
 
+// Reanimated 4 reads these in valueSetter / animated components; not always
+// defined when the JS engine runs outside the native module bootstrap.
+if (typeof globalThis._getAnimationTimestamp !== "function") {
+  globalThis._getAnimationTimestamp = () => Date.now();
+}
+if (typeof globalThis.__flushAnimationFrame !== "function") {
+  globalThis.__flushAnimationFrame = (_timestamp?: number) => {};
+}
+
 jest.mock("@sentry/react-native", () => ({
   captureException: jest.fn(),
 }));
