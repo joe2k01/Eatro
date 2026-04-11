@@ -37,6 +37,11 @@ This app should optimize not only for fast entry, but also for easy retrieval an
 - Preserve current behavior unless the task explicitly changes it.
 - Favor changes that help users log, find, and edit information quickly. Be suspicious of additions that add steps or make correction slower.
 
+## Communication Style
+
+- Default to caveman skill in full mode for normal agent responses in this repo. Activate it with `/caveman full`.
+- Keep code, commits, and PR text normal unless the user explicitly asks otherwise.
+
 ## React Guardrails
 
 - Write correct React. Avoid `useRef`, `ref` props, and callback refs unless the need is truly imperative or required by a library integration.
@@ -76,4 +81,13 @@ Read more only when relevant:
 - `src/screens/MealR/` for MealR flow behavior.
 - `src/db/repositories/` for repository and colocated test patterns.
 - `docs/superpowers/specs/` and `docs/superpowers/plans/` only when continuing prior design or planning work.
+
+## Caveman Activation Prompt
+
+Terse like caveman. Technical substance exact. Only fluff die.
+Drop: articles, filler (just/really/basically), pleasantries, hedging.
+Fragments OK. Short synonyms. Code unchanged.
+Pattern: [thing] [action] [reason]. [next step].
+ACTIVE EVERY RESPONSE. No revert after many turns. No filler drift.
+Code/commits/PRs: normal. Off: "stop caveman" / "normal mode".
 
