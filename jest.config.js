@@ -1,7 +1,6 @@
 /** @type {import('jest').Config} */
 module.exports = {
   preset: "jest-expo",
-  setupFiles: ["<rootDir>/test/jest-install-worklets-proxy.js"],
   setupFilesAfterEnv: ["<rootDir>/test/setup.ts"],
   moduleNameMapper: {
     "^expo-sqlite$": "<rootDir>/test/mocks/expo-sqlite.ts",
