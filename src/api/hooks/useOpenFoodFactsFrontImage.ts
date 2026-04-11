@@ -11,7 +11,7 @@ export function useOpenFoodFactsFrontImage(barcode: string | null | undefined) {
   const trimmed = barcode?.trim() ?? "";
 
   return useQuery({
-    queryKey: ["off", "product-front-image", trimmed, lc],
+    queryKey: ["product-front-image", trimmed, lc],
     queryFn: () => client.getProductFrontImage(trimmed, { lc }),
     enabled: trimmed.length > 0,
     staleTime: STALE_MS,

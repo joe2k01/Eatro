@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { frontImageFromOffProductFields } from "./productFrontImage";
+import { frontImageFromProductFields } from "./productFrontImage";
 
 type NutrimentsVariant = {
   energy?: number;
@@ -92,7 +92,7 @@ export const zGetProductDetails = z
       brands,
     } = product;
 
-    const { imageUrl, imageRatio } = frontImageFromOffProductFields({
+    const { imageUrl, imageRatio } = frontImageFromProductFields({
       lang,
       images,
       selected_images,
