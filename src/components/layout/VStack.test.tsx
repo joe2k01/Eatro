@@ -1,0 +1,17 @@
+import { screen } from "@testing-library/react-native";
+import { renderWithProviders } from "../../../test/helpers/render";
+import { VStack } from "./VStack";
+import { Text } from "react-native";
+
+describe("VStack", () => {
+  it("renders children", () => {
+    renderWithProviders(
+      <VStack>
+        <Text>A</Text>
+        <Text>B</Text>
+      </VStack>,
+    );
+    expect(screen.getByText("A")).toBeTruthy();
+    expect(screen.getByText("B")).toBeTruthy();
+  });
+});
