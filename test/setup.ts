@@ -17,9 +17,7 @@ jest.mock("react-native-safe-area-context", () => {
   return mock.default ?? mock;
 });
 
-jest.mock("@gorhom/bottom-sheet", () =>
-  require("@gorhom/bottom-sheet/mock"),
-);
+jest.mock("@gorhom/bottom-sheet", () => require("@gorhom/bottom-sheet/mock"));
 
 jest.mock("react-native-vision-camera", () => {
   const React = require("react");
@@ -90,7 +88,11 @@ jest.mock("../modules/popup-button/src/PopupButtonView", () => {
       children?: React.ReactNode;
       onOptionSelect?: Function;
     }) {
-      return React.createElement("View", { testID: "popup-button" }, props.children);
+      return React.createElement(
+        "View",
+        { testID: "popup-button" },
+        props.children,
+      );
     },
   };
 });
