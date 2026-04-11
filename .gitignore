@@ -49,3 +49,6 @@ yarn-error.*
 
 # superpowers docs are local by default; force-add only when intentionally versioning them
 docs/superpowers/
+
+# git worktrees
+.worktrees/
