@@ -5,7 +5,6 @@ import { ThemeProvider } from "@contexts/ThemeProvider";
 import { SnackbarProvider, useSnackbar } from "./SnackbarProvider";
 
 declare global {
-  // eslint-disable-next-line no-var
   var __SNACKBAR_TEST_LAST_VISIBLE__: boolean | undefined;
 }
 

@@ -19,9 +19,7 @@ describe("TextInput", () => {
   });
 
   it("renders without label or unit", () => {
-    const { toJSON } = renderWithProviders(
-      <TextInput placeholder="type..." />,
-    );
+    const { toJSON } = renderWithProviders(<TextInput placeholder="type..." />);
     expect(toJSON()).toBeTruthy();
   });
 });

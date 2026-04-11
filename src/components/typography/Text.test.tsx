@@ -28,9 +28,7 @@ describe("Typography variants", () => {
   });
 
   it("passes style overrides through", () => {
-    renderWithProviders(
-      <Body style={{ fontSize: 99 }}>big body</Body>,
-    );
+    renderWithProviders(<Body style={{ fontSize: 99 }}>big body</Body>);
     expect(screen.getByText("big body")).toBeTruthy();
   });
 });

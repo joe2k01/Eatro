@@ -26,10 +26,9 @@ describe("useButtonStyle", () => {
   });
 
   it("returns styles for ghost variant", () => {
-    const { result } = renderHook(
-      () => useButtonStyle({ variant: "ghost" }),
-      { wrapper },
-    );
+    const { result } = renderHook(() => useButtonStyle({ variant: "ghost" }), {
+      wrapper,
+    });
     expect(result.current.containerStyle.backgroundColor).toBe("transparent");
   });
 
@@ -53,10 +52,9 @@ describe("useButtonStyle", () => {
   it.each(["primary", "secondary", "tertiary", "destructive"] as const)(
     "returns styles for %s variant",
     (variant) => {
-      const { result } = renderHook(
-        () => useButtonStyle({ variant }),
-        { wrapper },
-      );
+      const { result } = renderHook(() => useButtonStyle({ variant }), {
+        wrapper,
+      });
       expect(result.current.containerStyle).toBeDefined();
       expect(result.current.textStyle).toBeDefined();
     },

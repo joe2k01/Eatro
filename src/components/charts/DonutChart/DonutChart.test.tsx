@@ -63,11 +63,7 @@ describe("DonutChart", () => {
     );
 
     const { toJSON } = renderWithProviders(
-      <DonutChart
-        donutData={result.current}
-        total={100}
-        width={100}
-      />,
+      <DonutChart donutData={result.current} total={100} width={100} />,
     );
     expect(toJSON()).toBeTruthy();
     flushDonutTimers();
@@ -79,11 +75,7 @@ describe("DonutChart", () => {
     );
 
     const { toJSON } = renderWithProviders(
-      <DonutChart
-        donutData={result.current}
-        strokeWidth={10}
-        width={100}
-      />,
+      <DonutChart donutData={result.current} strokeWidth={10} width={100} />,
     );
     expect(toJSON()).toBeTruthy();
     flushDonutTimers();

@@ -10,9 +10,7 @@ describe("useTextInput", () => {
   });
 
   it("returns empty string when no default", () => {
-    const { result } = renderHook(() =>
-      useTextInput({ onChange: jest.fn() }),
-    );
+    const { result } = renderHook(() => useTextInput({ onChange: jest.fn() }));
     expect(result.current.value).toBe("");
   });
 

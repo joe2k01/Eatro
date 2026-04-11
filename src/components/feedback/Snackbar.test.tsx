@@ -1,10 +1,10 @@
-jest.mock("react-native-reanimated", () =>
-  require("react-native-reanimated/mock"),
-);
-
 import { screen } from "@testing-library/react-native";
 import { renderWithProviders } from "../../../test/helpers/render";
 import { Snackbar, SnackbarVariant } from "./Snackbar";
+
+jest.mock("react-native-reanimated", () =>
+  require("react-native-reanimated/mock"),
+);
 
 describe("Snackbar", () => {
   it("returns null when no message", () => {
@@ -26,22 +26,14 @@ describe("Snackbar", () => {
 
   it("renders Success label for success variant", () => {
     renderWithProviders(
-      <Snackbar
-        message="saved"
-        visible
-        variant={SnackbarVariant.Success}
-      />,
+      <Snackbar message="saved" visible variant={SnackbarVariant.Success} />,
     );
     expect(screen.getByText("Success")).toBeTruthy();
   });
 
   it("renders Error label for error variant", () => {
     renderWithProviders(
-      <Snackbar
-        message="failed"
-        visible
-        variant={SnackbarVariant.Error}
-      />,
+      <Snackbar message="failed" visible variant={SnackbarVariant.Error} />,
     );
     expect(screen.getByText("Error")).toBeTruthy();
   });
