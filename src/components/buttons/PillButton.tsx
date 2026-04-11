@@ -2,7 +2,7 @@ import { spacing, BorderRadius } from "@constants/theme";
 import { useTheme } from "@contexts/ThemeProvider";
 import { LayoutChangeEvent, Pressable, StyleSheet, View } from "react-native";
 import { Body } from "@components/typography/Text";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -59,7 +59,7 @@ export function PillButton<T>({
   // Measure tabs so we can animate an indicator behind the selected option.
   const [layouts, setLayouts] = useState<TabLayout[]>([]);
 
-  const onTabLayout = useCallback((e: LayoutChangeEvent, index: number) => {
+  const onTabLayout = (e: LayoutChangeEvent, index: number) => {
     const { x, width, height } = e.nativeEvent.layout;
 
     setLayouts((l) => {
@@ -67,7 +67,7 @@ export function PillButton<T>({
       newLayouts[index] = { x, width, height };
       return newLayouts;
     });
-  }, []);
+  };
 
   const indicatorX = useSharedValue(0);
   const indicatorWidth = useSharedValue(0);
@@ -79,36 +79,53 @@ export function PillButton<T>({
     const layout = layoutIndex >= 0 ? layouts[layoutIndex] : undefined;
 
     if (!layout) {
-      indicatorOpacity.value = withTiming(0, {
-        duration: 120,
-        easing: Easing.out(Easing.cubic),
-      });
+      indicatorOpacity.set(
+        withTiming(0, {
+          duration: 120,
+          easing: Easing.out(Easing.cubic),
+        }),
+      );
     } else {
-      indicatorOpacity.value = withTiming(1, {
-        duration: 120,
-        easing: Easing.out(Easing.cubic),
-      });
-      indicatorX.value = withTiming(layout.x, {
-        duration: INDICATOR_ANIMATION_MS,
-        easing: Easing.out(Easing.cubic),
-      });
-      indicatorWidth.value = withTiming(layout.width, {
-        duration: INDICATOR_ANIMATION_MS,
-        easing: Easing.out(Easing.cubic),
-      });
-      indicatorHeight.value = withTiming(layout.height, {
-        duration: INDICATOR_ANIMATION_MS,
-        easing: Easing.out(Easing.cubic),
-      });
+      indicatorOpacity.set(
+        withTiming(1, {
+          duration: 120,
+          easing: Easing.out(Easing.cubic),
+        }),
+      );
+      indicatorX.set(
+        withTiming(layout.x, {
+          duration: INDICATOR_ANIMATION_MS,
+          easing: Easing.out(Easing.cubic),
+        }),
+      );
+      indicatorWidth.set(
+        withTiming(layout.width, {
+          duration: INDICATOR_ANIMATION_MS,
+          easing: Easing.out(Easing.cubic),
+        }),
+      );
+      indicatorHeight.set(
+        withTiming(layout.height, {
+          duration: INDICATOR_ANIMATION_MS,
+          easing: Easing.out(Easing.cubic),
+        }),
+      );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selected, options, layouts]);
+  }, [
+    selected,
+    options,
+    layouts,
+    indicatorOpacity,
+    indicatorX,
+    indicatorWidth,
+    indicatorHeight,
+  ]);
 
   const animatedIndicatorStyle = useAnimatedStyle(() => ({
-    opacity: indicatorOpacity.value,
-    transform: [{ translateX: indicatorX.value }],
-    width: indicatorWidth.value,
-    height: indicatorHeight.value,
+    opacity: indicatorOpacity.get(),
+    transform: [{ translateX: indicatorX.get() }],
+    width: indicatorWidth.get(),
+    height: indicatorHeight.get(),
   }));
 
   const outerStyle = useMemo(

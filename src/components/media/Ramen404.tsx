@@ -41,38 +41,39 @@ export const Ramen404 = memo(function Ramen404() {
   const bounceProgress = useSharedValue(0);
 
   useEffect(() => {
-    smokeProgress.value = withRepeat(
-      withTiming(15, {
-        duration: 1500,
-        easing: Easing.linear,
-        reduceMotion: ReduceMotion.System,
-      }),
-      -1,
-      false,
+    smokeProgress.set(
+      withRepeat(
+        withTiming(15, {
+          duration: 1500,
+          easing: Easing.linear,
+          reduceMotion: ReduceMotion.System,
+        }),
+        -1,
+        false,
+      ),
     );
 
-    bounceProgress.value = withRepeat(
-      withTiming(10, {
-        duration: 2000,
-        reduceMotion: ReduceMotion.System,
-      }),
-      -1,
-      true,
+    bounceProgress.set(
+      withRepeat(
+        withTiming(10, {
+          duration: 2000,
+          reduceMotion: ReduceMotion.System,
+        }),
+        -1,
+        true,
+      ),
     );
-
-    // We don't need to retrigger the effect as per the docs
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [smokeProgress, bounceProgress]);
 
   const smokeAnimatedProps = useAnimatedProps(() => {
     return {
-      strokeDashoffset: smokeProgress.value,
+      strokeDashoffset: smokeProgress.get(),
     };
   });
 
   const numbersAnimatedProps = useAnimatedProps(() => {
     return {
-      transform: [{ translateY: bounceProgress.value }],
+      transform: [{ translateY: bounceProgress.get() }],
     };
   });
 

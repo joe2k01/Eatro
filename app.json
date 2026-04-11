@@ -60,6 +60,9 @@
       ],
       "@react-native-community/datetimepicker",
       "expo-image"
-    ]
+    ],
+    "experiments": {
+      "reactCompiler": true
+    }
   }
 }

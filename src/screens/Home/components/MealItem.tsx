@@ -85,46 +85,45 @@ export function MealItem({ meal, onEditFood, onDeleteFood }: MealItemProps) {
 
   const chevronRotation = useSharedValue(0);
   const animatedChevronStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${chevronRotation.value}deg` }],
+    transform: [{ rotate: `${chevronRotation.get()}deg` }],
   }));
 
   const contentHeight = useSharedValue(0);
   const contentWrapperHeight = useDerivedValue(() =>
     withTiming(
-      contentHeight.value * Number(isExpanded.value),
+      contentHeight.get() * Number(isExpanded.get()),
       ANIMATION_TIMING_CONFIG,
     ),
   );
   const contentWrapperOpacity = useDerivedValue(() =>
-    withTiming(isExpanded.value ? 1 : 0, ANIMATION_TIMING_CONFIG),
+    withTiming(isExpanded.get() ? 1 : 0, ANIMATION_TIMING_CONFIG),
   );
   const contentWrapperStyle = useAnimatedStyle(() => ({
-    height: contentWrapperHeight.value,
-    opacity: contentWrapperOpacity.value,
+    height: contentWrapperHeight.get(),
+    opacity: contentWrapperOpacity.get(),
   }));
 
   // Caption animation: slide down and fade away when expanding, slide up and fade in when collapsing
   const captionOpacity = useDerivedValue(() =>
-    withTiming(isExpanded.value ? 0 : 1, ANIMATION_TIMING_CONFIG),
+    withTiming(isExpanded.get() ? 0 : 1, ANIMATION_TIMING_CONFIG),
   );
   const captionTranslateY = useDerivedValue(() =>
-    withTiming(isExpanded.value ? 10 : 0, ANIMATION_TIMING_CONFIG),
+    withTiming(isExpanded.get() ? 10 : 0, ANIMATION_TIMING_CONFIG),
   );
   const captionScale = useDerivedValue(() =>
-    withTiming(isExpanded.value ? 0.95 : 1, ANIMATION_TIMING_CONFIG),
+    withTiming(isExpanded.get() ? 0.95 : 1, ANIMATION_TIMING_CONFIG),
   );
   const captionAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: captionOpacity.value,
+    opacity: captionOpacity.get(),
     transform: [
-      { translateY: captionTranslateY.value },
-      { scale: captionScale.value },
+      { translateY: captionTranslateY.get() },
+      { scale: captionScale.get() },
     ],
   }));
 
-  const onContentLayout = useCallback((event: LayoutChangeEvent) => {
-    contentHeight.value = event.nativeEvent.layout.height;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const onContentLayout = (event: LayoutChangeEvent) => {
+    contentHeight.set(event.nativeEvent.layout.height);
+  };
 
   const handlePress = useCallback(() => {
     const newExpanded = !isExpanded.get();
