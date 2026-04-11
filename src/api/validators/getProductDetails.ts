@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { frontImageFromProductFields } from "./productFrontImage";
 
 type NutrimentsVariant = {
   energy?: number;
@@ -83,9 +84,7 @@ export const zGetProductDetails = z
   .transform(({ product }) => {
     const {
       images,
-      selected_images: {
-        front: { display: imageUrls },
-      },
+      selected_images,
       lang,
       product_name,
       serving_size,
@@ -93,18 +92,11 @@ export const zGetProductDetails = z
       brands,
     } = product;
 
-    const imageUrl = lang in imageUrls ? imageUrls[lang] : undefined;
-
-    let dimensions: { w: number; h: number } = { w: 1, h: 1 };
-
-    if ("front" in images) {
-      dimensions = images["front"].sizes.full;
-    }
-
-    const computedFront = `front_${lang}`;
-    if (computedFront in images) {
-      dimensions = images[computedFront].sizes.full;
-    }
+    const { imageUrl, imageRatio } = frontImageFromProductFields({
+      lang,
+      images,
+      selected_images,
+    });
 
     const servingsMatch = servingsRegex.exec(serving_size ?? "");
 
@@ -121,7 +113,7 @@ export const zGetProductDetails = z
 
     return {
       imageUrl,
-      imageRatio: dimensions.w / dimensions.h,
+      imageRatio,
       name: product_name,
       servingSize,
       servingsUnit,

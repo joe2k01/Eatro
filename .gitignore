@@ -44,6 +44,8 @@ yarn-error.*
 
 # yarn
 .yarn/*
+!.yarn/patches
+!.yarn/patches/**
 
 # superpowers docs are local by default; force-add only when intentionally versioning them
 docs/superpowers/

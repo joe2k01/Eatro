@@ -1,7 +1,7 @@
 import { BaseRepository, type QueryResult } from "./BaseRepository";
 import {
-  CustomMealFoodSchema,
-  type CustomMealFood,
+  CustomMealFoodWithBarcodeSchema,
+  type CustomMealFoodWithBarcode,
 } from "@db/schemas/CustomMealFood";
 import { SqliteIdRowSchema } from "@db/schemas";
 
@@ -60,15 +60,18 @@ export class CustomMealFoodRepository extends BaseRepository {
 
   public async getFoodsByCustomMealId(
     customMealId: number,
-  ): QueryResult<CustomMealFood[]> {
+  ): QueryResult<CustomMealFoodWithBarcode[]> {
     const statement = await this.prepareStatement(
       `
-      SELECT * FROM custom_meal_foods
-      WHERE custom_meal_id = $custom_meal_id
-        AND deleted_at IS NULL
-      ORDER BY created_at ASC;
+      SELECT cmf.*, f.barcode AS barcode
+      FROM custom_meal_foods cmf
+      LEFT JOIN foods f
+        ON f.id = cmf.food_id AND f.deleted_at IS NULL
+      WHERE cmf.custom_meal_id = $custom_meal_id
+        AND cmf.deleted_at IS NULL
+      ORDER BY cmf.created_at ASC;
       `,
-      "getFoodsByCustomMealId",
+      "getFoodsByCustomMealIdJoined",
     );
 
     if (!statement) return null;
@@ -79,6 +82,6 @@ export class CustomMealFoodRepository extends BaseRepository {
     if (!result) return null;
 
     const rows = await result.getAllAsync();
-    return rows.map((row) => CustomMealFoodSchema.parse(row));
+    return rows.map((row) => CustomMealFoodWithBarcodeSchema.parse(row));
   }
 }

@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import { zGetProductDetails } from "./validators/getProductDetails";
+import { zGetProductFrontImage } from "./validators/productFrontImage";
 import { zSearchProducts } from "./validators/searchProducts";
 import { ApiError } from "./ApiError";
 
@@ -45,6 +46,18 @@ export class ApiClient {
     return this.get(
       `/product/${encodeURIComponent(barcode)}?${mParams}`,
       zGetProductDetails,
+    );
+  }
+
+  public getProductFrontImage(barcode: string, params: { lc?: string }) {
+    const mParams = new URLSearchParams({
+      ...params,
+      fields: "lang,images,selected_images",
+    });
+
+    return this.get(
+      `/product/${encodeURIComponent(barcode)}?${mParams}`,
+      zGetProductFrontImage,
     );
   }
 

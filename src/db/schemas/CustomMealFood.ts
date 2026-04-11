@@ -25,3 +25,11 @@ export const CustomMealFoodSchema = z.object({
 });
 
 export type CustomMealFood = z.infer<typeof CustomMealFoodSchema>;
+
+export const CustomMealFoodWithBarcodeSchema = CustomMealFoodSchema.extend({
+  barcode: z.string().nullable(),
+});
+
+export type CustomMealFoodWithBarcode = z.infer<
+  typeof CustomMealFoodWithBarcodeSchema
+>;
