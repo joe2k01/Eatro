@@ -2,7 +2,7 @@ import { renderWithProviders } from "../../../test/helpers/render";
 import { BarcodeProductThumbnail } from "./BarcodeProductThumbnail";
 import { useOpenFoodFactsFrontImage } from "@api/hooks/useOpenFoodFactsFrontImage";
 
-const mockRemoteImage = jest.fn(() => null);
+const mockRemoteImage = jest.fn((_props: unknown) => null);
 
 jest.mock("@components/media/RemoteImage", () => ({
   RemoteImage: (props: unknown) => mockRemoteImage(props),
