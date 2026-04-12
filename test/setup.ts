@@ -1,3 +1,5 @@
+import type { ReactNode, Ref } from "react";
+
 const mockReact = require("react") as typeof import("react");
 
 jest.mock("react-native-worklets", () =>
@@ -25,7 +27,7 @@ jest.mock("@gorhom/bottom-sheet", () => require("@gorhom/bottom-sheet/mock"));
 jest.mock("react-native-vision-camera", () => ({
   Camera: mockReact.forwardRef(function MockCamera(
     props: Record<string, unknown>,
-    ref: mockReact.Ref<unknown>,
+    ref: Ref<unknown>,
   ) {
     return mockReact.createElement("View", { ...props, ref });
   }),
@@ -61,10 +63,7 @@ jest.mock("@react-navigation/native", () => ({
 
 jest.mock("../modules/popup-button/src/PopupButtonView", () => ({
   __esModule: true,
-  default: (props: {
-    children?: mockReact.ReactNode;
-    onOptionSelect?: Function;
-  }) =>
+  default: (props: { children?: ReactNode; onOptionSelect?: Function }) =>
     mockReact.createElement("View", { testID: "popup-button" }, props.children),
 }));
 
