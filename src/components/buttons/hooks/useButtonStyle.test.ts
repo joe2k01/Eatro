@@ -1,6 +1,7 @@
 import { renderHook } from "@testing-library/react-native";
 import React, { ReactNode } from "react";
 import { ThemeProvider } from "@contexts/ThemeProvider";
+import { EatroTheme } from "@constants/theme";
 import { useButtonStyle } from "./useButtonStyle";
 
 jest.mock("@hooks/useStorage", () => ({
@@ -16,20 +17,12 @@ const wrapper = ({ children }: { children: ReactNode }) =>
   React.createElement(ThemeProvider, undefined, children);
 
 describe("useButtonStyle", () => {
-  it("returns styles for primary variant", () => {
-    const { result } = renderHook(
-      () => useButtonStyle({ variant: "primary" }),
-      { wrapper },
-    );
-    expect(result.current.containerStyle.backgroundColor).toBeDefined();
-    expect(result.current.textStyle.color).toBeDefined();
-  });
-
   it("returns styles for ghost variant", () => {
     const { result } = renderHook(() => useButtonStyle({ variant: "ghost" }), {
       wrapper,
     });
     expect(result.current.containerStyle.backgroundColor).toBe("transparent");
+    expect(result.current.textStyle.color).toBe(EatroTheme.dark.text.primary);
   });
 
   it("inverted flips to transparent background with border", () => {
@@ -49,14 +42,38 @@ describe("useButtonStyle", () => {
     expect(result.current.containerStyle.opacity).toBe(0.5);
   });
 
-  it.each(["primary", "secondary", "tertiary", "destructive"] as const)(
-    "returns styles for %s variant",
-    (variant) => {
+  it.each([
+    {
+      variant: "primary" as const,
+      backgroundColor: EatroTheme.dark.semantic.primary,
+      textColor: EatroTheme.dark.text.inverse,
+    },
+    {
+      variant: "secondary" as const,
+      backgroundColor: EatroTheme.dark.surface.secondary,
+      textColor: EatroTheme.dark.text.primary,
+    },
+    {
+      variant: "tertiary" as const,
+      backgroundColor: EatroTheme.dark.surface.tertiary,
+      textColor: EatroTheme.dark.text.secondary,
+    },
+    {
+      variant: "destructive" as const,
+      backgroundColor: EatroTheme.dark.semantic.destructive,
+      textColor: EatroTheme.dark.text.inverse,
+    },
+  ])(
+    "returns expected colors for $variant variant",
+    ({ variant, backgroundColor, textColor }) => {
       const { result } = renderHook(() => useButtonStyle({ variant }), {
         wrapper,
       });
-      expect(result.current.containerStyle).toBeDefined();
-      expect(result.current.textStyle).toBeDefined();
+
+      expect(result.current.containerStyle.backgroundColor).toBe(
+        backgroundColor,
+      );
+      expect(result.current.textStyle.color).toBe(textColor);
     },
   );
 });
