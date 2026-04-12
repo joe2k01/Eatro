@@ -1,3 +1,5 @@
+const mockReact = require("react") as typeof import("react");
+
 jest.mock("react-native-worklets", () =>
   require("react-native-worklets/src/mock"),
 );
@@ -20,36 +22,30 @@ jest.mock(
 
 jest.mock("@gorhom/bottom-sheet", () => require("@gorhom/bottom-sheet/mock"));
 
-jest.mock("react-native-vision-camera", () => {
-  const React = require("react");
-  return {
-    Camera: React.forwardRef(function MockCamera(
-      props: Record<string, unknown>,
-      ref: React.Ref<unknown>,
-    ) {
-      return React.createElement("View", { ...props, ref });
-    }),
-    useCameraDevice: jest.fn(() => ({ id: "back" })),
-    useCameraPermission: jest.fn(() => ({
-      hasPermission: true,
-      requestPermission: jest.fn(),
-    })),
-    useCodeScanner: jest.fn((opts: { onCodeScanned?: Function }) => opts),
-  };
-});
+jest.mock("react-native-vision-camera", () => ({
+  Camera: mockReact.forwardRef(function MockCamera(
+    props: Record<string, unknown>,
+    ref: mockReact.Ref<unknown>,
+  ) {
+    return mockReact.createElement("View", { ...props, ref });
+  }),
+  useCameraDevice: jest.fn(() => ({ id: "back" })),
+  useCameraPermission: jest.fn(() => ({
+    hasPermission: true,
+    requestPermission: jest.fn(),
+  })),
+  useCodeScanner: jest.fn((opts: { onCodeScanned?: Function }) => opts),
+}));
 
-const mockIconModule = () => {
-  const React = require("react");
-  return {
-    __esModule: true,
-    default: (props: { name: string; testID?: string }) =>
-      React.createElement(
-        "Text",
-        { testID: props.testID ?? `icon-${props.name}` },
-        props.name,
-      ),
-  };
-};
+const mockIconModule = () => ({
+  __esModule: true,
+  default: (props: { name: string; testID?: string }) =>
+    mockReact.createElement(
+      "Text",
+      { testID: props.testID ?? `icon-${props.name}` },
+      props.name,
+    ),
+});
 
 jest.mock("@expo/vector-icons/MaterialIcons", () => mockIconModule());
 jest.mock("@expo/vector-icons/MaterialCommunityIcons", () => mockIconModule());
@@ -63,22 +59,14 @@ jest.mock("@react-navigation/native", () => ({
   useIsFocused: jest.fn(() => true),
 }));
 
-jest.mock("../modules/popup-button/src/PopupButtonView", () => {
-  const React = require("react");
-  return {
-    __esModule: true,
-    default: function MockPopupButtonView(props: {
-      children?: React.ReactNode;
-      onOptionSelect?: Function;
-    }) {
-      return React.createElement(
-        "View",
-        { testID: "popup-button" },
-        props.children,
-      );
-    },
-  };
-});
+jest.mock("../modules/popup-button/src/PopupButtonView", () => ({
+  __esModule: true,
+  default: (props: {
+    children?: mockReact.ReactNode;
+    onOptionSelect?: Function;
+  }) =>
+    mockReact.createElement("View", { testID: "popup-button" }, props.children),
+}));
 
 afterEach(() => {
   jest.clearAllMocks();
