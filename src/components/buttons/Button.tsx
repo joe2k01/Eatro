@@ -8,7 +8,13 @@ import {
 } from "react-native";
 import { InvertibleVariant, useButtonStyle } from "./hooks/useButtonStyle";
 import { Body, Caption } from "@components/typography/Text";
-import { cloneElement, isValidElement, ReactNode, useMemo } from "react";
+import {
+  cloneElement,
+  isValidElement,
+  type ReactElement,
+  type ReactNode,
+  useMemo,
+} from "react";
 
 type BaseButtonProps = Omit<PressableProps, "children" | "style"> & {
   children?: ReactNode;
@@ -33,6 +39,10 @@ type StandardButtonProps = BaseButtonProps & {
 };
 
 export type ButtonProps = GhostButtonProps | StandardButtonProps;
+
+type ColorableIconProps = {
+  color?: unknown;
+};
 
 const styles = StyleSheet.create({
   button: {
@@ -90,16 +100,18 @@ export function Button(props: ButtonProps) {
   // Inject color into icons if they don't already have one
   const coloredLeftIcon = useMemo(() => {
     if (!leftIcon || !isValidElement(leftIcon)) return leftIcon;
+    const typedLeftIcon = leftIcon as ReactElement<ColorableIconProps>;
     // Only inject color if not already provided
-    if (leftIcon.props.color) return leftIcon;
-    return cloneElement(leftIcon, { color: textStyle.color });
+    if (typedLeftIcon.props.color) return typedLeftIcon;
+    return cloneElement(typedLeftIcon, { color: textStyle.color });
   }, [leftIcon, textStyle.color]);
 
   const coloredRightIcon = useMemo(() => {
     if (!rightIcon || !isValidElement(rightIcon)) return rightIcon;
+    const typedRightIcon = rightIcon as ReactElement<ColorableIconProps>;
     // Only inject color if not already provided
-    if (rightIcon.props.color) return rightIcon;
-    return cloneElement(rightIcon, { color: textStyle.color });
+    if (typedRightIcon.props.color) return typedRightIcon;
+    return cloneElement(typedRightIcon, { color: textStyle.color });
   }, [rightIcon, textStyle.color]);
 
   return (
