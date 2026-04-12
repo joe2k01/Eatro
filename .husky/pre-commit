@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+set -e
+
+yarn lint --max-warnings 0
+yarn format-check
+yarn typecheck

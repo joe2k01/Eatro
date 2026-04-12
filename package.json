@@ -13,7 +13,8 @@
     "format-check": "prettier --check \"src/**/*.{ts,tsx,json}\" \"test/**/*.{ts,tsx,json}\"",
     "test": "jest --runInBand",
     "test:watch": "jest --watch",
-    "rebuild-ts-pattern-patch": "bash scripts/rebuild-ts-pattern-patch.sh"
+    "rebuild-ts-pattern-patch": "bash scripts/rebuild-ts-pattern-patch.sh",
+    "prepare": "husky"
   },
   "dependencies": {
     "@gorhom/bottom-sheet": "^5",
@@ -61,6 +62,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-react-compiler": "^19.1.0-rc.2",
+    "husky": "^9.1.7",
     "jest": "~29.7.0",
     "jest-expo": "~55.0.15",
     "prettier": "^3.7.3",
