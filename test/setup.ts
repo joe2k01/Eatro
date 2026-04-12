@@ -38,39 +38,21 @@ jest.mock("react-native-vision-camera", () => {
   };
 });
 
-jest.mock("@expo/vector-icons/MaterialIcons", () => {
+const mockIconModule = () => {
   const React = require("react");
   return {
     __esModule: true,
-    default: function MockMaterialIcons(props: {
-      name: string;
-      testID?: string;
-    }) {
-      return React.createElement(
+    default: (props: { name: string; testID?: string }) =>
+      React.createElement(
         "Text",
         { testID: props.testID ?? `icon-${props.name}` },
         props.name,
-      );
-    },
+      ),
   };
-});
+};
 
-jest.mock("@expo/vector-icons/MaterialCommunityIcons", () => {
-  const React = require("react");
-  return {
-    __esModule: true,
-    default: function MockMaterialCommunityIcons(props: {
-      name: string;
-      testID?: string;
-    }) {
-      return React.createElement(
-        "Text",
-        { testID: props.testID ?? `icon-${props.name}` },
-        props.name,
-      );
-    },
-  };
-});
+jest.mock("@expo/vector-icons/MaterialIcons", () => mockIconModule());
+jest.mock("@expo/vector-icons/MaterialCommunityIcons", () => mockIconModule());
 
 jest.mock("@react-navigation/native", () => ({
   useNavigation: jest.fn(() => ({
