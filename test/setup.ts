@@ -61,8 +61,26 @@ jest.mock("@react-navigation/native", () => ({
   useIsFocused: jest.fn(() => true),
 }));
 
-jest.mock("../modules/popup-button/src/PopupButtonView", () => ({
-  __esModule: true,
-  default: (props: { children?: ReactNode; onOptionSelect?: Function }) =>
-    mockReact.createElement("View", { testID: "popup-button" }, props.children),
-}));
+jest.mock("../modules/popup-button/src/PopupButtonView", () => {
+  const { Pressable, View } = require("react-native") as typeof import("react-native");
+  return {
+    __esModule: true,
+    default: (props: {
+      children?: ReactNode;
+      onOptionSelect?: (option: { label: string; value: unknown }) => void;
+      options?: Array<{ label: string; value: unknown }>;
+    }) =>
+      mockReact.createElement(
+        View,
+        { testID: "popup-button" },
+        props.children,
+        ...(props.options ?? []).map((opt) =>
+          mockReact.createElement(Pressable, {
+            key: String(opt.value),
+            testID: `popup-option-${String(opt.value)}`,
+            onPress: () => props.onOptionSelect?.(opt),
+          }),
+        ),
+      ),
+  };
+});

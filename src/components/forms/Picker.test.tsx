@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react-native";
+import { fireEvent, screen } from "@testing-library/react-native";
 import { renderWithProviders } from "../../../test/helpers/render";
 import { Picker } from "./Picker";
 
@@ -26,10 +26,21 @@ describe("Picker", () => {
     expect(screen.getByText("Select...")).toBeOnTheScreen();
   });
 
-  it("renders inside popup-button mock", () => {
+  it("updates button label when a different option is selected", () => {
+    const onOptionSelect = jest.fn();
     renderWithProviders(
-      <Picker options={options} onOptionSelect={jest.fn()} />,
+      <Picker options={options} onOptionSelect={onOptionSelect} />,
     );
-    expect(screen.getByTestId("popup-button")).toBeOnTheScreen();
+    expect(screen.getByText("Select...")).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId("popup-option-lunch"));
+    expect(screen.getByText("Lunch")).toBeOnTheScreen();
+    expect(screen.queryByText("Select...")).not.toBeOnTheScreen();
+    expect(onOptionSelect).toHaveBeenCalledWith(options[1]);
+
+    fireEvent.press(screen.getByTestId("popup-option-breakfast"));
+    expect(screen.getByText("Breakfast")).toBeOnTheScreen();
+    expect(screen.queryByText("Lunch")).not.toBeOnTheScreen();
+    expect(onOptionSelect).toHaveBeenLastCalledWith(options[0]);
   });
 });
