@@ -11,7 +11,7 @@ const loadingFallback = {};
 async function load<K extends StorageKey>(
   key: K,
 ): Promise<z.output<StorageSchema[K]> | object> {
-  const validator = storageSchema[key];
+  const validator: StorageSchema[K] = storageSchema[key];
   try {
     const loadedData = await AsyncStorage.getItem(key);
     const parsedData = loadedData ? JSON.parse(loadedData) : loadingFallback;
@@ -21,7 +21,9 @@ async function load<K extends StorageKey>(
       return loadingFallback;
     }
 
-    const data = await validator.parseAsync(parsedData);
+    const data = (await validator.parseAsync(parsedData)) as z.output<
+      StorageSchema[K]
+    >;
     return data;
   } catch (e) {
     Sentry.captureException(e);
@@ -64,7 +66,7 @@ export function useStorage<K extends StorageKey>(
   key: K,
   initialData?: z.output<StorageSchema[K]>,
 ): UseStorageResult<K> {
-  const validator = storageSchema[key];
+  const validator: StorageSchema[K] = storageSchema[key];
   const [data, setData] = useState<z.output<StorageSchema[K]> | object>(
     initialData ?? loadingFallback,
   );
@@ -93,7 +95,9 @@ export function useStorage<K extends StorageKey>(
     async (next: z.output<StorageSchema[K]>) => {
       try {
         setLoading(true);
-        const parsed = await validator.parseAsync(next);
+        const parsed = (await validator.parseAsync(next)) as z.output<
+          StorageSchema[K]
+        >;
         setData(parsed);
         await store(key, parsed);
       } catch (e) {

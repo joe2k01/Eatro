@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { useUpsertFood } from "@db/hooks/useUpsertFood";
 import type { TrayApi } from "@components/layout/Tray";
 import { Tray } from "@components/layout/Tray";
+import type { GetProductDetails } from "@api/validators/getProductDetails";
 import {
   ProductTrayContent,
   type ProductTrayAcceptResult,
@@ -25,7 +26,7 @@ export function MealRAddFlow() {
 
 type MealRAddFlowInnerProps = {
   barcode: string;
-  product: Parameters<typeof useUpsertFood>[0];
+  product: GetProductDetails;
   addItem: ReturnType<typeof useMealRSession>["addItem"];
   returnToSession: () => void;
 };
