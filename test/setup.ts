@@ -2,6 +2,7 @@ jest.mock("react-native-worklets", () =>
   require("react-native-worklets/src/mock"),
 );
 
+// Must use require — worklets mock above must be registered before reanimated loads
 require("react-native-reanimated").setUpTests();
 
 jest.mock("@sentry/react-native", () => ({
