@@ -66,7 +66,3 @@ jest.mock("../modules/popup-button/src/PopupButtonView", () => ({
   default: (props: { children?: ReactNode; onOptionSelect?: Function }) =>
     mockReact.createElement("View", { testID: "popup-button" }, props.children),
 }));
-
-afterEach(() => {
-  jest.clearAllMocks();
-});

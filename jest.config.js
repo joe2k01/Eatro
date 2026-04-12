@@ -15,4 +15,5 @@ module.exports = {
   },
   testMatch: ["<rootDir>/src/**/*.test.ts", "<rootDir>/src/**/*.test.tsx"],
   testTimeout: 10000,
+  clearMocks: true,
 };
