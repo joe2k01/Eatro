@@ -12,6 +12,12 @@ module.exports = defineConfig([
     ignores: ["dist/*"],
   },
   {
+    files: ["test/**/*.ts", "test/**/*.tsx", "src/**/*.test.ts", "src/**/*.test.tsx"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
+  {
     rules: {
       "@typescript-eslint/no-unused-vars": [
         "error",
