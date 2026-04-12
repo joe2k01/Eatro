@@ -5,6 +5,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useParams } from "@hooks/useParams";
 import { ErrorBoundary } from "@components/feedback";
 import { VStack } from "@components/layout/VStack";
+import { ScreenHeader } from "@components/navigation/ScreenHeader";
 import { ProductLoader } from "./ProductLoader";
 import { ProductError } from "./ProductError";
 import { ApiProductLoader } from "./ApiProductLoader";
@@ -35,27 +36,35 @@ export function Product() {
 
   if (!content) {
     return (
-      <VStack flex={1} padding={2}>
-        <ProductError
-          error={new Error("Missing product parameters")}
-          onRetry={() => navigation.goBack()}
-        />
+      <VStack flex={1}>
+        <ScreenHeader title="Product" />
+        <VStack flex={1} padding={2}>
+          <ProductError
+            error={new Error("Missing product parameters")}
+            onRetry={() => navigation.goBack()}
+          />
+        </VStack>
       </VStack>
     );
   }
 
   return (
-    <QueryErrorResetBoundary>
-      {({ reset }) => (
-        <ErrorBoundary
-          onReset={reset}
-          fallback={({ error, reset: onRetry }) => (
-            <ProductError error={error} onRetry={onRetry} />
+    <VStack flex={1}>
+      <ScreenHeader title="Product" />
+      <VStack flex={1}>
+        <QueryErrorResetBoundary>
+          {({ reset }) => (
+            <ErrorBoundary
+              onReset={reset}
+              fallback={({ error, reset: onRetry }) => (
+                <ProductError error={error} onRetry={onRetry} />
+              )}
+            >
+              <Suspense fallback={<ProductLoader />}>{content}</Suspense>
+            </ErrorBoundary>
           )}
-        >
-          <Suspense fallback={<ProductLoader />}>{content}</Suspense>
-        </ErrorBoundary>
-      )}
-    </QueryErrorResetBoundary>
+        </QueryErrorResetBoundary>
+      </VStack>
+    </VStack>
   );
 }

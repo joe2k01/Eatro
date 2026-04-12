@@ -1,20 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { useStaticNavigationOptions } from "@hooks/useStaticNavigationOptions";
-import { NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import { BackArrow } from "@components/navigation/BackArrow";
+import { ScreenHeader } from "@components/navigation/ScreenHeader";
 import { BarcodeCamera } from "@components/media/BarcodeCamera";
 
-const scannerHeaderOptions = {
-  title: "",
-  headerStyle: {
-    backgroundColor: "transparent",
-  },
-  headerLeft: (props) => <BackArrow {...props} variant="destructive" />,
-} satisfies NativeStackNavigationOptions;
-
 export function Scanner() {
-  useStaticNavigationOptions(scannerHeaderOptions);
   const navigation = useNavigation();
 
   const [barcode, setBarcode] = useState<string | undefined>();
@@ -38,8 +29,23 @@ export function Scanner() {
   );
 
   return (
-    <BarcodeCamera isActive={!barcode} onBarcodeScanned={onBarcodeScanned} />
+    <View style={styles.container}>
+      <BarcodeCamera isActive={!barcode} onBarcodeScanned={onBarcodeScanned} />
+      <ScreenHeader
+        left={<BackArrow canGoBack variant="destructive" />}
+        style={styles.transparentHeader}
+      />
+    </View>
   );
 }
 
 export type ScannerParams = undefined;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  transparentHeader: {
+    backgroundColor: "transparent",
+  },
+});

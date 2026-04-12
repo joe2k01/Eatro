@@ -8,15 +8,12 @@ import { useTheme } from "@contexts/ThemeProvider";
 import { useStorage } from "@hooks/useStorage";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { StyleSheet } from "react-native";
-import type {
-  NativeStackNavigationOptions,
-  NativeStackNavigationProp,
-} from "@react-navigation/native-stack";
-import { useStaticNavigationOptions } from "@hooks/useStaticNavigationOptions";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { DonutChart, useDonut } from "@components/charts";
 import { useForm } from "@hooks/useForm";
 import { TextInput } from "@components/forms";
 import { SnackbarVariant, useSnackbar } from "@components/feedback";
+import { ScreenHeader } from "@components/navigation/ScreenHeader";
 import { useNavigation } from "@react-navigation/native";
 import { SettingsStackParamsList } from "@screens/Settings/routes";
 import { goalsValidator } from "@constants/storage/validators/goals";
@@ -33,12 +30,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export const goalsConfigurationHeaderOptions = {
-  title: "Goals configuration",
-} satisfies NativeStackNavigationOptions;
-
 export function GoalsConfiguration() {
-  useStaticNavigationOptions(goalsConfigurationHeaderOptions);
   const showSnackbar = useSnackbar();
   const navigation =
     useNavigation<NativeStackNavigationProp<SettingsStackParamsList>>();
@@ -143,6 +135,10 @@ export function GoalsConfiguration() {
 
   return (
     <SafeVStack paddingHorizontal={2}>
+      <ScreenHeader
+        title="Goals configuration"
+        style={{ paddingHorizontal: 0 }}
+      />
       <VStack paddingBlock={2} gap={2}>
         <VStack gap={1}>
           <Title>Calorie Goal</Title>
