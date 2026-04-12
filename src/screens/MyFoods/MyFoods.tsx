@@ -89,6 +89,7 @@ export function MyFoods() {
   return (
     <SafeVStack guard="bottom" flex={1} paddingTop={1}>
       <ScreenHeader
+        left={null}
         center={<Title>My Foods</Title>}
         right={
           <IconButton

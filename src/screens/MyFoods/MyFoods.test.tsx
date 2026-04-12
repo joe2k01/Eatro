@@ -35,6 +35,7 @@ describe("MyFoods header", () => {
     renderWithProviders(<MyFoods />);
     expect(mockScreenHeader).toHaveBeenCalledWith(
       expect.objectContaining({
+        left: null,
         center: expect.anything(),
         right: expect.anything(),
       }),
