@@ -1,7 +1,5 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { SectionList, StyleSheet, useWindowDimensions } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRoute, type RouteProp } from "@react-navigation/native";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useApiClient } from "@api/ApiClient";
 import { VStack } from "@components/layout/VStack";
@@ -19,8 +17,10 @@ import {
   ROW_HEIGHT,
 } from "./components/SearchResultLoader";
 import { useManualFoods } from "@screens/MyFoods/hooks/useManualFoods";
+import { SearchHeader } from "./components/SearchHeader";
 
 const HEADER_HEIGHT_ESTIMATE = 56;
+const DEBOUNCE_MS = 400;
 
 const styles = StyleSheet.create({
   container: {
@@ -60,11 +60,17 @@ function InitialLoaders({ count }: { count: number }) {
 
 export function Search() {
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
   const { client } = useApiClient();
+  const [inputQuery, setInputQuery] = useState("");
+  const [query, setQuery] = useState("");
 
-  const route = useRoute<RouteProp<{ Search: SearchParams }, "Search">>();
-  const query = route.params?.query ?? "";
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setQuery(inputQuery.trim());
+    }, DEBOUNCE_MS);
+
+    return () => clearTimeout(timeout);
+  }, [inputQuery]);
 
   const queryEnabled = query.length > 0;
 
@@ -147,12 +153,13 @@ export function Search() {
   const { height: windowHeight } = useWindowDimensions();
 
   const loaderCount = useMemo(() => {
-    const available = windowHeight - insets.top - HEADER_HEIGHT_ESTIMATE;
+    const available = windowHeight - HEADER_HEIGHT_ESTIMATE;
     return Math.ceil(available / ROW_HEIGHT);
-  }, [windowHeight, insets.top]);
+  }, [windowHeight]);
 
   return (
     <VStack style={styles.container}>
+      <SearchHeader query={inputQuery} onQueryChange={setInputQuery} />
       {!queryEnabled ? (
         <VStack style={styles.emptyContainer}>
           <Caption color={theme.text.muted}>
