@@ -10,6 +10,8 @@ describe("ScrollableView", () => {
         <Text>content</Text>
       </ScrollableView>,
     );
+    const root = screen.getByTestId("sv");
+    expect(root.type).toBe("View");
     expect(screen.getByText("content")).toBeOnTheScreen();
   });
 
@@ -19,6 +21,8 @@ describe("ScrollableView", () => {
         <Text>scroll content</Text>
       </ScrollableView>,
     );
+    const root = screen.getByTestId("sv-scroll");
+    expect(root.type).toContain("ScrollView");
     expect(screen.getByText("scroll content")).toBeOnTheScreen();
   });
 });

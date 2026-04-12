@@ -62,7 +62,8 @@ jest.mock("@react-navigation/native", () => ({
 }));
 
 jest.mock("../modules/popup-button/src/PopupButtonView", () => {
-  const { Pressable, View } = require("react-native") as typeof import("react-native");
+  const { Pressable, View } =
+    require("react-native") as typeof import("react-native");
   return {
     __esModule: true,
     default: (props: {
