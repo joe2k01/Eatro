@@ -6,7 +6,7 @@ import { Icon } from "@components/media/Icon";
 describe("Button", () => {
   it("renders label text", () => {
     renderWithProviders(<Button onPress={jest.fn()}>Save</Button>);
-    expect(screen.getByText("Save")).toBeTruthy();
+    expect(screen.getByText("Save")).toBeOnTheScreen();
   });
 
   it("fires onPress callback on press", () => {
@@ -33,7 +33,7 @@ describe("Button", () => {
         Main
       </Button>,
     );
-    expect(screen.getByText("sub text")).toBeTruthy();
+    expect(screen.getByText("sub text")).toBeOnTheScreen();
   });
 
   it("renders left icon", () => {
@@ -42,7 +42,7 @@ describe("Button", () => {
         With Icon
       </Button>,
     );
-    expect(screen.getByText("add")).toBeTruthy();
+    expect(screen.getByText("add")).toBeOnTheScreen();
   });
 
   it("renders right icon", () => {
@@ -51,7 +51,7 @@ describe("Button", () => {
         With Right
       </Button>,
     );
-    expect(screen.getByText("close")).toBeTruthy();
+    expect(screen.getByText("close")).toBeOnTheScreen();
   });
 
   it("renders with ghost variant", () => {
@@ -60,6 +60,6 @@ describe("Button", () => {
         Ghost
       </Button>,
     );
-    expect(screen.getByText("Ghost")).toBeTruthy();
+    expect(screen.getByText("Ghost")).toBeOnTheScreen();
   });
 });

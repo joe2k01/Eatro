@@ -10,6 +10,25 @@ function flushDonutTimers() {
   });
 }
 
+function countCircleNodes(node: unknown): number {
+  if (!node || typeof node !== "object") return 0;
+  if (Array.isArray(node)) {
+    return node.reduce((sum, child) => sum + countCircleNodes(child), 0);
+  }
+
+  const jsonNode = node as {
+    type?: string;
+    children?: unknown[];
+  };
+  const ownCount =
+    typeof jsonNode.type === "string" &&
+    jsonNode.type.toLowerCase().includes("circle")
+      ? 1
+      : 0;
+
+  return ownCount + countCircleNodes(jsonNode.children ?? []);
+}
+
 describe("DonutChart", () => {
   beforeEach(() => {
     jest.useFakeTimers();
@@ -19,7 +38,7 @@ describe("DonutChart", () => {
     jest.useRealTimers();
   });
 
-  it("renders with multiple segments", () => {
+  it("renders one circle per segment plus track", () => {
     const { result } = renderHook(() =>
       useDonut([
         { key: "protein", value: 30, color: "#4CAF50" },
@@ -31,7 +50,7 @@ describe("DonutChart", () => {
     const { toJSON } = renderWithProviders(
       <DonutChart donutData={result.current} width={100} />,
     );
-    expect(toJSON()).toBeTruthy();
+    expect(countCircleNodes(toJSON())).toBe(4);
     flushDonutTimers();
   });
 
@@ -41,11 +60,11 @@ describe("DonutChart", () => {
     const { toJSON } = renderWithProviders(
       <DonutChart donutData={result.current} width={100} />,
     );
-    expect(toJSON()).toBeTruthy();
+    expect(countCircleNodes(toJSON())).toBe(1);
     flushDonutTimers();
   });
 
-  it("renders with single segment", () => {
+  it("renders single segment plus track", () => {
     const { result } = renderHook(() =>
       useDonut([{ key: "protein", value: 100, color: "#4CAF50" }]),
     );
@@ -53,31 +72,7 @@ describe("DonutChart", () => {
     const { toJSON } = renderWithProviders(
       <DonutChart donutData={result.current} width={100} />,
     );
-    expect(toJSON()).toBeTruthy();
-    flushDonutTimers();
-  });
-
-  it("renders with total prop", () => {
-    const { result } = renderHook(() =>
-      useDonut([{ key: "protein", value: 30, color: "#4CAF50" }]),
-    );
-
-    const { toJSON } = renderWithProviders(
-      <DonutChart donutData={result.current} total={100} width={100} />,
-    );
-    expect(toJSON()).toBeTruthy();
-    flushDonutTimers();
-  });
-
-  it("renders with custom strokeWidth", () => {
-    const { result } = renderHook(() =>
-      useDonut([{ key: "a", value: 50, color: "red" }]),
-    );
-
-    const { toJSON } = renderWithProviders(
-      <DonutChart donutData={result.current} strokeWidth={10} width={100} />,
-    );
-    expect(toJSON()).toBeTruthy();
+    expect(countCircleNodes(toJSON())).toBe(2);
     flushDonutTimers();
   });
 });

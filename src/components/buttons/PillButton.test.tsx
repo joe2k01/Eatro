@@ -12,8 +12,8 @@ describe("PillButton", () => {
     renderWithProviders(
       <PillButton options={options} selected="100g" onSelect={jest.fn()} />,
     );
-    expect(screen.getByText("Per 100g")).toBeTruthy();
-    expect(screen.getByText("Per serving")).toBeTruthy();
+    expect(screen.getByText("Per 100g")).toBeOnTheScreen();
+    expect(screen.getByText("Per serving")).toBeOnTheScreen();
   });
 
   it("fires onSelect with correct value on press", () => {

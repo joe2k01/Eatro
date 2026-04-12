@@ -10,6 +10,6 @@ describe("KeyboardView", () => {
         <Text>keyboard content</Text>
       </KeyboardView>,
     );
-    expect(screen.getByText("keyboard content")).toBeTruthy();
+    expect(screen.getByText("keyboard content")).toBeOnTheScreen();
   });
 });

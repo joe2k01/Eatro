@@ -1,32 +1,52 @@
+import { BorderRadius } from "@constants/theme";
+import { screen } from "@testing-library/react-native";
 import { renderWithProviders } from "../../../test/helpers/render";
 import { Fallback } from "./Fallback";
 
 describe("Fallback", () => {
-  it("renders without crashing (default props)", () => {
-    const { toJSON } = renderWithProviders(
-      <Fallback style={{ width: 100, height: 100 }} />,
+  it("applies rect border radius by default", () => {
+    renderWithProviders(
+      <Fallback testID="fallback" style={{ width: 100, height: 100 }} />,
     );
-    expect(toJSON()).toBeTruthy();
+    expect(screen.getByTestId("fallback")).toHaveStyle({
+      borderRadius: BorderRadius.md,
+    });
   });
 
-  it("renders with animate={false}", () => {
-    const { toJSON } = renderWithProviders(
-      <Fallback animate={false} style={{ width: 100, height: 100 }} />,
+  it("applies squircle border radius", () => {
+    renderWithProviders(
+      <Fallback
+        testID="fallback"
+        shape="squircle"
+        style={{ width: 100, height: 100 }}
+      />,
     );
-    expect(toJSON()).toBeTruthy();
+    expect(screen.getByTestId("fallback")).toHaveStyle({
+      borderRadius: BorderRadius.lg,
+    });
   });
 
-  it("renders with circle shape", () => {
-    const { toJSON } = renderWithProviders(
-      <Fallback shape="circle" style={{ width: 50, height: 50 }} />,
+  it("applies explicit border radius override", () => {
+    renderWithProviders(
+      <Fallback
+        testID="fallback"
+        borderRadius={20}
+        style={{ width: 100, height: 100 }}
+      />,
     );
-    expect(toJSON()).toBeTruthy();
+    expect(screen.getByTestId("fallback")).toHaveStyle({ borderRadius: 20 });
   });
 
-  it("renders with squircle shape", () => {
-    const { toJSON } = renderWithProviders(
-      <Fallback shape="squircle" style={{ width: 50, height: 50 }} />,
+  it("applies custom base color as background color", () => {
+    renderWithProviders(
+      <Fallback
+        testID="fallback"
+        baseColor="#ff0000"
+        style={{ width: 100, height: 100 }}
+      />,
     );
-    expect(toJSON()).toBeTruthy();
+    expect(screen.getByTestId("fallback")).toHaveStyle({
+      backgroundColor: "#ff0000",
+    });
   });
 });

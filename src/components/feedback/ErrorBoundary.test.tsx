@@ -18,7 +18,7 @@ describe("ErrorBoundary", () => {
         <Text>safe content</Text>
       </ErrorBoundary>,
     );
-    expect(screen.getByText("safe content")).toBeTruthy();
+    expect(screen.getByText("safe content")).toBeOnTheScreen();
     expect(screen.queryByText("fallback")).toBeNull();
   });
 
@@ -28,7 +28,7 @@ describe("ErrorBoundary", () => {
         <ThrowingChild />
       </ErrorBoundary>,
     );
-    expect(screen.getByText("error occurred")).toBeTruthy();
+    expect(screen.getByText("error occurred")).toBeOnTheScreen();
   });
 
   it("renders render-prop fallback with error info", () => {
@@ -41,6 +41,6 @@ describe("ErrorBoundary", () => {
         <ThrowingChild />
       </ErrorBoundary>,
     );
-    expect(screen.getByText("caught: boom")).toBeTruthy();
+    expect(screen.getByText("caught: boom")).toBeOnTheScreen();
   });
 });

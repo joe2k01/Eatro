@@ -11,7 +11,18 @@ describe("VStack", () => {
         <Text>B</Text>
       </VStack>,
     );
-    expect(screen.getByText("A")).toBeTruthy();
-    expect(screen.getByText("B")).toBeTruthy();
+    expect(screen.getByText("A")).toBeOnTheScreen();
+    expect(screen.getByText("B")).toBeOnTheScreen();
+  });
+
+  it("applies vertical flex direction", () => {
+    renderWithProviders(
+      <VStack testID="vstack">
+        <Text>item</Text>
+      </VStack>,
+    );
+    expect(screen.getByTestId("vstack")).toHaveStyle({
+      flexDirection: "column",
+    });
   });
 });

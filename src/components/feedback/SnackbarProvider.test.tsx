@@ -64,7 +64,7 @@ describe("SnackbarProvider", () => {
         </SnackbarProvider>
       </ThemeProvider>,
     );
-    expect(screen.getByText("child")).toBeTruthy();
+    expect(screen.getByText("child")).toBeOnTheScreen();
   });
 
   it("shows snackbar when show() called", () => {
@@ -80,7 +80,7 @@ describe("SnackbarProvider", () => {
       fireEvent.press(screen.getByTestId("trigger"));
     });
 
-    expect(screen.getByText("hello snack")).toBeTruthy();
+    expect(screen.getByText("hello snack")).toBeOnTheScreen();
   });
 
   it("auto-dismisses after timeout", () => {
@@ -98,7 +98,7 @@ describe("SnackbarProvider", () => {
       fireEvent.press(screen.getByTestId("trigger"));
     });
 
-    expect(screen.getByText("hello snack")).toBeTruthy();
+    expect(screen.getByText("hello snack")).toBeOnTheScreen();
     expect(globalThis.__SNACKBAR_TEST_LAST_VISIBLE__).toBe(true);
 
     act(() => {

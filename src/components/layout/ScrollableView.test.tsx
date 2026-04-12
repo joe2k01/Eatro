@@ -10,7 +10,7 @@ describe("ScrollableView", () => {
         <Text>content</Text>
       </ScrollableView>,
     );
-    expect(screen.getByText("content")).toBeTruthy();
+    expect(screen.getByText("content")).toBeOnTheScreen();
   });
 
   it("renders as ScrollView when scrollable", () => {
@@ -19,6 +19,6 @@ describe("ScrollableView", () => {
         <Text>scroll content</Text>
       </ScrollableView>,
     );
-    expect(screen.getByText("scroll content")).toBeTruthy();
+    expect(screen.getByText("scroll content")).toBeOnTheScreen();
   });
 });

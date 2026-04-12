@@ -10,6 +10,6 @@ describe("Tray", () => {
         <Text>tray content</Text>
       </Tray>,
     );
-    expect(screen.getByText("tray content")).toBeTruthy();
+    expect(screen.getByText("tray content")).toBeOnTheScreen();
   });
 });

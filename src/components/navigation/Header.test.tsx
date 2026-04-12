@@ -12,20 +12,20 @@ const baseProps = {
 describe("Header", () => {
   it("renders with route name as title", () => {
     renderWithProviders(<Header {...baseProps} />);
-    expect(screen.getByText("TestScreen")).toBeTruthy();
+    expect(screen.getByText("TestScreen")).toBeOnTheScreen();
   });
 
   it("renders with options.title", () => {
     renderWithProviders(
       <Header {...baseProps} options={{ title: "Custom Title" }} />,
     );
-    expect(screen.getByText("Custom Title")).toBeTruthy();
+    expect(screen.getByText("Custom Title")).toBeOnTheScreen();
   });
 
   it("renders with headerTitle string", () => {
     renderWithProviders(
       <Header {...baseProps} options={{ headerTitle: "Header Title" }} />,
     );
-    expect(screen.getByText("Header Title")).toBeTruthy();
+    expect(screen.getByText("Header Title")).toBeOnTheScreen();
   });
 });

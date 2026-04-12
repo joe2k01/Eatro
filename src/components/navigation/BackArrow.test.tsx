@@ -16,7 +16,7 @@ describe("BackArrow", () => {
 
   it("renders back chevron icon", () => {
     renderWithProviders(<BackArrow canGoBack />);
-    expect(screen.getByText("chevron-left")).toBeTruthy();
+    expect(screen.getByText("chevron-left")).toBeOnTheScreen();
   });
 
   it("calls navigation.goBack on press", () => {

@@ -11,13 +11,13 @@ describe("CenteredHeader", () => {
         right={<Text>R</Text>}
       />,
     );
-    expect(screen.getByText("L")).toBeTruthy();
-    expect(screen.getByText("C")).toBeTruthy();
-    expect(screen.getByText("R")).toBeTruthy();
+    expect(screen.getByText("L")).toBeOnTheScreen();
+    expect(screen.getByText("C")).toBeOnTheScreen();
+    expect(screen.getByText("R")).toBeOnTheScreen();
   });
 
   it("handles missing slots gracefully", () => {
     const { toJSON } = render(<CenteredHeader />);
-    expect(toJSON()).toBeTruthy();
+    expect(toJSON()?.children).toHaveLength(3);
   });
 });

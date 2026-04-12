@@ -5,7 +5,7 @@ import { IconButton } from "./IconButton";
 describe("IconButton", () => {
   it("renders icon", () => {
     renderWithProviders(<IconButton name="close" onPress={jest.fn()} />);
-    expect(screen.getByText("close")).toBeTruthy();
+    expect(screen.getByText("close")).toBeOnTheScreen();
   });
 
   it("fires onPress on press", () => {
@@ -28,6 +28,6 @@ describe("IconButton", () => {
     renderWithProviders(
       <IconButton name="menu" variant="ghost" onPress={jest.fn()} />,
     );
-    expect(screen.getByText("menu")).toBeTruthy();
+    expect(screen.getByText("menu")).toBeOnTheScreen();
   });
 });

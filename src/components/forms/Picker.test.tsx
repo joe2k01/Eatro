@@ -16,20 +16,20 @@ describe("Picker", () => {
         placeholder="Choose meal"
       />,
     );
-    expect(screen.getByText("Choose meal")).toBeTruthy();
+    expect(screen.getByText("Choose meal")).toBeOnTheScreen();
   });
 
   it("renders default placeholder", () => {
     renderWithProviders(
       <Picker options={options} onOptionSelect={jest.fn()} />,
     );
-    expect(screen.getByText("Select...")).toBeTruthy();
+    expect(screen.getByText("Select...")).toBeOnTheScreen();
   });
 
   it("renders inside popup-button mock", () => {
     renderWithProviders(
       <Picker options={options} onOptionSelect={jest.fn()} />,
     );
-    expect(screen.getByTestId("popup-button")).toBeTruthy();
+    expect(screen.getByTestId("popup-button")).toBeOnTheScreen();
   });
 });

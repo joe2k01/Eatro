@@ -11,17 +11,16 @@ describe("HStack", () => {
         <Text>B</Text>
       </HStack>,
     );
-    expect(screen.getByText("A")).toBeTruthy();
-    expect(screen.getByText("B")).toBeTruthy();
+    expect(screen.getByText("A")).toBeOnTheScreen();
+    expect(screen.getByText("B")).toBeOnTheScreen();
   });
 
   it("applies horizontal flex direction", () => {
-    const { toJSON } = renderWithProviders(
+    renderWithProviders(
       <HStack testID="hstack">
         <Text>item</Text>
       </HStack>,
     );
-    const root = toJSON();
-    expect(root).toBeTruthy();
+    expect(screen.getByTestId("hstack")).toHaveStyle({ flexDirection: "row" });
   });
 });

@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react-native";
+import { render, screen } from "@testing-library/react-native";
 import { BarcodeCamera } from "./BarcodeCamera";
 import { useCameraPermission } from "react-native-vision-camera";
 
@@ -6,10 +6,8 @@ const mockUseCameraPermission = useCameraPermission as jest.Mock;
 
 describe("BarcodeCamera", () => {
   it("renders camera when active and permission granted", () => {
-    const { toJSON } = render(
-      <BarcodeCamera isActive onBarcodeScanned={jest.fn()} />,
-    );
-    expect(toJSON()).toBeTruthy();
+    render(<BarcodeCamera isActive onBarcodeScanned={jest.fn()} />);
+    expect(screen.toJSON()).not.toBeNull();
   });
 
   it("returns null without permission", () => {

@@ -10,7 +10,7 @@ describe("Box", () => {
         <Text>child content</Text>
       </Box>,
     );
-    expect(screen.getByText("child content")).toBeTruthy();
+    expect(screen.getByText("child content")).toBeOnTheScreen();
   });
 
   it("passes style props through", () => {
@@ -19,6 +19,6 @@ describe("Box", () => {
         <Text>content</Text>
       </Box>,
     );
-    expect(screen.getByTestId("box")).toBeTruthy();
+    expect(screen.getByTestId("box")).toHaveStyle({ padding: 10 });
   });
 });

@@ -10,7 +10,7 @@ describe("SafeVStack", () => {
         <Text>safe content</Text>
       </SafeVStack>,
     );
-    expect(screen.getByText("safe content")).toBeTruthy();
+    expect(screen.getByText("safe content")).toBeOnTheScreen();
   });
 
   it("accepts guard='top'", () => {
@@ -19,7 +19,7 @@ describe("SafeVStack", () => {
         <Text>top guard</Text>
       </SafeVStack>,
     );
-    expect(screen.getByText("top guard")).toBeTruthy();
+    expect(screen.getByText("top guard")).toBeOnTheScreen();
   });
 
   it("accepts guard='both'", () => {
@@ -28,6 +28,6 @@ describe("SafeVStack", () => {
         <Text>both guard</Text>
       </SafeVStack>,
     );
-    expect(screen.getByText("both guard")).toBeTruthy();
+    expect(screen.getByText("both guard")).toBeOnTheScreen();
   });
 });
