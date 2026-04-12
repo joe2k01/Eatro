@@ -2,42 +2,22 @@ import React from "react";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { Pressable, Text } from "react-native";
 import { ThemeProvider } from "@contexts/ThemeProvider";
+import type { SnackbarProps } from "./Snackbar";
 import { SnackbarProvider, useSnackbar } from "./SnackbarProvider";
 
-declare global {
-  var __SNACKBAR_TEST_LAST_VISIBLE__: boolean | undefined;
-}
+const mockSnackbar = jest.fn((_: SnackbarProps) => null);
 
 jest.mock("./Snackbar", () => {
-  const ReactNs = require("react");
-  const { Text: RNText, View: RNView } = require("react-native");
-  const { SnackbarVariant } = jest.requireActual("./Snackbar");
+  const actual = jest.requireActual("./Snackbar");
   return {
-    SnackbarVariant,
-    Snackbar: (props: {
-      message: string;
-      visible: boolean;
-      variant?: number;
-    }) => {
-      globalThis.__SNACKBAR_TEST_LAST_VISIBLE__ = props.visible;
-      if (!props.message) {
-        return null;
-      }
-      const label =
-        props.variant === SnackbarVariant.Success
-          ? "Success"
-          : props.variant === SnackbarVariant.Error
-            ? "Error"
-            : "Info";
-      return ReactNs.createElement(
-        RNView,
-        null,
-        ReactNs.createElement(RNText, null, label),
-        ReactNs.createElement(RNText, null, props.message),
-      );
-    },
+    ...actual,
+    Snackbar: (props: SnackbarProps) => mockSnackbar(props),
   };
 });
+
+function getLastSnackbarProps() {
+  return mockSnackbar.mock.calls.at(-1)?.[0] as SnackbarProps | undefined;
+}
 
 function TestConsumer() {
   const show = useSnackbar();
@@ -52,8 +32,8 @@ function TestConsumer() {
 }
 
 describe("SnackbarProvider", () => {
-  afterEach(() => {
-    delete globalThis.__SNACKBAR_TEST_LAST_VISIBLE__;
+  beforeEach(() => {
+    mockSnackbar.mockClear();
   });
 
   it("renders children", () => {
@@ -65,6 +45,12 @@ describe("SnackbarProvider", () => {
       </ThemeProvider>,
     );
     expect(screen.getByText("child")).toBeOnTheScreen();
+    expect(getLastSnackbarProps()).toEqual(
+      expect.objectContaining({
+        message: "",
+        visible: false,
+      }),
+    );
   });
 
   it("shows snackbar when show() called", () => {
@@ -80,7 +66,12 @@ describe("SnackbarProvider", () => {
       fireEvent.press(screen.getByTestId("trigger"));
     });
 
-    expect(screen.getByText("hello snack")).toBeOnTheScreen();
+    expect(getLastSnackbarProps()).toEqual(
+      expect.objectContaining({
+        message: "hello snack",
+        visible: true,
+      }),
+    );
   });
 
   it("auto-dismisses after timeout", () => {
@@ -98,14 +89,23 @@ describe("SnackbarProvider", () => {
       fireEvent.press(screen.getByTestId("trigger"));
     });
 
-    expect(screen.getByText("hello snack")).toBeOnTheScreen();
-    expect(globalThis.__SNACKBAR_TEST_LAST_VISIBLE__).toBe(true);
+    expect(getLastSnackbarProps()).toEqual(
+      expect.objectContaining({
+        message: "hello snack",
+        visible: true,
+      }),
+    );
 
     act(() => {
       jest.advanceTimersByTime(2000);
     });
 
-    expect(globalThis.__SNACKBAR_TEST_LAST_VISIBLE__).toBe(false);
+    expect(getLastSnackbarProps()).toEqual(
+      expect.objectContaining({
+        message: "hello snack",
+        visible: false,
+      }),
+    );
 
     jest.useRealTimers();
   });
