@@ -1,10 +1,10 @@
 import { renderWithProviders } from "../../../../../test/helpers/render";
 import { GoalsConfiguration } from "./GoalsConfiguration";
 
-const mockScreenHeader = jest.fn((_props?: unknown) => null);
+const mockScreen = jest.fn((_props?: unknown) => null);
 
-jest.mock("@components/navigation/ScreenHeader", () => ({
-  ScreenHeader: (props: unknown) => mockScreenHeader(props),
+jest.mock("@components/layout/Screen", () => ({
+  Screen: (props: unknown) => mockScreen(props),
 }));
 
 jest.mock("@components/feedback", () => ({
@@ -18,7 +18,7 @@ jest.mock("@components/feedback", () => ({
 describe("GoalsConfiguration header", () => {
   it("renders screen header with Goals configuration title", () => {
     renderWithProviders(<GoalsConfiguration />);
-    expect(mockScreenHeader).toHaveBeenCalledWith(
+    expect(mockScreen).toHaveBeenCalledWith(
       expect.objectContaining({ title: "Goals configuration" }),
     );
   });
