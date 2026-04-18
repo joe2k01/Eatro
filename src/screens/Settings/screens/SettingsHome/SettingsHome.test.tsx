@@ -1,10 +1,10 @@
 import { renderWithProviders } from "../../../../../test/helpers/render";
 import { SettingsHome } from "./SettingsHome";
 
-const mockScreenHeader = jest.fn((_props?: unknown) => null);
+const mockScreen = jest.fn((_props?: unknown) => null);
 
-jest.mock("@components/navigation/ScreenHeader", () => ({
-  ScreenHeader: (props: unknown) => mockScreenHeader(props),
+jest.mock("@components/layout/Screen", () => ({
+  Screen: (props: unknown) => mockScreen(props),
 }));
 
 jest.mock("@contexts/UserContextProvider", () => ({
@@ -14,7 +14,7 @@ jest.mock("@contexts/UserContextProvider", () => ({
 describe("SettingsHome header", () => {
   it("renders screen header with User configuration title", () => {
     renderWithProviders(<SettingsHome />);
-    expect(mockScreenHeader).toHaveBeenCalledWith(
+    expect(mockScreen).toHaveBeenCalledWith(
       expect.objectContaining({ title: "User configuration" }),
     );
   });
