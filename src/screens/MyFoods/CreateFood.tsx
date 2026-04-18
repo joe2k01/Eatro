@@ -1,28 +1,23 @@
 import { useCallback, useMemo, useState } from "react";
 import { Pressable, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import { z } from "zod";
 import { SafeVStack } from "@components/SafeVStack";
 import { VStack } from "@components/layout/VStack";
 import { HStack } from "@components/layout/HStack";
 import { Box } from "@components/layout/Box";
+import { ScreenHeader } from "@components/navigation/ScreenHeader";
 import { Caption } from "@components/typography/Text";
 import { TextInput, Picker } from "@components/forms";
 import { Button } from "@components/buttons/Button";
 import { Icon } from "@components/media/Icon";
 import { SnackbarVariant, useSnackbar } from "@components/feedback";
 import { useTheme } from "@contexts/ThemeProvider";
-import { useStaticNavigationOptions } from "@hooks/useStaticNavigationOptions";
 import { useForm } from "@hooks/useForm";
 import { useRepositories } from "@db/context/DatabaseProvider";
 import { FoodSource } from "@db/schemas";
 import { formatNumber, parseNumber } from "../../utils/numberFormat";
 import type { PopupButtonOption } from "../../../modules/popup-button";
-
-const headerOptions = {
-  title: "New Food",
-} satisfies NativeStackNavigationOptions;
 
 const createFoodSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -81,10 +76,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
   },
+  screenHeader: {
+    paddingHorizontal: 0,
+  },
 });
 
 export function CreateFood() {
-  useStaticNavigationOptions(headerOptions);
   const theme = useTheme();
   const showSnackbar = useSnackbar();
   const navigation = useNavigation();
@@ -177,6 +174,7 @@ export function CreateFood() {
 
   return (
     <SafeVStack guard="bottom" paddingHorizontal={2}>
+      <ScreenHeader title="New Food" style={styles.screenHeader} />
       <VStack scrollable paddingBlock={2} gap={2}>
         <TextInput
           label="Name"

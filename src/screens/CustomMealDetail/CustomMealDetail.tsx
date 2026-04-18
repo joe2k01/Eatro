@@ -7,17 +7,16 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useParams } from "@hooks/useParams";
-import { useStaticNavigationOptions } from "@hooks/useStaticNavigationOptions";
-import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import { SafeVStack } from "@components/SafeVStack";
 import { VStack } from "@components/layout/VStack";
 import { HStack } from "@components/layout/HStack";
-import { Body, Caption, Heading, Title } from "@components/typography/Text";
+import { Body, Caption, Heading } from "@components/typography/Text";
 import { Button } from "@components/buttons/Button";
 import { IconButton } from "@components/buttons/IconButton";
 import { Tray, type TrayApi } from "@components/layout/Tray";
 import { Picker, TextInput } from "@components/forms";
 import { BarcodeProductThumbnail } from "@components/media/BarcodeProductThumbnail";
+import { ScreenHeader } from "@components/navigation/ScreenHeader";
 import { useTheme } from "@contexts/ThemeProvider";
 import { SnackbarVariant, useSnackbar } from "@components/feedback";
 import { useRepositories } from "@db/context/DatabaseProvider";
@@ -30,10 +29,6 @@ import { mealOptions } from "@constants/mealOptions";
 import { SEARCH_RESULT_THUMBNAIL_SIZE } from "@screens/Search/components/SearchResultItem";
 
 export type CustomMealDetailParams = { customMealId: number };
-
-const headerOptions = {
-  headerTitle: () => <Title>Meal Detail</Title>,
-} satisfies NativeStackNavigationOptions;
 
 const styles = StyleSheet.create({
   list: {
@@ -48,6 +43,9 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.7,
+  },
+  screenHeader: {
+    paddingHorizontal: 0,
   },
 });
 
@@ -92,7 +90,6 @@ function FoodRow({ item }: { item: CustomMealFoodWithBarcode }) {
 }
 
 export function CustomMealDetail() {
-  useStaticNavigationOptions(headerOptions);
   const { customMealId } = useParams<CustomMealDetailParams>();
   const theme = useTheme();
   const showSnackbar = useSnackbar();
@@ -235,6 +232,7 @@ export function CustomMealDetail() {
 
   return (
     <SafeVStack guard="bottom" flex={1} paddingHorizontal={2} paddingTop={1}>
+      <ScreenHeader title="Meal Detail" style={styles.screenHeader} />
       <VStack gap={1.5} backgroundColor="transparent">
         <Heading>{mealData.name}</Heading>
         <VStack gap={1.5} padding={2} style={macroCardStyle}>

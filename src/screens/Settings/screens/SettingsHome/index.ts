@@ -1,1 +1,1 @@
-export { SettingsHome, settingsHomeHeaderOptions } from "./SettingsHome";
+export { SettingsHome } from "./SettingsHome";

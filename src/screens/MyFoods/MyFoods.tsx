@@ -1,10 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useWindowDimensions } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import type {
-  NativeStackNavigationOptions,
-  NativeStackNavigationProp,
-} from "@react-navigation/native-stack";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import {
   TabBar,
   TabView,
@@ -12,9 +9,9 @@ import {
   type TabBarProps,
 } from "react-native-tab-view";
 import { SafeVStack } from "@components/SafeVStack";
+import { ScreenHeader } from "@components/navigation/ScreenHeader";
 import { Title } from "@components/typography/Text";
 import { IconButton } from "@components/buttons/IconButton";
-import { useDynamicNavigationOptions } from "@hooks/useDynamicNavigationOptions";
 import type { MyFoodsStackParamsList } from "../../AppTabs";
 import { MY_FOODS_ROUTES } from "./constants/routes";
 import { myFoodsStyles, TAB_VIEW_COMMON_OPTIONS } from "./constants/styles";
@@ -47,21 +44,6 @@ export function MyFoods() {
     () => ({ width: layout.width }),
     [layout.width],
   );
-
-  const headerOptions = useMemo<NativeStackNavigationOptions>(
-    () => ({
-      headerTitle: () => <Title>My Foods</Title>,
-      headerRight: () => (
-        <IconButton
-          name="add"
-          variant="tertiary"
-          onPress={index === 0 ? navigateToCreateFood : myFoodsHeaderAddNoop}
-        />
-      ),
-    }),
-    [index, navigateToCreateFood],
-  );
-  useDynamicNavigationOptions(headerOptions);
 
   const renderScene = useCallback(
     ({ route }: { route: Route }) => {
@@ -106,6 +88,17 @@ export function MyFoods() {
 
   return (
     <SafeVStack guard="bottom" flex={1} paddingTop={1}>
+      <ScreenHeader
+        left={null}
+        center={<Title>My Foods</Title>}
+        right={
+          <IconButton
+            name="add"
+            variant="tertiary"
+            onPress={index === 0 ? navigateToCreateFood : myFoodsHeaderAddNoop}
+          />
+        }
+      />
       <TabView
         navigationState={navigationState}
         renderScene={renderScene}

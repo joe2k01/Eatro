@@ -1,28 +1,17 @@
 import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import { useMemo } from "react";
-import { Header } from "@components/navigation/Header";
 import { useTheme } from "@contexts/ThemeProvider";
 
 /**
- * Hook for the app-wide native-stack `screenOptions`.
- *
- * Why a hook?
- * - Keeps stack setup consistent across root + nested navigators.
- * - Allows access to theme for background color styling.
- *
- * How it works with the header pattern:
- * - Always uses the shared `Header` renderer, which reads `options.title`,
- *   `options.headerTitle`, `options.headerLeft`, and `options.headerRight`.
- * - Individual screens can then set their static header config on mount via
- *   `useStaticNavigationOptions(...)`.
+ * Shared stack options for app navigators.
+ * Keeps screen background theming consistent across nested stacks.
  */
 export function useAppStackNavigationOptions(): NativeStackNavigationOptions {
   const theme = useTheme();
 
   return useMemo(
     () => ({
-      headerShown: true,
-      header: Header,
+      headerShown: false,
       contentStyle: {
         backgroundColor: theme.surface.primary,
       },

@@ -1,6 +1,4 @@
-import type { NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import type { GetProductDetails } from "@api/validators/getProductDetails";
-import { format } from "date-fns";
 import { StyleSheet } from "react-native";
 import { AvatarButton } from "./components/AvatarButton";
 import { Display, Caption, Title } from "@components/typography/Text";
@@ -16,7 +14,6 @@ import type { LayoutChangeEvent } from "react-native";
 import { useGetDay, type MealWithFoods } from "@db/hooks/useGetDay";
 import { utcStartOfTodaySeconds } from "@db/utils/utc";
 import { MealItem } from "./components/MealItem";
-import { useDynamicNavigationOptions } from "@hooks/useDynamicNavigationOptions";
 import { HeaderDatePicker } from "./components/HeaderDatePicker";
 import { LogFoodFAB } from "./components/LogFoodFAB";
 import { spacing } from "@constants/theme";
@@ -37,6 +34,7 @@ import {
 import { useRepositories } from "@db/context/DatabaseProvider";
 import type { MealFoodWithFood } from "@db/repositories/MealFoodRepository";
 import type { Food } from "@db/schemas";
+import { ScreenHeader } from "@components/navigation/ScreenHeader";
 
 function nutrimentsFromLoggedFood(food: Food): GetProductDetails["nutriments"] {
   return {
@@ -68,11 +66,6 @@ const styles = StyleSheet.create({
   },
 });
 
-export const homeHeaderOptions = {
-  headerTitle: () => <Title>Today, {format(new Date(), "MMMM do")}</Title>,
-  headerLeft: () => <AvatarButton />,
-} satisfies NativeStackNavigationOptions;
-
 const defaultGoals: Goals = {
   calories: 2000,
   protein: 150,
@@ -97,18 +90,6 @@ export function Home() {
   const [editTarget, setEditTarget] = useState<MealFoodWithFood | null>(null);
 
   const [dayUtcSeconds, setDayUtcSeconds] = useState(utcStartOfTodaySeconds());
-  const headerOptions = useMemo(() => {
-    return {
-      ...homeHeaderOptions,
-      headerTitle: () => (
-        <HeaderDatePicker
-          dayUtcSeconds={dayUtcSeconds}
-          setDayUtcSeconds={setDayUtcSeconds}
-        />
-      ),
-    };
-  }, [dayUtcSeconds]);
-  useDynamicNavigationOptions(headerOptions);
 
   const { macros, meals, reload } = useGetDay(dayUtcSeconds);
 
@@ -273,6 +254,15 @@ export function Home() {
 
   return (
     <VStack flex={1}>
+      <ScreenHeader
+        left={<AvatarButton />}
+        center={
+          <HeaderDatePicker
+            dayUtcSeconds={dayUtcSeconds}
+            setDayUtcSeconds={setDayUtcSeconds}
+          />
+        }
+      />
       <Animated.ScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}

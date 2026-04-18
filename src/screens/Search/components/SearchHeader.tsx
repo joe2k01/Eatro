@@ -1,8 +1,7 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { Pressable, StyleSheet, TextInput } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import type { NativeStackHeaderProps } from "@react-navigation/native-stack";
 import { HStack } from "@components/layout/HStack";
 import { Box } from "@components/layout/Box";
 import { Icon } from "@components/media/Icon";
@@ -10,7 +9,10 @@ import { BackArrow } from "@components/navigation/BackArrow";
 import { useTheme } from "@contexts/ThemeProvider";
 import { BorderRadius, spacing } from "@constants/theme";
 
-const DEBOUNCE_MS = 400;
+type SearchHeaderProps = {
+  query: string;
+  onQueryChange: (value: string) => void;
+};
 
 const styles = StyleSheet.create({
   row: {
@@ -41,51 +43,15 @@ const styles = StyleSheet.create({
   },
 });
 
-/**
- * Custom header for the Search screen.
- *
- * Must be set as the `header` option on the screen definition (not via
- * `setOptions`) to avoid a hooks-count mismatch with the default Header.
- *
- * Owns the TextInput and debounce timer. The debounced query is pushed
- * to the screen via `navigation.setParams({ query })`.
- */
-export function SearchHeader({
-  back,
-  navigation: headerNavigation,
-}: NativeStackHeaderProps) {
+export function SearchHeader({ query, onQueryChange }: SearchHeaderProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
-  const inputRef = useRef<TextInput>(null);
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [hasText, setHasText] = useState(false);
-
-  const handleChangeText = useCallback(
-    (value: string) => {
-      setHasText(value.length > 0);
-
-      if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current);
-      }
-
-      debounceTimer.current = setTimeout(() => {
-        headerNavigation.setParams({ query: value.trim() });
-      }, DEBOUNCE_MS);
-    },
-    [headerNavigation],
-  );
+  const canGoBack = navigation.canGoBack();
 
   const handleClear = useCallback(() => {
-    inputRef.current?.clear();
-    setHasText(false);
-
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-    }
-
-    headerNavigation.setParams({ query: "" });
-  }, [headerNavigation]);
+    onQueryChange("");
+  }, [onQueryChange]);
 
   const handleScanPress = useCallback(() => {
     navigation.navigate("Scanner");
@@ -125,20 +91,20 @@ export function SearchHeader({
   return (
     <Box style={containerStyle}>
       <HStack style={styles.row} gap={1.5} alignItems="center">
-        <BackArrow canGoBack={!!back} />
+        <BackArrow canGoBack={canGoBack} />
         <HStack style={inputContainerStyle} gap={0.5}>
           <Icon name="search" size="xs" color={theme.text.muted} />
           <TextInput
-            ref={inputRef}
             style={inputStyle}
+            value={query}
             placeholder="Search food..."
             placeholderTextColor={theme.text.muted}
-            onChangeText={handleChangeText}
+            onChangeText={onQueryChange}
             autoFocus
             returnKeyType="search"
             autoCorrect={false}
           />
-          {hasText && (
+          {query.length > 0 && (
             <Pressable onPress={handleClear}>
               <Icon name="close" size="xs" color={theme.text.muted} />
             </Pressable>
