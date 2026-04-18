@@ -28,6 +28,9 @@ const styles = StyleSheet.create({
   inputContainer: {
     flex: 1,
   },
+  screenHeader: {
+    paddingHorizontal: 0,
+  },
 });
 
 export function GoalsConfiguration() {
@@ -135,10 +138,7 @@ export function GoalsConfiguration() {
 
   return (
     <SafeVStack paddingHorizontal={2}>
-      <ScreenHeader
-        title="Goals configuration"
-        style={{ paddingHorizontal: 0 }}
-      />
+      <ScreenHeader title="Goals configuration" style={styles.screenHeader} />
       <VStack paddingBlock={2} gap={2}>
         <VStack gap={1}>
           <Title>Calorie Goal</Title>

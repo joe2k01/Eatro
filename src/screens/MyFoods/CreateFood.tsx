@@ -76,6 +76,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
   },
+  screenHeader: {
+    paddingHorizontal: 0,
+  },
 });
 
 export function CreateFood() {
@@ -171,7 +174,7 @@ export function CreateFood() {
 
   return (
     <SafeVStack guard="bottom" paddingHorizontal={2}>
-      <ScreenHeader title="New Food" style={{ paddingHorizontal: 0 }} />
+      <ScreenHeader title="New Food" style={styles.screenHeader} />
       <VStack scrollable paddingBlock={2} gap={2}>
         <TextInput
           label="Name"

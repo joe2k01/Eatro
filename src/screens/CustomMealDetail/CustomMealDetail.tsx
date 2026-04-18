@@ -44,6 +44,9 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.7,
   },
+  screenHeader: {
+    paddingHorizontal: 0,
+  },
 });
 
 function FoodRow({ item }: { item: CustomMealFoodWithBarcode }) {
@@ -229,7 +232,7 @@ export function CustomMealDetail() {
 
   return (
     <SafeVStack guard="bottom" flex={1} paddingHorizontal={2} paddingTop={1}>
-      <ScreenHeader title="Meal Detail" style={{ paddingHorizontal: 0 }} />
+      <ScreenHeader title="Meal Detail" style={styles.screenHeader} />
       <VStack gap={1.5} backgroundColor="transparent">
         <Heading>{mealData.name}</Heading>
         <VStack gap={1.5} padding={2} style={macroCardStyle}>
