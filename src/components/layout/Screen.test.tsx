@@ -1,6 +1,7 @@
 import { screen } from "@testing-library/react-native";
 import { Text } from "react-native";
 import { renderWithProviders } from "../../../test/helpers/render";
+import { Screen } from "./Screen";
 
 const mockSafeVStack = jest.fn(
   ({ children }: { children?: React.ReactNode }) => <>{children}</>,
@@ -15,9 +16,6 @@ const mockScreenHeader = jest.fn((_props?: Record<string, unknown>) => null);
 jest.mock("@components/navigation/ScreenHeader", () => ({
   ScreenHeader: (props: Record<string, unknown>) => mockScreenHeader(props),
 }));
-
-// eslint-disable-next-line import/first -- jest.mock must be registered before Screen loads
-import { Screen } from "./Screen";
 
 describe("Screen", () => {
   beforeEach(() => {
