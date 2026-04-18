@@ -1,10 +1,10 @@
 import { renderWithProviders } from "../../../test/helpers/render";
 import { CreateFood } from "./CreateFood";
 
-const mockScreenHeader = jest.fn((_props?: unknown) => null);
+const mockScreen = jest.fn((_props?: unknown) => null);
 
-jest.mock("@components/navigation/ScreenHeader", () => ({
-  ScreenHeader: (props: unknown) => mockScreenHeader(props),
+jest.mock("@components/layout/Screen", () => ({
+  Screen: (props: unknown) => mockScreen(props),
 }));
 
 jest.mock("@db/context/DatabaseProvider", () => ({
@@ -26,7 +26,7 @@ jest.mock("@components/feedback", () => ({
 describe("CreateFood header", () => {
   it("renders screen header with New Food title", () => {
     renderWithProviders(<CreateFood />);
-    expect(mockScreenHeader).toHaveBeenCalledWith(
+    expect(mockScreen).toHaveBeenCalledWith(
       expect.objectContaining({ title: "New Food" }),
     );
   });

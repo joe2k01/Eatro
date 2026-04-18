@@ -6,6 +6,8 @@ import { useParams } from "@hooks/useParams";
 import { ErrorBoundary } from "@components/feedback";
 import { VStack } from "@components/layout/VStack";
 import { ScreenHeader } from "@components/navigation/ScreenHeader";
+import { spacing } from "@constants/theme";
+import { StyleSheet } from "react-native";
 import { ProductLoader } from "./ProductLoader";
 import { ProductError } from "./ProductError";
 import { ApiProductLoader } from "./ApiProductLoader";
@@ -16,6 +18,12 @@ export type ProductParams = {
   barcode?: string;
   foodId?: number;
 };
+
+const styles = StyleSheet.create({
+  screenHeader: {
+    paddingHorizontal: spacing(2),
+  },
+});
 
 export function Product() {
   const params = useParams<ProductParams>();
@@ -37,7 +45,7 @@ export function Product() {
   if (!content) {
     return (
       <VStack flex={1}>
-        <ScreenHeader title="Product" />
+        <ScreenHeader title="Product" style={styles.screenHeader} />
         <VStack flex={1} padding={2}>
           <ProductError
             error={new Error("Missing product parameters")}
@@ -50,7 +58,7 @@ export function Product() {
 
   return (
     <VStack flex={1}>
-      <ScreenHeader title="Product" />
+      <ScreenHeader title="Product" style={styles.screenHeader} />
       <VStack flex={1}>
         <QueryErrorResetBoundary>
           {({ reset }) => (

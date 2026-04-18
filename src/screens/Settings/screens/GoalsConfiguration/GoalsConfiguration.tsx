@@ -1,4 +1,4 @@
-import { SafeVStack } from "@components/SafeVStack";
+import { Screen } from "@components/layout/Screen";
 import { Button } from "@components/buttons/Button";
 import { Box } from "@components/layout/Box";
 import { HStack } from "@components/layout/HStack";
@@ -13,7 +13,6 @@ import { DonutChart, useDonut } from "@components/charts";
 import { useForm } from "@hooks/useForm";
 import { TextInput } from "@components/forms";
 import { SnackbarVariant, useSnackbar } from "@components/feedback";
-import { ScreenHeader } from "@components/navigation/ScreenHeader";
 import { useNavigation } from "@react-navigation/native";
 import { SettingsStackParamsList } from "@screens/Settings/routes";
 import { goalsValidator } from "@constants/storage/validators/goals";
@@ -27,9 +26,6 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     flex: 1,
-  },
-  screenHeader: {
-    paddingHorizontal: 0,
   },
 });
 
@@ -137,8 +133,7 @@ export function GoalsConfiguration() {
     macroCalories.total > caloriesNumber || !caloriesNumber;
 
   return (
-    <SafeVStack paddingHorizontal={2}>
-      <ScreenHeader title="Goals configuration" style={styles.screenHeader} />
+    <Screen title="Goals configuration">
       <VStack paddingBlock={2} gap={2}>
         <VStack gap={1}>
           <Title>Calorie Goal</Title>
@@ -223,6 +218,6 @@ export function GoalsConfiguration() {
           </Button>
         </Box>
       </VStack>
-    </SafeVStack>
+    </Screen>
   );
 }

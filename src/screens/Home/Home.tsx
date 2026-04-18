@@ -59,6 +59,9 @@ const IDLE_EDIT_NUTRIMENTS: GetProductDetails["nutriments"] = {
 };
 
 const styles = StyleSheet.create({
+  screenHeader: {
+    paddingHorizontal: spacing(2),
+  },
   scrollContent: {
     paddingHorizontal: spacing(2),
     paddingTop: spacing(1),
@@ -262,6 +265,7 @@ export function Home() {
             setDayUtcSeconds={setDayUtcSeconds}
           />
         }
+        style={styles.screenHeader}
       />
       <Animated.ScrollView
         onScroll={scrollHandler}

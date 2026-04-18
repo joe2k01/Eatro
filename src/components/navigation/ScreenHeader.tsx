@@ -65,7 +65,6 @@ export function ScreenHeader({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: spacing(2),
     paddingBottom: spacing(1),
   },
 });

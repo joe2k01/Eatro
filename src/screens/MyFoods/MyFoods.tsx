@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { useWindowDimensions } from "react-native";
+import { StyleSheet, useWindowDimensions } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import {
@@ -10,6 +10,7 @@ import {
 } from "react-native-tab-view";
 import { SafeVStack } from "@components/SafeVStack";
 import { ScreenHeader } from "@components/navigation/ScreenHeader";
+import { spacing } from "@constants/theme";
 import { Title } from "@components/typography/Text";
 import { IconButton } from "@components/buttons/IconButton";
 import type { MyFoodsStackParamsList } from "../../AppTabs";
@@ -20,6 +21,12 @@ import { FoodsScene } from "./scenes/FoodsScene";
 import { MealsScene } from "./scenes/MealsScene";
 
 const myFoodsHeaderAddNoop = () => undefined;
+
+const styles = StyleSheet.create({
+  screenHeader: {
+    paddingHorizontal: spacing(2),
+  },
+});
 
 export function MyFoods() {
   const layout = useWindowDimensions();
@@ -98,6 +105,7 @@ export function MyFoods() {
             onPress={index === 0 ? navigateToCreateFood : myFoodsHeaderAddNoop}
           />
         }
+        style={styles.screenHeader}
       />
       <TabView
         navigationState={navigationState}

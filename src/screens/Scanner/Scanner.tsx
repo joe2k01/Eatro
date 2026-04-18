@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
+import { spacing } from "@constants/theme";
 import { useNavigation } from "@react-navigation/native";
 import { BackArrow } from "@components/navigation/BackArrow";
 import { ScreenHeader } from "@components/navigation/ScreenHeader";
@@ -47,5 +48,6 @@ const styles = StyleSheet.create({
   },
   transparentHeader: {
     backgroundColor: "transparent",
+    paddingHorizontal: spacing(2),
   },
 });

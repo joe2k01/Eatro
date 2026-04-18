@@ -2,11 +2,10 @@ import { useCallback, useMemo, useState } from "react";
 import { Pressable, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { z } from "zod";
-import { SafeVStack } from "@components/SafeVStack";
+import { Screen } from "@components/layout/Screen";
 import { VStack } from "@components/layout/VStack";
 import { HStack } from "@components/layout/HStack";
 import { Box } from "@components/layout/Box";
-import { ScreenHeader } from "@components/navigation/ScreenHeader";
 import { Caption } from "@components/typography/Text";
 import { TextInput, Picker } from "@components/forms";
 import { Button } from "@components/buttons/Button";
@@ -75,9 +74,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-  },
-  screenHeader: {
-    paddingHorizontal: 0,
   },
 });
 
@@ -173,8 +169,7 @@ export function CreateFood() {
   }, [validate, values, nutrientBasis, foodRepo, showSnackbar, navigation]);
 
   return (
-    <SafeVStack guard="bottom" paddingHorizontal={2}>
-      <ScreenHeader title="New Food" style={styles.screenHeader} />
+    <Screen title="New Food" guard="bottom">
       <VStack scrollable paddingBlock={2} gap={2}>
         <TextInput
           label="Name"
@@ -303,6 +298,6 @@ export function CreateFood() {
           </Button>
         </Box>
       </VStack>
-    </SafeVStack>
+    </Screen>
   );
 }

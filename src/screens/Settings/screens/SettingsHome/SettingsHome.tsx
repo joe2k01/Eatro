@@ -1,4 +1,4 @@
-import { SafeVStack } from "@components/SafeVStack";
+import { Screen } from "@components/layout/Screen";
 import { Button } from "@components/buttons/Button";
 import { Box } from "@components/layout/Box";
 import { VStack } from "@components/layout/VStack";
@@ -14,18 +14,11 @@ import { HStack } from "@components/layout/HStack";
 import { IconButton } from "@components/buttons/IconButton";
 import { Icon } from "@components/media/Icon";
 import { BorderRadius } from "@constants/theme";
-import { StyleSheet, Switch } from "react-native";
+import { Switch } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { SettingsStackParamsList } from "../../routes";
-import { ScreenHeader } from "@components/navigation/ScreenHeader";
 import { useMemo } from "react";
-
-const styles = StyleSheet.create({
-  screenHeader: {
-    paddingHorizontal: 0,
-  },
-});
 
 export function SettingsHome() {
   const navigation =
@@ -50,8 +43,7 @@ export function SettingsHome() {
     : theme.text.primary;
 
   return (
-    <SafeVStack paddingHorizontal={2} scrollable>
-      <ScreenHeader title="User configuration" style={styles.screenHeader} />
+    <Screen title="User configuration" scrollable>
       <VStack paddingBlock={2} gap={2}>
         <Box width={"50%"} aspectRatio={1} alignSelf="center">
           <UserSVG size={"100%"} />
@@ -87,6 +79,6 @@ export function SettingsHome() {
           />
         </HStack>
       </VStack>
-    </SafeVStack>
+    </Screen>
   );
 }
