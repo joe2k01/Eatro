@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useParams } from "@hooks/useParams";
-import { SafeVStack } from "@components/SafeVStack";
+import { Screen } from "@components/layout/Screen";
 import { VStack } from "@components/layout/VStack";
 import { HStack } from "@components/layout/HStack";
 import { Body, Caption, Heading } from "@components/typography/Text";
@@ -16,7 +16,6 @@ import { IconButton } from "@components/buttons/IconButton";
 import { Tray, type TrayApi } from "@components/layout/Tray";
 import { Picker, TextInput } from "@components/forms";
 import { BarcodeProductThumbnail } from "@components/media/BarcodeProductThumbnail";
-import { ScreenHeader } from "@components/navigation/ScreenHeader";
 import { useTheme } from "@contexts/ThemeProvider";
 import { SnackbarVariant, useSnackbar } from "@components/feedback";
 import { useRepositories } from "@db/context/DatabaseProvider";
@@ -43,9 +42,6 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.7,
-  },
-  screenHeader: {
-    paddingHorizontal: 0,
   },
 });
 
@@ -231,8 +227,7 @@ export function CustomMealDetail() {
   if (!mealData) return null;
 
   return (
-    <SafeVStack guard="bottom" flex={1} paddingHorizontal={2} paddingTop={1}>
-      <ScreenHeader title="Meal Detail" style={styles.screenHeader} />
+    <Screen title="Meal Detail" guard="bottom" flex={1} paddingTop={1}>
       <VStack gap={1.5} backgroundColor="transparent">
         <Heading>{mealData.name}</Heading>
         <VStack gap={1.5} padding={2} style={macroCardStyle}>
@@ -355,6 +350,6 @@ export function CustomMealDetail() {
           </Button>
         </VStack>
       </Tray>
-    </SafeVStack>
+    </Screen>
   );
 }

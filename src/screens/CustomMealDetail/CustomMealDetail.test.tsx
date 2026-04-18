@@ -2,10 +2,10 @@ import { waitFor } from "@testing-library/react-native";
 import { renderWithProviders } from "../../../test/helpers/render";
 import { CustomMealDetail } from "./CustomMealDetail";
 
-const mockScreenHeader = jest.fn((_props?: unknown) => null);
+const mockScreen = jest.fn((_props?: unknown) => null);
 
-jest.mock("@components/navigation/ScreenHeader", () => ({
-  ScreenHeader: (props: unknown) => mockScreenHeader(props),
+jest.mock("@components/layout/Screen", () => ({
+  Screen: (props: unknown) => mockScreen(props),
 }));
 
 jest.mock("@hooks/useParams", () => ({
@@ -47,7 +47,7 @@ describe("CustomMealDetail header", () => {
     renderWithProviders(<CustomMealDetail />);
 
     await waitFor(() =>
-      expect(mockScreenHeader).toHaveBeenCalledWith(
+      expect(mockScreen).toHaveBeenCalledWith(
         expect.objectContaining({ title: "Meal Detail" }),
       ),
     );
