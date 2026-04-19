@@ -87,7 +87,6 @@ export function MyFoods() {
   return (
     <Screen
       noGuard
-      paddingTop={1}
       headerLeft={null}
       headerCenter={<Title>My Foods</Title>}
       headerRight={
