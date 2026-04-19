@@ -36,7 +36,7 @@ export function Product() {
 
   if (!content) {
     return (
-      <Screen title="Product" flex={1}>
+      <Screen title="Product">
         <ProductError
           error={new Error("Missing product parameters")}
           onRetry={() => navigation.goBack()}
@@ -46,7 +46,7 @@ export function Product() {
   }
 
   return (
-    <Screen title="Product" flex={1}>
+    <Screen title="Product">
       <Box flex={1}>
         <QueryErrorResetBoundary>
           {({ reset }) => (

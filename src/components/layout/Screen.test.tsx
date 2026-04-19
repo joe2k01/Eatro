@@ -46,6 +46,20 @@ describe("Screen", () => {
     );
   });
 
+  it("defaults flex on SafeVStack to 1", () => {
+    renderWithProviders(<Screen title="X" />);
+    expect(mockSafeVStack).toHaveBeenCalledWith(
+      expect.objectContaining({ flex: 1 }),
+    );
+  });
+
+  it("allows overriding flex on SafeVStack", () => {
+    renderWithProviders(<Screen title="X" flex={0} />);
+    expect(mockSafeVStack).toHaveBeenCalledWith(
+      expect.objectContaining({ flex: 0 }),
+    );
+  });
+
   it("allows overriding paddingHorizontal on SafeVStack", () => {
     renderWithProviders(<Screen title="X" paddingHorizontal={0} />);
     expect(mockSafeVStack).toHaveBeenCalledWith(

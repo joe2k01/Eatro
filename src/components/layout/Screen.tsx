@@ -21,6 +21,8 @@ export function Screen({
   headerStyle,
   noGuard = false,
   paddingHorizontal = 2,
+  /** Fills the navigator slot so header + body column gets height (scroll/tab/flex children). */
+  flex = 1,
   children,
   ...safeVStackProps
 }: ScreenProps) {
@@ -29,6 +31,7 @@ export function Screen({
       guard={noGuard ? "none" : "bottom"}
       paddingHorizontal={paddingHorizontal}
       {...safeVStackProps}
+      flex={flex}
     >
       <ScreenHeader
         title={title}

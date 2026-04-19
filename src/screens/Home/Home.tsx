@@ -252,7 +252,6 @@ export function Home() {
 
   return (
     <Screen
-      flex={1}
       noGuard
       headerLeft={<AvatarButton />}
       headerCenter={

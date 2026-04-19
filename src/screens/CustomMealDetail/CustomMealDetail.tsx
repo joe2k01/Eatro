@@ -227,7 +227,7 @@ export function CustomMealDetail() {
   if (!mealData) return null;
 
   return (
-    <Screen title="Meal Detail" flex={1} paddingTop={1}>
+    <Screen title="Meal Detail" paddingTop={1}>
       <VStack gap={1.5} backgroundColor="transparent">
         <Heading>{mealData.name}</Heading>
         <VStack gap={1.5} padding={2} style={macroCardStyle}>
