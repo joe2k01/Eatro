@@ -12,6 +12,8 @@ export type ChangeEventPayload<T = any> = {
 export type PopupButtonOption<T = any> = {
   label: string;
   value: T;
+  /** When true, the native menu item is non-interactive (grayed out). */
+  disabled?: boolean;
 };
 
 export type PopupButtonPreferredMenuElementOrder = "fixed" | "automatic";
