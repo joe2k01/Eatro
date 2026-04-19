@@ -14,6 +14,11 @@ export type PopupButtonOption<T = any> = {
   value: T;
   /** When true, the native menu item is non-interactive (grayed out). */
   disabled?: boolean;
+  /**
+   * When false, selecting this option dispatches the event but does not remain checked.
+   * Useful for action-like menu items (e.g. "Custom date").
+   */
+  persistSelection?: boolean;
 };
 
 export type PopupButtonPreferredMenuElementOrder = "fixed" | "automatic";

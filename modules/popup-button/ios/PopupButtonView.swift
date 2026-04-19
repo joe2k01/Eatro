@@ -6,6 +6,7 @@ struct OptionItem: Convertible {
   let label: String
   let value: Any
   let disabled: Bool
+  let persistSelection: Bool
 
   static func convert(from value: Any?, appContext: AppContext) throws -> Self {
     guard let dict = value as? [String: Any],
@@ -13,7 +14,13 @@ struct OptionItem: Convertible {
       throw Conversions.ConvertingException<OptionItem>(value)
     }
     let disabled = dict["disabled"] as? Bool ?? false
-    return OptionItem(label: label, value: dict["value"] ?? NSNull(), disabled: disabled)
+    let persistSelection = dict["persistSelection"] as? Bool ?? true
+    return OptionItem(
+      label: label,
+      value: dict["value"] ?? NSNull(),
+      disabled: disabled,
+      persistSelection: persistSelection
+    )
   }
 }
 
@@ -72,7 +79,15 @@ class PopupButtonView: ExpoView {
     menuActions = options.enumerated().map { index, option -> UIAction in
       let attributes: UIAction.Attributes = option.disabled ? .disabled : []
       let action = UIAction(title: option.label, attributes: attributes) { [weak self] _ in
-        self?.selectOption(at: index, shouldDispatch: true)
+        guard let self = self else { return }
+        if option.persistSelection {
+          self.selectOption(at: index, shouldDispatch: true)
+        } else {
+          self.onOptionSelect([
+            "label": option.label,
+            "value": option.value
+          ])
+        }
       }
 
       if let selectedOption = selectedOption, option.label == selectedOption.label && areEqual(option.value, selectedOption.value) {
