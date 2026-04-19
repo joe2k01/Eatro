@@ -46,13 +46,17 @@ export function HeaderDatePicker({
 
   /**
    * Remount the native PopupButtonView so UIKit drops any stale menu selection
-   * (e.g. "Custom date" highlighted after opening the tray then dismissing).
-   * A new `key` is the reliable signal — identical `options` may not cross the bridge.
+   * (e.g. "Custom date" highlighted after opening the tray then dismissing without
+   * confirming). Skip remount after Confirm — a fresh native view defaults its
+   * checkmark to the first row (Today), which would lie for a custom day.
    */
   const [pulldownKey, setPulldownKey] = useState(0);
   const resetPulldown = useCallback(() => {
     setPulldownKey((k) => k + 1);
   }, []);
+
+  /** When true, the next tray `onDismiss` should not remount the pulldown (Confirm path). */
+  const skipPulldownRemountOnDismissRef = useRef(false);
 
   const trayRef = useRef<TrayApi>(null);
 
@@ -91,6 +95,7 @@ export function HeaderDatePicker({
       setDayUtcSeconds(Math.floor(localDate.getTime() / 1000));
     }
 
+    skipPulldownRemountOnDismissRef.current = true;
     trayRef.current?.closeTray();
   }, [localDate, setDayUtcSeconds]);
 
@@ -99,6 +104,10 @@ export function HeaderDatePicker({
   }, []);
 
   const onTrayDismiss = useCallback(() => {
+    if (skipPulldownRemountOnDismissRef.current) {
+      skipPulldownRemountOnDismissRef.current = false;
+      return;
+    }
     resetPulldown();
   }, [resetPulldown]);
 
