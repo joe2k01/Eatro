@@ -5,13 +5,15 @@ import UIKit
 struct OptionItem: Convertible {
   let label: String
   let value: Any
-  
+  let disabled: Bool
+
   static func convert(from value: Any?, appContext: AppContext) throws -> Self {
     guard let dict = value as? [String: Any],
           let label = dict["label"] as? String else {
       throw Conversions.ConvertingException<OptionItem>(value)
     }
-    return OptionItem(label: label, value: dict["value"] ?? NSNull())
+    let disabled = dict["disabled"] as? Bool ?? false
+    return OptionItem(label: label, value: dict["value"] ?? NSNull(), disabled: disabled)
   }
 }
 
@@ -68,7 +70,8 @@ class PopupButtonView: ExpoView {
 
     var newIndex: Int?
     menuActions = options.enumerated().map { index, option -> UIAction in
-      let action = UIAction(title: option.label) { [weak self] _ in
+      let attributes: UIAction.Attributes = option.disabled ? .disabled : []
+      let action = UIAction(title: option.label, attributes: attributes) { [weak self] _ in
         self?.selectOption(at: index, shouldDispatch: true)
       }
 
@@ -79,7 +82,7 @@ class PopupButtonView: ExpoView {
       return action
     }
 
-    self.selectOption(at: newIndex ?? 0, shouldDispatch: newIndex == nil)
+    self.selectOption(at: newIndex ?? 0, shouldDispatch: false)
   }
 
   private func selectOption(at index: Int, shouldDispatch: Bool = true) {
