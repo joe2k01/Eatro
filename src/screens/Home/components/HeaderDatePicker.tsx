@@ -2,7 +2,7 @@ import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { format } from "date-fns";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   PopupButtonView,
   type ChangeEventPayload,
@@ -35,12 +35,8 @@ export function HeaderDatePicker({
   const isToday = dayUtcSeconds === todayUtcSeconds;
   const isYesterday = dayUtcSeconds === yesterdayUtcSeconds;
 
-  // Returns a fresh options array. Stored in state so we can force a new
-  // reference on tray dismiss, which causes the native PopupButtonView to
-  // re-run createMenu() and clear any stale UIKit selection state left behind
-  // by the "Custom date" action.
-  const computeOptions = useCallback(
-    (): PopupButtonOption<DateOption>[] => [
+  const options = useMemo<PopupButtonOption<DateOption>[]>(
+    () => [
       { label: "Today", value: "today", disabled: isToday },
       { label: "Yesterday", value: "yesterday", disabled: isYesterday },
       { label: "Custom date", value: "custom", persistSelection: false },
@@ -48,11 +44,15 @@ export function HeaderDatePicker({
     [isToday, isYesterday],
   );
 
-  const [options, setOptions] = useState(computeOptions);
-
-  useEffect(() => {
-    setOptions(computeOptions());
-  }, [computeOptions]);
+  /**
+   * Remount the native PopupButtonView so UIKit drops any stale menu selection
+   * (e.g. "Custom date" highlighted after opening the tray then dismissing).
+   * A new `key` is the reliable signal — identical `options` may not cross the bridge.
+   */
+  const [pulldownKey, setPulldownKey] = useState(0);
+  const resetPulldown = useCallback(() => {
+    setPulldownKey((k) => k + 1);
+  }, []);
 
   const trayRef = useRef<TrayApi>(null);
 
@@ -95,16 +95,17 @@ export function HeaderDatePicker({
   }, [localDate, setDayUtcSeconds]);
 
   const onCancel = useCallback(() => {
-    trayRef.current?.closeTray();
+    void trayRef.current?.closeTray();
   }, []);
 
   const onTrayDismiss = useCallback(() => {
-    setOptions(computeOptions());
-  }, [computeOptions]);
+    resetPulldown();
+  }, [resetPulldown]);
 
   return (
     <>
       <PopupButtonView
+        key={pulldownKey}
         options={options}
         onOptionSelect={onOptionSelect}
         preferredMenuElementOrder="fixed"
