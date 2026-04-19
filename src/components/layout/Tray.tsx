@@ -59,7 +59,6 @@ export const Tray = forwardRef<TrayApi, TrayProps>(function Tray(
       closePromiseRef.current = null;
     }
     onDismissProp?.();
-    sheetRef.current?.dismiss();
   }, [onDismissProp]);
 
   useImperativeHandle(
