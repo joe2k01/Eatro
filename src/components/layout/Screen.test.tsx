@@ -53,7 +53,7 @@ describe("Screen", () => {
     );
   });
 
-  it("always passes guard=bottom to SafeVStack regardless of header", () => {
+  it("defaults guard to bottom on SafeVStack", () => {
     renderWithProviders(
       <Screen title="X">
         <Text>a</Text>
@@ -61,6 +61,17 @@ describe("Screen", () => {
     );
     expect(mockSafeVStack).toHaveBeenCalledWith(
       expect.objectContaining({ guard: "bottom" }),
+    );
+  });
+
+  it("passes guard=none to SafeVStack when noGuard is set", () => {
+    renderWithProviders(
+      <Screen title="X" noGuard>
+        <Text>a</Text>
+      </Screen>,
+    );
+    expect(mockSafeVStack).toHaveBeenCalledWith(
+      expect.objectContaining({ guard: "none" }),
     );
   });
 

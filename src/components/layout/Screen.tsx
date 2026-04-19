@@ -5,6 +5,7 @@ import {
 } from "@components/navigation/ScreenHeader";
 
 export type ScreenProps = Omit<SafeVStackProps, "guard"> & {
+  noGuard?: boolean;
   title?: ScreenHeaderProps["title"];
   headerLeft?: ScreenHeaderProps["left"];
   headerCenter?: ScreenHeaderProps["center"];
@@ -18,13 +19,14 @@ export function Screen({
   headerCenter,
   headerRight,
   headerStyle,
+  noGuard = false,
   paddingHorizontal = 2,
   children,
   ...safeVStackProps
 }: ScreenProps) {
   return (
     <SafeVStack
-      guard="bottom"
+      guard={noGuard ? "none" : "bottom"}
       paddingHorizontal={paddingHorizontal}
       {...safeVStackProps}
     >
