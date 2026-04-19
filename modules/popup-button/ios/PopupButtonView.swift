@@ -33,6 +33,18 @@ class PopupButtonView: ExpoView {
       createMenu()
     }
   }
+  /// When true, `createMenu` uses `menuSelectionValue` for the checkmark instead of `selectedOption`.
+  var usesExplicitMenuSelection: Bool = false {
+    didSet {
+      createMenu()
+    }
+  }
+  /// Which option.value should show the checkmark; `nil` / `NSNull` = none (explicit mode only).
+  var menuSelectionValue: Any? {
+    didSet {
+      createMenu()
+    }
+  }
   var selectedIndex: Int?
   var selectedOption: OptionItem?
   var menuActions: [UIAction] = []
@@ -72,13 +84,14 @@ class PopupButtonView: ExpoView {
     guard !options.isEmpty else {
       button.menu = nil
       menuActions = []
+      selectedIndex = nil
+      selectedOption = nil
       return
     }
 
-    var newIndex: Int?
     menuActions = options.enumerated().map { index, option -> UIAction in
       let attributes: UIAction.Attributes = option.disabled ? .disabled : []
-      let action = UIAction(title: option.label, attributes: attributes) { [weak self] _ in
+      return UIAction(title: option.label, attributes: attributes) { [weak self] _ in
         guard let self = self else { return }
         if option.persistSelection {
           self.selectOption(at: index, shouldDispatch: true)
@@ -89,15 +102,40 @@ class PopupButtonView: ExpoView {
           ])
         }
       }
-
-      if let selectedOption = selectedOption, option.label == selectedOption.label && areEqual(option.value, selectedOption.value) {
-        newIndex = index
-      }
-
-      return action
     }
 
-    self.selectOption(at: newIndex ?? 0, shouldDispatch: false)
+    let resolvedIndex: Int?
+    if usesExplicitMenuSelection {
+      if menuSelectionValue == nil || menuSelectionValue is NSNull {
+        resolvedIndex = nil
+      } else {
+        resolvedIndex = options.firstIndex { areEqual($0.value, menuSelectionValue!) }
+      }
+    } else if let selectedOption = selectedOption {
+      resolvedIndex = options.firstIndex {
+        $0.label == selectedOption.label && areEqual($0.value, selectedOption.value)
+      }
+    } else {
+      resolvedIndex = nil
+    }
+
+    if let idx = resolvedIndex {
+      selectOption(at: idx, shouldDispatch: false)
+    } else if usesExplicitMenuSelection {
+      clearMenuSelection()
+    } else {
+      selectOption(at: 0, shouldDispatch: false)
+    }
+  }
+
+  private func clearMenuSelection() {
+    selectedIndex = nil
+    selectedOption = nil
+    for i in 0..<menuActions.count {
+      menuActions[i].state = .off
+    }
+    button.menu = UIMenu(children: menuActions)
+    button.layoutIfNeeded()
   }
 
   private func selectOption(at index: Int, shouldDispatch: Bool = true) {

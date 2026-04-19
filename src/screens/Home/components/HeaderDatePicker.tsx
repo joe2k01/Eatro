@@ -35,6 +35,12 @@ export function HeaderDatePicker({
   const isToday = dayUtcSeconds === todayUtcSeconds;
   const isYesterday = dayUtcSeconds === yesterdayUtcSeconds;
 
+  const menuSelectionValue: DateOption | null = isToday
+    ? "today"
+    : isYesterday
+      ? "yesterday"
+      : null;
+
   const options = useMemo<PopupButtonOption<DateOption>[]>(
     () => [
       { label: "Today", value: "today", disabled: isToday },
@@ -115,6 +121,8 @@ export function HeaderDatePicker({
     <>
       <PopupButtonView
         key={pulldownKey}
+        usesExplicitMenuSelection
+        menuSelectionValue={menuSelectionValue}
         options={options}
         onOptionSelect={onOptionSelect}
         preferredMenuElementOrder="fixed"

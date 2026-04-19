@@ -29,4 +29,12 @@ export type PopupButtonViewProps<T = any> = {
   style?: StyleProp<ViewStyle>;
   children?: React.ReactNode;
   preferredMenuElementOrder?: PopupButtonPreferredMenuElementOrder;
+  /**
+   * When true, the checkmarked row is driven by `menuSelectionValue` instead of
+   * internal last-tap state. Use `null` when no option should appear selected
+   * (e.g. current value does not match any row).
+   */
+  usesExplicitMenuSelection?: boolean;
+  /** Which option.value should show the checkmark; only used when `usesExplicitMenuSelection`. */
+  menuSelectionValue?: T | null;
 };
