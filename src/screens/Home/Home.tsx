@@ -5,6 +5,7 @@ import { Display, Caption, Title } from "@components/typography/Text";
 import { useStorage } from "@hooks/useStorage";
 import { Goals } from "@constants/storage/validators";
 import { useTheme } from "@contexts/ThemeProvider";
+import { Screen } from "@components/layout/Screen";
 import { VStack } from "@components/layout/VStack";
 import { HStack } from "@components/layout/HStack";
 import { DonutChart, useDonut } from "@components/charts";
@@ -34,8 +35,6 @@ import {
 import { useRepositories } from "@db/context/DatabaseProvider";
 import type { MealFoodWithFood } from "@db/repositories/MealFoodRepository";
 import type { Food } from "@db/schemas";
-import { ScreenHeader } from "@components/navigation/ScreenHeader";
-
 function nutrimentsFromLoggedFood(food: Food): GetProductDetails["nutriments"] {
   return {
     per100g: undefined,
@@ -59,11 +58,7 @@ const IDLE_EDIT_NUTRIMENTS: GetProductDetails["nutriments"] = {
 };
 
 const styles = StyleSheet.create({
-  screenHeader: {
-    paddingHorizontal: spacing(2),
-  },
   scrollContent: {
-    paddingHorizontal: spacing(2),
     paddingTop: spacing(1),
     gap: spacing(4),
   },
@@ -256,17 +251,16 @@ export function Home() {
   });
 
   return (
-    <VStack flex={1}>
-      <ScreenHeader
-        left={<AvatarButton />}
-        center={
-          <HeaderDatePicker
-            dayUtcSeconds={dayUtcSeconds}
-            setDayUtcSeconds={setDayUtcSeconds}
-          />
-        }
-        style={styles.screenHeader}
-      />
+    <Screen
+      noGuard
+      headerLeft={<AvatarButton />}
+      headerCenter={
+        <HeaderDatePicker
+          dayUtcSeconds={dayUtcSeconds}
+          setDayUtcSeconds={setDayUtcSeconds}
+        />
+      }
+    >
       <Animated.ScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}
@@ -362,7 +356,7 @@ export function Home() {
         onAccept={handleAcceptEdit}
         onDismiss={handleDismissEditTray}
       />
-    </VStack>
+    </Screen>
   );
 }
 

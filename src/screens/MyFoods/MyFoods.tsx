@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { StyleSheet, useWindowDimensions } from "react-native";
+import { useWindowDimensions } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import {
@@ -8,9 +8,7 @@ import {
   type Route,
   type TabBarProps,
 } from "react-native-tab-view";
-import { SafeVStack } from "@components/SafeVStack";
-import { ScreenHeader } from "@components/navigation/ScreenHeader";
-import { spacing } from "@constants/theme";
+import { Screen } from "@components/layout/Screen";
 import { Title } from "@components/typography/Text";
 import { IconButton } from "@components/buttons/IconButton";
 import type { MyFoodsStackParamsList } from "../../AppTabs";
@@ -21,12 +19,6 @@ import { FoodsScene } from "./scenes/FoodsScene";
 import { MealsScene } from "./scenes/MealsScene";
 
 const myFoodsHeaderAddNoop = () => undefined;
-
-const styles = StyleSheet.create({
-  screenHeader: {
-    paddingHorizontal: spacing(2),
-  },
-});
 
 export function MyFoods() {
   const layout = useWindowDimensions();
@@ -86,7 +78,6 @@ export function MyFoods() {
         activeColor={tabBarTheme.activeColor}
         inactiveColor={tabBarTheme.inactiveColor}
         pressColor={tabBarTheme.pressColor}
-        contentContainerStyle={myFoodsStyles.tabBarContent}
         android_ripple={tabBarTheme.androidRipple}
       />
     ),
@@ -94,19 +85,18 @@ export function MyFoods() {
   );
 
   return (
-    <SafeVStack guard="bottom" flex={1} paddingTop={1}>
-      <ScreenHeader
-        left={null}
-        center={<Title>My Foods</Title>}
-        right={
-          <IconButton
-            name="add"
-            variant="tertiary"
-            onPress={index === 0 ? navigateToCreateFood : myFoodsHeaderAddNoop}
-          />
-        }
-        style={styles.screenHeader}
-      />
+    <Screen
+      noGuard
+      headerLeft={null}
+      headerCenter={<Title>My Foods</Title>}
+      headerRight={
+        <IconButton
+          name="add"
+          variant="tertiary"
+          onPress={index === 0 ? navigateToCreateFood : myFoodsHeaderAddNoop}
+        />
+      }
+    >
       <TabView
         navigationState={navigationState}
         renderScene={renderScene}
@@ -117,7 +107,7 @@ export function MyFoods() {
         keyboardDismissMode="on-drag"
         commonOptions={TAB_VIEW_COMMON_OPTIONS}
       />
-    </SafeVStack>
+    </Screen>
   );
 }
 

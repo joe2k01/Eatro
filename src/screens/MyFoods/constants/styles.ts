@@ -8,15 +8,11 @@ export const myFoodsStyles = StyleSheet.create({
   tabView: {
     flex: 1,
   },
-  tabBarContent: {
-    paddingHorizontal: spacing(2),
-  },
   tabBarLabel: {
     ...Typography.label,
     textTransform: "none",
   },
   bottomButton: {
-    paddingHorizontal: spacing(2),
     paddingBottom: spacing(2),
   },
 });

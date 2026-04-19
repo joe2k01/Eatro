@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StyleSheet } from "react-native";
 
 export type SafeVStackProps = VStackProps & {
-  guard?: "top" | "bottom" | "both";
+  guard?: "top" | "bottom" | "both" | "none";
 };
 
 export function SafeVStack({
