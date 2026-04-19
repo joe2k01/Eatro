@@ -21,7 +21,7 @@ export function MyFoodsSearchList<T>({
   keyExtractor,
 }: MyFoodsSearchListProps<T>) {
   return (
-    <VStack flex={1} gap={1} paddingHorizontal={2} paddingTop={1}>
+    <VStack flex={1} gap={1} paddingTop={1}>
       <TextInput
         value={filterQuery}
         onChangeText={onFilterQueryChange}

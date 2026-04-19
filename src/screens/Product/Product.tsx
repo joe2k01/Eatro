@@ -4,7 +4,7 @@ import { match, P } from "ts-pattern";
 import { useNavigation } from "@react-navigation/native";
 import { useParams } from "@hooks/useParams";
 import { ErrorBoundary } from "@components/feedback";
-import { VStack } from "@components/layout/VStack";
+import { Box } from "@components/layout/Box";
 import { Screen } from "@components/layout/Screen";
 import { ProductLoader } from "./ProductLoader";
 import { ProductError } from "./ProductError";
@@ -37,19 +37,17 @@ export function Product() {
   if (!content) {
     return (
       <Screen title="Product" flex={1}>
-        <VStack flex={1} padding={2}>
-          <ProductError
-            error={new Error("Missing product parameters")}
-            onRetry={() => navigation.goBack()}
-          />
-        </VStack>
+        <ProductError
+          error={new Error("Missing product parameters")}
+          onRetry={() => navigation.goBack()}
+        />
       </Screen>
     );
   }
 
   return (
     <Screen title="Product" flex={1}>
-      <VStack flex={1}>
+      <Box flex={1}>
         <QueryErrorResetBoundary>
           {({ reset }) => (
             <ErrorBoundary
@@ -62,7 +60,7 @@ export function Product() {
             </ErrorBoundary>
           )}
         </QueryErrorResetBoundary>
-      </VStack>
+      </Box>
     </Screen>
   );
 }

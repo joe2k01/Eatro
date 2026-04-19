@@ -53,14 +53,25 @@ describe("Screen", () => {
     );
   });
 
-  it("forwards guard and scrollable to SafeVStack", () => {
+  it("always passes guard=bottom to SafeVStack regardless of header", () => {
     renderWithProviders(
-      <Screen title="X" guard="top" scrollable>
+      <Screen title="X">
         <Text>a</Text>
       </Screen>,
     );
     expect(mockSafeVStack).toHaveBeenCalledWith(
-      expect.objectContaining({ guard: "top", scrollable: true }),
+      expect.objectContaining({ guard: "bottom" }),
+    );
+  });
+
+  it("forwards scrollable to SafeVStack", () => {
+    renderWithProviders(
+      <Screen title="X" scrollable>
+        <Text>a</Text>
+      </Screen>,
+    );
+    expect(mockSafeVStack).toHaveBeenCalledWith(
+      expect.objectContaining({ scrollable: true }),
     );
   });
 

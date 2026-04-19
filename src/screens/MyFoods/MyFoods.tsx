@@ -78,7 +78,6 @@ export function MyFoods() {
         activeColor={tabBarTheme.activeColor}
         inactiveColor={tabBarTheme.inactiveColor}
         pressColor={tabBarTheme.pressColor}
-        contentContainerStyle={myFoodsStyles.tabBarContent}
         android_ripple={tabBarTheme.androidRipple}
       />
     ),
@@ -87,7 +86,6 @@ export function MyFoods() {
 
   return (
     <Screen
-      guard="bottom"
       flex={1}
       paddingTop={1}
       headerLeft={null}

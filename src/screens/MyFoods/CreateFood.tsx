@@ -169,7 +169,7 @@ export function CreateFood() {
   }, [validate, values, nutrientBasis, foodRepo, showSnackbar, navigation]);
 
   return (
-    <Screen title="New Food" guard="bottom">
+    <Screen title="New Food">
       <VStack scrollable paddingBlock={2} gap={2}>
         <TextInput
           label="Name"

@@ -12,7 +12,6 @@ import {
   type PillButtonProps,
 } from "@components/buttons/PillButton";
 import { Button } from "@components/buttons/Button";
-import { SafeVStack } from "@components/SafeVStack/SafeVStack";
 import type { TrayApi } from "@components/layout/Tray";
 import { ProductTray } from "./ProductTray";
 
@@ -100,7 +99,7 @@ export function ProductContent({
 
   return (
     <Box flex={1}>
-      <SafeVStack guard="bottom" flex={1} paddingHorizontal={2}>
+      <VStack flex={1}>
         <VStack scrollable flex={1} gap={2} width="100%">
           <VStack gap={1}>
             <Heading textAlign="center">{name}</Heading>
@@ -162,7 +161,7 @@ export function ProductContent({
         <Button variant="primary" onPress={openTray}>
           Add to meal
         </Button>
-      </SafeVStack>
+      </VStack>
       <ProductTray
         trayRef={tray}
         foodId={foodId}

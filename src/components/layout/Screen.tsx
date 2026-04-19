@@ -4,7 +4,7 @@ import {
   type ScreenHeaderProps,
 } from "@components/navigation/ScreenHeader";
 
-export type ScreenProps = SafeVStackProps & {
+export type ScreenProps = Omit<SafeVStackProps, "guard"> & {
   title?: ScreenHeaderProps["title"];
   headerLeft?: ScreenHeaderProps["left"];
   headerCenter?: ScreenHeaderProps["center"];
@@ -23,7 +23,11 @@ export function Screen({
   ...safeVStackProps
 }: ScreenProps) {
   return (
-    <SafeVStack paddingHorizontal={paddingHorizontal} {...safeVStackProps}>
+    <SafeVStack
+      guard="bottom"
+      paddingHorizontal={paddingHorizontal}
+      {...safeVStackProps}
+    >
       <ScreenHeader
         title={title}
         left={headerLeft}

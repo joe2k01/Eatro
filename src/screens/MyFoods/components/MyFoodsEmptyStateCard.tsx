@@ -29,7 +29,7 @@ export function MyFoodsEmptyStateCard({
   );
 
   const cardBlock = (
-    <VStack paddingHorizontal={2}>
+    <VStack>
       <VStack style={cardStyles.card}>
         <Caption color={theme.text.muted}>{message}</Caption>
       </VStack>
