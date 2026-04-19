@@ -1,27 +1,48 @@
-import { Pressable } from "react-native";
-import { Title } from "@components/typography/Text";
-import { format } from "date-fns";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
+import { format } from "date-fns";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { Tray, TrayApi } from "@components/layout/Tray";
-import { VStack } from "@components/layout/VStack";
+import {
+  PopupButtonView,
+  type ChangeEventPayload,
+  type PopupButtonOption,
+} from "../../../../modules/popup-button";
 import { Button } from "@components/buttons/Button";
 import { HStack } from "@components/layout/HStack";
+import { Tray, TrayApi } from "@components/layout/Tray";
+import { VStack } from "@components/layout/VStack";
 import { Icon } from "@components/media/Icon";
+import { Title } from "@components/typography/Text";
+import { addUtcDaysSeconds, utcStartOfTodaySeconds } from "@db/utils/utc";
 
 type HeaderDatePickerProps = {
   dayUtcSeconds: number;
   setDayUtcSeconds: (dayUtcSeconds: number) => void;
 };
 
+type DateOption = "today" | "yesterday" | "custom";
+
 export function HeaderDatePicker({
   dayUtcSeconds,
   setDayUtcSeconds,
 }: HeaderDatePickerProps) {
   const date = useMemo(() => new Date(dayUtcSeconds * 1000), [dayUtcSeconds]);
-  const today = useMemo(() => new Date(), []);
+  const todayDate = useMemo(() => new Date(), []);
+
+  const todayUtcSeconds = utcStartOfTodaySeconds();
+  const yesterdayUtcSeconds = addUtcDaysSeconds(todayUtcSeconds, -1);
+  const isToday = dayUtcSeconds === todayUtcSeconds;
+  const isYesterday = dayUtcSeconds === yesterdayUtcSeconds;
+
+  const options = useMemo<PopupButtonOption<DateOption>[]>(
+    () => [
+      { label: "Today", value: "today", disabled: isToday },
+      { label: "Yesterday", value: "yesterday", disabled: isYesterday },
+      { label: "Custom date", value: "custom" },
+    ],
+    [isToday, isYesterday],
+  );
 
   const trayRef = useRef<TrayApi>(null);
 
@@ -31,9 +52,20 @@ export function HeaderDatePicker({
     setLocalDate(date);
   }, [date]);
 
-  const onOpenTray = useCallback(() => {
-    trayRef.current?.openTray();
-  }, []);
+  const onOptionSelect = useCallback(
+    (option: ChangeEventPayload<DateOption>) => {
+      if (option.value === "today") {
+        setDayUtcSeconds(utcStartOfTodaySeconds());
+        return;
+      }
+      if (option.value === "yesterday") {
+        setDayUtcSeconds(addUtcDaysSeconds(utcStartOfTodaySeconds(), -1));
+        return;
+      }
+      trayRef.current?.openTray();
+    },
+    [setDayUtcSeconds],
+  );
 
   const onChange = useCallback(
     (_: DateTimePickerEvent, selectedDate: Date | undefined) => {
@@ -52,16 +84,18 @@ export function HeaderDatePicker({
     trayRef.current?.closeTray();
   }, [localDate, setDayUtcSeconds]);
 
-  const onCancel = useCallback(() => {
-    trayRef.current?.closeTray();
-  }, []);
-
   return (
-    <Pressable onPress={onOpenTray}>
-      <HStack gap={1} alignItems="center">
-        <Title>{format(date, "MMMM do yyyy")}</Title>
-        <Icon name="chevron-down" community />
-      </HStack>
+    <>
+      <PopupButtonView
+        options={options}
+        onOptionSelect={onOptionSelect}
+        preferredMenuElementOrder="fixed"
+      >
+        <HStack gap={1} alignItems="center">
+          <Title>{format(date, "MMMM do yyyy")}</Title>
+          <Icon name="chevron-down" community />
+        </HStack>
+      </PopupButtonView>
       <Tray ref={trayRef}>
         <VStack backgroundColor="transparent" gap={2}>
           <DateTimePicker
@@ -70,16 +104,13 @@ export function HeaderDatePicker({
             display="spinner"
             onChange={onChange}
             onLayout={onLayout}
-            maximumDate={today}
+            maximumDate={todayDate}
           />
           <Button variant="primary" onPress={onConfirm}>
             Confirm
           </Button>
-          <Button variant="destructive" onPress={onCancel}>
-            Cancel
-          </Button>
         </VStack>
       </Tray>
-    </Pressable>
+    </>
   );
 }
