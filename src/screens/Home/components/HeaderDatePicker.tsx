@@ -2,7 +2,7 @@ import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { format } from "date-fns";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   PopupButtonView,
   type ChangeEventPayload,
@@ -35,14 +35,24 @@ export function HeaderDatePicker({
   const isToday = dayUtcSeconds === todayUtcSeconds;
   const isYesterday = dayUtcSeconds === yesterdayUtcSeconds;
 
-  const options = useMemo<PopupButtonOption<DateOption>[]>(
-    () => [
+  // Returns a fresh options array. Stored in state so we can force a new
+  // reference on tray dismiss, which causes the native PopupButtonView to
+  // re-run createMenu() and clear any stale UIKit selection state left behind
+  // by the "Custom date" action.
+  const computeOptions = useCallback(
+    (): PopupButtonOption<DateOption>[] => [
       { label: "Today", value: "today", disabled: isToday },
       { label: "Yesterday", value: "yesterday", disabled: isYesterday },
-      { label: "Custom date", value: "custom" },
+      { label: "Custom date", value: "custom", persistSelection: false },
     ],
     [isToday, isYesterday],
   );
+
+  const [options, setOptions] = useState(computeOptions);
+
+  useEffect(() => {
+    setOptions(computeOptions());
+  }, [computeOptions]);
 
   const trayRef = useRef<TrayApi>(null);
 
@@ -84,6 +94,14 @@ export function HeaderDatePicker({
     trayRef.current?.closeTray();
   }, [localDate, setDayUtcSeconds]);
 
+  const onCancel = useCallback(() => {
+    trayRef.current?.closeTray();
+  }, []);
+
+  const onTrayDismiss = useCallback(() => {
+    setOptions(computeOptions());
+  }, [computeOptions]);
+
   return (
     <>
       <PopupButtonView
@@ -96,7 +114,7 @@ export function HeaderDatePicker({
           <Icon name="chevron-down" community />
         </HStack>
       </PopupButtonView>
-      <Tray ref={trayRef}>
+      <Tray ref={trayRef} onDismiss={onTrayDismiss}>
         <VStack backgroundColor="transparent" gap={2}>
           <DateTimePicker
             value={localDate}
@@ -108,6 +126,9 @@ export function HeaderDatePicker({
           />
           <Button variant="primary" onPress={onConfirm}>
             Confirm
+          </Button>
+          <Button variant="destructive" onPress={onCancel}>
+            Cancel
           </Button>
         </VStack>
       </Tray>
