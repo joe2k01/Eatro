@@ -13,13 +13,8 @@ public class PopupButtonModule: Module {
     // Enables the module to be used as a native view. Definition components that are accepted as part of the
     // view definition: Prop, Events.
     View(PopupButtonView.self) {
-      // Apply before `options` so the first options assignment builds with correct selection mode.
-      Prop("usesExplicitMenuSelection") { (view: PopupButtonView, usesExplicitMenuSelection: Bool) in
-        view.usesExplicitMenuSelection = usesExplicitMenuSelection
-      }
-
-      Prop("menuSelectionValue") { (view: PopupButtonView, menuSelectionValue: Any?) in
-        view.menuSelectionValue = menuSelectionValue
+      Prop("selectedValue") { (view: PopupButtonView, selectedValue: Any?) in
+        view.selectedValue = selectedValue
       }
 
       // Defines a setter for the `options` prop.

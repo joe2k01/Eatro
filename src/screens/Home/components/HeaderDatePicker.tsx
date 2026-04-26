@@ -35,7 +35,7 @@ export function HeaderDatePicker({
   const isToday = dayUtcSeconds === todayUtcSeconds;
   const isYesterday = dayUtcSeconds === yesterdayUtcSeconds;
 
-  const menuSelectionValue: DateOption | null = isToday
+  const selectedShortcutValue: DateOption | null = isToday
     ? "today"
     : isYesterday
       ? "yesterday"
@@ -45,24 +45,10 @@ export function HeaderDatePicker({
     () => [
       { label: "Today", value: "today", disabled: isToday },
       { label: "Yesterday", value: "yesterday", disabled: isYesterday },
-      { label: "Custom date", value: "custom", persistSelection: false },
+      { label: "Custom date", value: "custom" },
     ],
     [isToday, isYesterday],
   );
-
-  /**
-   * Remount the native PopupButtonView so UIKit drops any stale menu selection
-   * (e.g. "Custom date" highlighted after opening the tray then dismissing without
-   * confirming). Skip remount after Confirm — a fresh native view defaults its
-   * checkmark to the first row (Today), which would lie for a custom day.
-   */
-  const [pulldownKey, setPulldownKey] = useState(0);
-  const resetPulldown = useCallback(() => {
-    setPulldownKey((k) => k + 1);
-  }, []);
-
-  /** When true, the next tray `onDismiss` should not remount the pulldown (Confirm path). */
-  const skipPulldownRemountOnDismissRef = useRef(false);
 
   const trayRef = useRef<TrayApi>(null);
 
@@ -101,7 +87,6 @@ export function HeaderDatePicker({
       setDayUtcSeconds(Math.floor(localDate.getTime() / 1000));
     }
 
-    skipPulldownRemountOnDismissRef.current = true;
     trayRef.current?.closeTray();
   }, [localDate, setDayUtcSeconds]);
 
@@ -109,20 +94,10 @@ export function HeaderDatePicker({
     void trayRef.current?.closeTray();
   }, []);
 
-  const onTrayDismiss = useCallback(() => {
-    if (skipPulldownRemountOnDismissRef.current) {
-      skipPulldownRemountOnDismissRef.current = false;
-      return;
-    }
-    resetPulldown();
-  }, [resetPulldown]);
-
   return (
     <>
       <PopupButtonView
-        key={pulldownKey}
-        usesExplicitMenuSelection
-        menuSelectionValue={menuSelectionValue}
+        selectedValue={selectedShortcutValue}
         options={options}
         onOptionSelect={onOptionSelect}
         preferredMenuElementOrder="fixed"
@@ -132,7 +107,7 @@ export function HeaderDatePicker({
           <Icon name="chevron-down" community />
         </HStack>
       </PopupButtonView>
-      <Tray ref={trayRef} onDismiss={onTrayDismiss}>
+      <Tray ref={trayRef}>
         <VStack backgroundColor="transparent" gap={2}>
           <DateTimePicker
             value={localDate}

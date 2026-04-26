@@ -32,14 +32,26 @@ describe("Picker", () => {
       <Picker options={options} onOptionSelect={onOptionSelect} />,
     );
     expect(screen.getByText("Select...")).toBeOnTheScreen();
+    expect(
+      screen.getByTestId("popup-option-lunch").props.accessibilityState
+        .selected,
+    ).toBe(false);
 
     fireEvent.press(screen.getByTestId("popup-option-lunch"));
     expect(screen.getByText("Lunch")).toBeOnTheScreen();
+    expect(
+      screen.getByTestId("popup-option-lunch").props.accessibilityState
+        .selected,
+    ).toBe(true);
     expect(screen.queryByText("Select...")).not.toBeOnTheScreen();
     expect(onOptionSelect).toHaveBeenCalledWith(options[1]);
 
     fireEvent.press(screen.getByTestId("popup-option-breakfast"));
     expect(screen.getByText("Breakfast")).toBeOnTheScreen();
+    expect(
+      screen.getByTestId("popup-option-breakfast").props.accessibilityState
+        .selected,
+    ).toBe(true);
     expect(screen.queryByText("Lunch")).not.toBeOnTheScreen();
     expect(onOptionSelect).toHaveBeenLastCalledWith(options[0]);
   });

@@ -69,7 +69,8 @@ jest.mock("../modules/popup-button/src/PopupButtonView", () => {
     default: (props: {
       children?: ReactNode;
       onOptionSelect?: (option: { label: string; value: unknown }) => void;
-      options?: Array<{ label: string; value: unknown }>;
+      options?: Array<{ label: string; value: unknown; disabled?: boolean }>;
+      selectedValue?: unknown | null;
     }) =>
       mockReact.createElement(
         View,
@@ -79,7 +80,15 @@ jest.mock("../modules/popup-button/src/PopupButtonView", () => {
           mockReact.createElement(Pressable, {
             key: String(opt.value),
             testID: `popup-option-${String(opt.value)}`,
-            onPress: () => props.onOptionSelect?.(opt),
+            accessibilityState: {
+              disabled: opt.disabled,
+              selected: props.selectedValue === opt.value,
+            },
+            onPress: () => {
+              if (!opt.disabled) {
+                props.onOptionSelect?.(opt);
+              }
+            },
           }),
         ),
       ),
