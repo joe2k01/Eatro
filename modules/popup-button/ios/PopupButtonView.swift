@@ -21,6 +21,14 @@ struct OptionItem: Convertible {
   }
 }
 
+struct SelectedValue: Convertible {
+  let value: Any?
+
+  static func convert(from value: Any?, appContext: AppContext) throws -> Self {
+    return SelectedValue(value: value)
+  }
+}
+
 // This view will be used as a native component. Make sure to inherit from `ExpoView`
 // to apply the proper styling (e.g. border radius and shadows).
 class PopupButtonView: ExpoView {
@@ -87,7 +95,7 @@ class PopupButtonView: ExpoView {
     button.menu = UIMenu(children: menuActions)
     button.layoutIfNeeded()
   }
-  
+
   private func isSelected(_ option: OptionItem) -> Bool {
     guard let selectedValue = selectedValue, !(selectedValue is NSNull) else {
       return false
@@ -100,11 +108,11 @@ class PopupButtonView: ExpoView {
     if lhs is NSNull && rhs is NSNull {
       return true
     }
-    
+
     if let lhsObj = lhs as? NSObject, let rhsObj = rhs as? NSObject {
       return lhsObj.isEqual(rhsObj)
     }
-    
+
     return lhs as AnyObject === rhs as AnyObject
   }
 }

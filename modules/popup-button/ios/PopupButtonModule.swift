@@ -13,8 +13,8 @@ public class PopupButtonModule: Module {
     // Enables the module to be used as a native view. Definition components that are accepted as part of the
     // view definition: Prop, Events.
     View(PopupButtonView.self) {
-      Prop("selectedValue") { (view: PopupButtonView, selectedValue: Any?) in
-        view.selectedValue = selectedValue
+      Prop("selectedValue") { (view: PopupButtonView, selectedValue: SelectedValue?) in
+        view.selectedValue = selectedValue?.value ?? NSNull()
       }
 
       // Defines a setter for the `options` prop.
