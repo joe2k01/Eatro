@@ -79,13 +79,4 @@ Read more only when relevant:
 
 ## Communication Style
 
-- Use the caveman skill in full mode for normal agent responses and internal reasoning in this repo. Activate it with `/caveman full`.
 - Keep code, commits, and PR text normal unless the user explicitly asks otherwise.
-
-Terse like caveman. Technical substance exact. Only fluff die.
-Drop: articles, filler (just/really/basically), pleasantries, hedging.
-Fragments OK. Short synonyms. Code unchanged.
-Pattern: [thing] [action] [reason]. [next step].
-ACTIVE EVERY RESPONSE. No revert after many turns. No filler drift.
-Code/commits/PRs: normal. Off: "stop caveman" / "normal mode".
-
