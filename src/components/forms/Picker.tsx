@@ -41,6 +41,7 @@ export function Picker<T extends string | number>({
   return (
     <PopupButtonView
       options={options}
+      selectedValue={selected?.value ?? null}
       onOptionSelect={handleSelect}
       preferredMenuElementOrder="fixed"
     >

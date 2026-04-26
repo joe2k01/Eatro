@@ -5,13 +5,27 @@ import UIKit
 struct OptionItem: Convertible {
   let label: String
   let value: Any
-  
+  let disabled: Bool
+
   static func convert(from value: Any?, appContext: AppContext) throws -> Self {
     guard let dict = value as? [String: Any],
           let label = dict["label"] as? String else {
       throw Conversions.ConvertingException<OptionItem>(value)
     }
-    return OptionItem(label: label, value: dict["value"] ?? NSNull())
+    let disabled = dict["disabled"] as? Bool ?? false
+    return OptionItem(
+      label: label,
+      value: dict["value"] ?? NSNull(),
+      disabled: disabled
+    )
+  }
+}
+
+struct SelectedValue: Convertible {
+  let value: Any?
+
+  static func convert(from value: Any?, appContext: AppContext) throws -> Self {
+    return SelectedValue(value: value)
   }
 }
 
@@ -21,12 +35,14 @@ class PopupButtonView: ExpoView {
   let button = UIButton(type: .system)
   var options: [OptionItem] = [] {
     didSet {
-      createMenu()
+      updateMenu()
     }
   }
-  var selectedIndex: Int?
-  var selectedOption: OptionItem?
-  var menuActions: [UIAction] = []
+  var selectedValue: Any? {
+    didSet {
+      updateMenu()
+    }
+  }
   let onOptionSelect = EventDispatcher()
   
   @available(iOS 16.0, *)
@@ -59,67 +75,44 @@ class PopupButtonView: ExpoView {
     }
   }
 
-  private func createMenu() {
+  private func updateMenu() {
     guard !options.isEmpty else {
       button.menu = nil
-      menuActions = []
       return
     }
 
-    var newIndex: Int?
-    menuActions = options.enumerated().map { index, option -> UIAction in
-      let action = UIAction(title: option.label) { [weak self] _ in
-        self?.selectOption(at: index, shouldDispatch: true)
+    let menuActions = options.map { option -> UIAction in
+      let attributes: UIAction.Attributes = option.disabled ? .disabled : []
+      let state: UIAction.State = isSelected(option) ? .on : .off
+      return UIAction(title: option.label, attributes: attributes, state: state) { [weak self] _ in
+        self?.onOptionSelect([
+          "label": option.label,
+          "value": option.value
+        ])
       }
-
-      if let selectedOption = selectedOption, option.label == selectedOption.label && areEqual(option.value, selectedOption.value) {
-        newIndex = index
-      }
-
-      return action
-    }
-
-    self.selectOption(at: newIndex ?? 0, shouldDispatch: newIndex == nil)
-  }
-
-  private func selectOption(at index: Int, shouldDispatch: Bool = true) {
-    guard index < options.count else { return }
-    
-    let previousIndex = selectedIndex
-
-    let option = options[index]
-    selectedIndex = index
-    selectedOption = option
-    
-    if let previousIndex = previousIndex, previousIndex < menuActions.count {
-      menuActions[previousIndex].state = .off
-    }
-
-    if index < menuActions.count {
-      menuActions[index].state = .on
     }
 
     button.menu = UIMenu(children: menuActions)
     button.layoutIfNeeded()
-
-    // Dispatch event if needed
-    if shouldDispatch {
-      onOptionSelect([
-        "label": option.label,
-        "value": option.value
-      ])
-    }
   }
-  
+
+  private func isSelected(_ option: OptionItem) -> Bool {
+    guard let selectedValue = selectedValue, !(selectedValue is NSNull) else {
+      return false
+    }
+
+    return areEqual(option.value, selectedValue)
+  }
+
   private func areEqual(_ lhs: Any, _ rhs: Any) -> Bool {
     if lhs is NSNull && rhs is NSNull {
       return true
     }
-    
+
     if let lhsObj = lhs as? NSObject, let rhsObj = rhs as? NSObject {
       return lhsObj.isEqual(rhsObj)
     }
-    
+
     return lhs as AnyObject === rhs as AnyObject
   }
 }

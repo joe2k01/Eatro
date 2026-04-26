@@ -12,6 +12,8 @@ export type ChangeEventPayload<T = any> = {
 export type PopupButtonOption<T = any> = {
   label: string;
   value: T;
+  /** When true, the native menu item is non-interactive (grayed out). */
+  disabled?: boolean;
 };
 
 export type PopupButtonPreferredMenuElementOrder = "fixed" | "automatic";
@@ -22,4 +24,6 @@ export type PopupButtonViewProps<T = any> = {
   style?: StyleProp<ViewStyle>;
   children?: React.ReactNode;
   preferredMenuElementOrder?: PopupButtonPreferredMenuElementOrder;
+  /** Which option.value should show the checkmark; omitted/null means no checkmark. */
+  selectedValue?: T | null;
 };
