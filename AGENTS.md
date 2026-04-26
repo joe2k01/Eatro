@@ -76,7 +76,3 @@ Read more only when relevant:
 - `src/screens/MealR/` for MealR flow behavior.
 - `src/db/repositories/` for repository and colocated test patterns.
 - `docs/superpowers/specs/` and `docs/superpowers/plans/` only when continuing prior design or planning work.
-
-## Communication Style
-
-- Keep code, commits, and PR text normal unless the user explicitly asks otherwise.
